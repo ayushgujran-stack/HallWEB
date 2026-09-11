@@ -1,0 +1,705 @@
+// VenueLuxe Admin Dashboard & Verification Center
+// Meets requirements for Super Admin governance, review workflows, and mobile responsiveness
+
+const AdminDashboardView = {
+  currentTab: 'queue', // 'queue', 'all_halls', 'audit', 'reports'
+
+  render() {
+    const halls = window.appStore.getHalls();
+    const pendingHalls = halls.filter(h => h.status === 'PENDING_APPROVAL');
+    const liveHalls = halls.filter(h => h.status === 'LIVE');
+    const suspendedHalls = halls.filter(h => h.status === 'SUSPENDED');
+    const bookings = window.appStore.getBookings();
+    const users = window.appStore.getUsers();
+    const auditLogs = window.appStore.getAuditLogs();
+    const reports = window.appStore.getReports();
+
+    return `
+      <div class="flex flex-col w-full min-h-[calc(100vh-5rem)] bg-surface py-6 md:py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-8">
+          
+          <!-- Admin Verification Center Header -->
+          <div class="bg-primary text-on-primary p-6 md:p-8 rounded-2xl shadow-sm border border-stone-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full bg-secondary/20 text-secondary text-xs font-bold uppercase tracking-wider">
+                  Platform Moderation
+                </span>
+                <span class="text-xs text-stone-300">• Venue Verification Center</span>
+              </div>
+              <h1 class="font-display text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                Admin Dashboard & Verification Center
+              </h1>
+              <p class="text-xs sm:text-sm text-stone-300 max-w-2xl leading-relaxed">
+                Review submitted venues, audit capacity certifications and safety compliance, manage live listings, and address safety reports.
+              </p>
+            </div>
+
+            <div class="flex items-center gap-3 flex-wrap">
+              <span class="px-3 py-1.5 rounded-lg bg-emerald-950/80 text-emerald-300 text-xs flex items-center gap-2 font-medium border border-emerald-800/40">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                Auditing Engine Active
+              </span>
+              <button 
+                class="px-4 py-2 bg-stone-800 text-stone-100 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-stone-700 transition-colors focus-visible:ring-2 focus-visible:ring-secondary min-h-[44px]" 
+                onclick="HeaderComponent.switchRole('owner')">
+                Owner Workspace
+              </button>
+            </div>
+          </div>
+
+          <!-- Urgent Governance Action Bar (if items pending) -->
+          ${(pendingHalls.length > 0 || reports.length > 0) ? `
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-[20px]">priority_high</span>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-amber-900 uppercase tracking-wider">Urgent Attention Required</h4>
+                  <p class="text-xs text-amber-800 mt-0.5">
+                    <strong>${pendingHalls.length} venue(s)</strong> awaiting publication audit & <strong>${reports.length} user safety report(s)</strong> logged.
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 self-end sm:self-auto">
+                ${pendingHalls.length > 0 ? `
+                  <button onclick="AdminDashboardView.setTab('queue')" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition-colors">
+                    Review Queue (${pendingHalls.length})
+                  </button>
+                ` : ''}
+                ${reports.length > 0 ? `
+                  <button onclick="AdminDashboardView.setTab('reports')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg transition-colors">
+                    View Reports (${reports.length})
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- KPI Metric Cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+            
+            <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
+              <div class="flex items-center justify-between text-stone-500 mb-1">
+                <span class="text-[11px] font-bold uppercase tracking-wider">Total Users</span>
+                <span class="material-symbols-outlined text-[18px]">group</span>
+              </div>
+              <div class="font-display text-2xl font-bold text-stone-900">${users.length + 1420}</div>
+              <p class="text-[11px] text-stone-500 mt-0.5">+64 active this week</p>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
+              <div class="flex items-center justify-between text-stone-500 mb-1">
+                <span class="text-[11px] font-bold uppercase tracking-wider">Hall Hosts</span>
+                <span class="material-symbols-outlined text-[18px]">badge</span>
+              </div>
+              <div class="font-display text-2xl font-bold text-stone-900">210</div>
+              <p class="text-[11px] text-stone-500 mt-0.5">Verified proprietors</p>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
+              <div class="flex items-center justify-between text-stone-500 mb-1">
+                <span class="text-[11px] font-bold uppercase tracking-wider">Total Halls</span>
+                <span class="material-symbols-outlined text-[18px]">corporate_fare</span>
+              </div>
+              <div class="font-display text-2xl font-bold text-stone-900">${halls.length}</div>
+              <p class="text-[11px] text-stone-500 mt-0.5">${liveHalls.length} live in catalog</p>
+            </div>
+
+            <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 shadow-sm">
+              <div class="flex items-center justify-between text-amber-800 mb-1">
+                <span class="text-[11px] font-bold uppercase tracking-wider">Pending Review</span>
+                <span class="material-symbols-outlined text-[18px]">verified</span>
+              </div>
+              <div class="font-display text-2xl font-bold text-amber-900">${pendingHalls.length}</div>
+              <p class="text-[11px] text-amber-700 font-semibold mt-0.5">Verification queue</p>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
+              <div class="flex items-center justify-between text-stone-500 mb-1">
+                <span class="text-[11px] font-bold uppercase tracking-wider">Bookings</span>
+                <span class="material-symbols-outlined text-[18px]">calendar_today</span>
+              </div>
+              <div class="font-display text-2xl font-bold text-stone-900">${bookings.length}</div>
+              <p class="text-[11px] text-emerald-700 font-semibold mt-0.5">99.4% fulfillment</p>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
+              <div class="flex items-center justify-between text-rose-600 mb-1">
+                <span class="text-[11px] font-bold uppercase tracking-wider">Safety Reports</span>
+                <span class="material-symbols-outlined text-[18px]">report</span>
+              </div>
+              <div class="font-display text-2xl font-bold text-rose-700">${reports.length}</div>
+              <p class="text-[11px] text-stone-500 mt-0.5">${reports.length === 0 ? 'No flags' : 'Requires review'}</p>
+            </div>
+
+          </div>
+
+          <!-- Moderation Queue Tabs with Badges -->
+          <div class="flex items-center gap-2 border-b border-stone-200 pb-2 overflow-x-auto" role="tablist">
+            <button 
+              role="tab"
+              aria-selected="${this.currentTab === 'queue'}"
+              class="px-4 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 shrink-0 min-h-[44px] ${this.currentTab === 'queue' ? 'bg-primary text-white shadow-sm' : 'bg-stone-100 text-stone-600 hover:text-stone-900'}" 
+              onclick="AdminDashboardView.setTab('queue')">
+              <span>Verification Queue</span>
+              <span class="px-1.5 py-0.5 rounded-full text-[10px] ${this.currentTab === 'queue' ? 'bg-amber-500 text-white' : 'bg-stone-200 text-stone-800'}">
+                ${pendingHalls.length}
+              </span>
+            </button>
+
+            <button 
+              role="tab"
+              aria-selected="${this.currentTab === 'all_halls'}"
+              class="px-4 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 shrink-0 min-h-[44px] ${this.currentTab === 'all_halls' ? 'bg-primary text-white shadow-sm' : 'bg-stone-100 text-stone-600 hover:text-stone-900'}" 
+              onclick="AdminDashboardView.setTab('all_halls')">
+              <span>All Venues</span>
+              <span class="px-1.5 py-0.5 rounded-full text-[10px] ${this.currentTab === 'all_halls' ? 'bg-stone-800 text-white' : 'bg-stone-200 text-stone-800'}">
+                ${halls.length}
+              </span>
+            </button>
+
+            <button 
+              role="tab"
+              aria-selected="${this.currentTab === 'audit'}"
+              class="px-4 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 shrink-0 min-h-[44px] ${this.currentTab === 'audit' ? 'bg-primary text-white shadow-sm' : 'bg-stone-100 text-stone-600 hover:text-stone-900'}" 
+              onclick="AdminDashboardView.setTab('audit')">
+              <span>Audit Log</span>
+              <span class="px-1.5 py-0.5 rounded-full text-[10px] ${this.currentTab === 'audit' ? 'bg-stone-800 text-white' : 'bg-stone-200 text-stone-800'}">
+                ${auditLogs.length}
+              </span>
+            </button>
+
+            <button 
+              role="tab"
+              aria-selected="${this.currentTab === 'reports'}"
+              class="px-4 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 shrink-0 min-h-[44px] ${this.currentTab === 'reports' ? 'bg-primary text-white shadow-sm' : 'bg-stone-100 text-stone-600 hover:text-stone-900'}" 
+              onclick="AdminDashboardView.setTab('reports')">
+              <span>Safety & Complaints</span>
+              <span class="px-1.5 py-0.5 rounded-full text-[10px] ${this.currentTab === 'reports' ? 'bg-rose-600 text-white' : 'bg-stone-200 text-stone-800'}">
+                ${reports.length}
+              </span>
+            </button>
+          </div>
+
+          <!-- TAB 1: PENDING VERIFICATION QUEUE -->
+          ${this.currentTab === 'queue' ? `
+            <div class="bg-white p-5 sm:p-6 rounded-2xl border border-stone-200 shadow-sm space-y-5">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-stone-100">
+                <div>
+                  <span class="text-xs uppercase tracking-widest text-secondary font-bold">Compliance Gate</span>
+                  <h2 class="font-display text-lg sm:text-xl font-bold text-stone-900">Pending Verification Queue</h2>
+                </div>
+                <span class="text-xs text-stone-500">Only verified listings are published to the public search directory</span>
+              </div>
+
+              ${pendingHalls.length === 0 ? `
+                <div class="py-12 px-4 text-center bg-stone-50 rounded-xl border border-dashed border-stone-300">
+                  <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                    <span class="material-symbols-outlined text-[26px]">verified</span>
+                  </div>
+                  <p class="font-bold text-sm text-stone-900 mt-3">All Submissions Audited!</p>
+                  <p class="text-xs text-stone-500 mt-1 max-w-md mx-auto">
+                    No pending venue onboarding submissions are waiting. New venue requests submitted by owners will appear here.
+                  </p>
+                </div>
+              ` : `
+                <!-- Desktop Table (>= 768px) -->
+                <div class="hidden md:block overflow-x-auto">
+                  <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr class="bg-stone-50 text-stone-600 text-[11px] font-bold uppercase tracking-wider border-b border-stone-200">
+                        <th class="p-3 rounded-l-lg">Owner Contact</th>
+                        <th class="p-3">Proposed Venue</th>
+                        <th class="p-3">Location</th>
+                        <th class="p-3">Specs / Capacity</th>
+                        <th class="p-3">Evening Tariff</th>
+                        <th class="p-3">Status</th>
+                        <th class="p-3 text-right rounded-r-lg">Moderation Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-stone-100">
+                      ${pendingHalls.map(hall => `
+                        <tr class="hover:bg-stone-50/70 transition-colors">
+                          <td class="p-3 text-stone-900">
+                            <div class="font-bold">${hall.contact?.owner_name || 'Host'}</div>
+                            <div class="text-[11px] text-stone-500">${hall.contact?.phone || '+91 82582 29988'}</div>
+                          </td>
+                          <td class="p-3 font-bold text-stone-900">
+                            <div class="flex items-center gap-3">
+                              <img 
+                                src="${hall.cover_image}" 
+                                class="w-11 h-11 rounded-lg object-cover border border-stone-200 shrink-0"
+                                onerror="this.src=window.appStore.getPlaceholderImage('Venue')">
+                              <div>
+                                <div class="font-semibold line-clamp-1">${hall.name}</div>
+                                <div class="text-[11px] text-stone-500 font-normal">${hall.hall_type}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td class="p-3 text-stone-700 font-medium">${hall.city}, Karnataka</td>
+                          <td class="p-3 text-stone-700">
+                            <div class="font-bold">${hall.seating_capacity} Seats</div>
+                            <div class="text-[11px] text-stone-500">Max ${hall.maximum_capacity} Pax</div>
+                          </td>
+                          <td class="p-3 font-bold text-stone-900">
+                            ₹${(hall.pricing?.evening || 75000).toLocaleString()}
+                          </td>
+                          <td class="p-3">
+                            <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold inline-flex items-center gap-1">
+                              <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Under Review
+                            </span>
+                          </td>
+                          <td class="p-3 text-right">
+                            <div class="flex items-center justify-end gap-1.5">
+                              <button 
+                                class="px-2.5 py-1.5 bg-stone-100 text-stone-700 hover:bg-stone-200 rounded-lg text-xs font-bold transition-colors"
+                                onclick="AdminDashboardView.openReviewModal('${hall.id}')">
+                                Review Details
+                              </button>
+                              <button 
+                                class="px-3 py-1.5 bg-emerald-700 text-white rounded-lg text-xs font-bold hover:bg-emerald-800 shadow-sm flex items-center gap-1 transition-colors" 
+                                onclick="AdminDashboardView.approveListing('${hall.id}')">
+                                <span class="material-symbols-outlined text-[14px]">check</span> Approve
+                              </button>
+                              <button 
+                                class="px-2.5 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition-colors" 
+                                onclick="AdminDashboardView.rejectListing('${hall.id}')">
+                                Reject
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Mobile Moderation Stacked Cards (< 768px) -->
+                <div class="md:hidden space-y-4">
+                  ${pendingHalls.map(hall => `
+                    <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
+                      <div class="flex items-start gap-3">
+                        <img 
+                          src="${hall.cover_image}" 
+                          class="w-16 h-16 rounded-lg object-cover border border-stone-200 shrink-0"
+                          onerror="this.src=window.appStore.getPlaceholderImage('Venue')">
+                        <div class="flex-1 min-w-0">
+                          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 inline-block mb-1">
+                            Pending Review
+                          </span>
+                          <h3 class="font-bold text-sm text-stone-900 truncate">${hall.name}</h3>
+                          <p class="text-xs text-stone-500">${hall.hall_type} • ${hall.city}</p>
+                        </div>
+                      </div>
+
+                      <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-stone-200">
+                        <div>
+                          <span class="text-stone-500 block text-[10px] uppercase">Capacity:</span>
+                          <span class="font-semibold text-stone-900">${hall.seating_capacity} Sit / ${hall.maximum_capacity} Max</span>
+                        </div>
+                        <div>
+                          <span class="text-stone-500 block text-[10px] uppercase">Tariff:</span>
+                          <span class="font-bold text-stone-900">₹${(hall.pricing?.evening || 75000).toLocaleString()}</span>
+                        </div>
+                        <div>
+                          <span class="text-stone-500 block text-[10px] uppercase">Host:</span>
+                          <span class="font-semibold text-stone-900 truncate">${hall.contact?.owner_name || 'Host'}</span>
+                        </div>
+                        <div>
+                          <span class="text-stone-500 block text-[10px] uppercase">Phone:</span>
+                          <span class="font-mono text-stone-900">${hall.contact?.phone || '+91 82582 29988'}</span>
+                        </div>
+                      </div>
+
+                      <div class="flex flex-col gap-2 pt-1">
+                        <button 
+                          class="w-full py-2.5 bg-stone-200 text-stone-800 rounded-lg text-xs font-bold hover:bg-stone-300 transition-colors min-h-[44px]"
+                          onclick="AdminDashboardView.openReviewModal('${hall.id}')">
+                          Review Full Venue Details
+                        </button>
+                        <div class="flex items-center gap-2">
+                          <button 
+                            class="flex-1 py-2.5 bg-emerald-700 text-white rounded-lg text-xs font-bold hover:bg-emerald-800 transition-colors flex items-center justify-center gap-1 min-h-[44px]"
+                            onclick="AdminDashboardView.approveListing('${hall.id}')">
+                            <span class="material-symbols-outlined text-[16px]">check</span> Approve & Publish
+                          </button>
+                          <button 
+                            class="px-4 py-2.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold hover:bg-rose-100 transition-colors min-h-[44px]"
+                            onclick="AdminDashboardView.rejectListing('${hall.id}')">
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              `}
+            </div>
+          ` : ''}
+
+          <!-- TAB 2: MASTER HALL INVENTORY -->
+          ${this.currentTab === 'all_halls' ? `
+            <div class="bg-white p-5 sm:p-6 rounded-2xl border border-stone-200 shadow-sm space-y-5">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-100">
+                <div>
+                  <span class="text-xs uppercase tracking-widest text-secondary font-bold">Platform Master Registry</span>
+                  <h2 class="font-display text-lg sm:text-xl font-bold text-stone-900">Complete Venue Oversight</h2>
+                </div>
+                <button 
+                  class="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-stone-800 transition-colors self-start sm:self-auto min-h-[44px]" 
+                  onclick="Modals.openAddHallWizard()">
+                  + Direct Add Hall (Admin Override)
+                </button>
+              </div>
+
+              <!-- Desktop Table -->
+              <div class="hidden md:block overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="bg-stone-50 text-stone-600 text-[11px] font-bold uppercase tracking-wider border-b border-stone-200">
+                      <th class="p-3 rounded-l-lg">Venue Name</th>
+                      <th class="p-3">Location</th>
+                      <th class="p-3">Dimensions & Capacity</th>
+                      <th class="p-3">Calendar Status</th>
+                      <th class="p-3">Listing State</th>
+                      <th class="p-3 text-right rounded-r-lg">Admin Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-stone-100">
+                    ${halls.map(h => `
+                      <tr class="hover:bg-stone-50/70 transition-colors">
+                        <td class="p-3 font-bold text-stone-900">
+                          <div class="flex items-center gap-3">
+                            <img 
+                              src="${h.cover_image}" 
+                              class="w-10 h-10 rounded-lg object-cover border border-stone-200 shrink-0"
+                              onerror="this.src=window.appStore.getPlaceholderImage('Venue')">
+                            <div>
+                              <div class="font-semibold line-clamp-1">${h.name}</div>
+                              <div class="text-[10px] text-stone-400 font-mono">${h.id}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="p-3 text-stone-700">${h.city}, ${h.area || ''}</td>
+                        <td class="p-3 text-stone-700">
+                          <div class="font-semibold">${h.seating_capacity} Sit / ${h.maximum_capacity} Max</div>
+                          <div class="text-[11px] text-stone-500">${(h.size_sqft || 10000).toLocaleString()} sq ft</div>
+                        </td>
+                        <td class="p-3">
+                          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${h.public_availability ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-800'}">
+                            ${h.public_availability ? 'Public' : 'Private'}
+                          </span>
+                        </td>
+                        <td class="p-3">
+                          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${h.status === 'LIVE' ? 'bg-emerald-700 text-white' : (h.status === 'PENDING_APPROVAL' ? 'bg-amber-600 text-white' : 'bg-stone-600 text-white')}">
+                            ${h.status}
+                          </span>
+                        </td>
+                        <td class="p-3 text-right">
+                          <div class="flex items-center justify-end gap-1.5">
+                            <a href="#/hall/${h.id}" class="p-2 bg-stone-100 hover:bg-stone-200 rounded-lg text-stone-700 transition-colors" title="View Public Profile">
+                              <span class="material-symbols-outlined text-[16px]">visibility</span>
+                            </a>
+
+                            ${h.status === 'LIVE' ? `
+                              <button class="px-2.5 py-1.5 bg-stone-100 text-amber-800 hover:bg-amber-100 rounded-lg text-[11px] font-bold transition-colors" onclick="AdminDashboardView.suspendListing('${h.id}')">
+                                Suspend
+                              </button>
+                            ` : `
+                              <button class="px-2.5 py-1.5 bg-emerald-700 text-white hover:bg-emerald-800 rounded-lg text-[11px] font-bold transition-colors" onclick="AdminDashboardView.restoreListing('${h.id}')">
+                                Restore
+                              </button>
+                            `}
+
+                            <button class="p-2 text-rose-700 hover:bg-rose-50 rounded-lg transition-colors" onclick="AdminDashboardView.deleteListing('${h.id}')" title="Delete Venue">
+                              <span class="material-symbols-outlined text-[16px]">delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Mobile Master Hall Cards -->
+              <div class="md:hidden space-y-3">
+                ${halls.map(h => `
+                  <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
+                    <div class="flex items-center gap-3">
+                      <img 
+                        src="${h.cover_image}" 
+                        class="w-12 h-12 rounded-lg object-cover border border-stone-200 shrink-0"
+                        onerror="this.src=window.appStore.getPlaceholderImage('Venue')">
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-1.5">
+                          <span class="px-2 py-0.2 rounded text-[10px] font-bold ${h.status === 'LIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-700'}">
+                            ${h.status}
+                          </span>
+                        </div>
+                        <h4 class="font-bold text-sm text-stone-900 truncate mt-0.5">${h.name}</h4>
+                        <p class="text-xs text-stone-500">${h.city} • ${h.seating_capacity} seats</p>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-stone-200 text-xs">
+                      <a href="#/hall/${h.id}" class="px-3 py-1.5 bg-white border border-stone-300 rounded-lg font-bold text-stone-700">
+                        View Profile
+                      </a>
+                      <div class="flex items-center gap-1.5">
+                        ${h.status === 'LIVE' ? `
+                          <button class="px-3 py-1.5 bg-amber-100 text-amber-900 rounded-lg font-bold" onclick="AdminDashboardView.suspendListing('${h.id}')">
+                            Suspend
+                          </button>
+                        ` : `
+                          <button class="px-3 py-1.5 bg-emerald-700 text-white rounded-lg font-bold" onclick="AdminDashboardView.restoreListing('${h.id}')">
+                            Restore
+                          </button>
+                        `}
+                        <button class="p-1.5 text-rose-700 hover:bg-rose-50 rounded-lg" onclick="AdminDashboardView.deleteListing('${h.id}')">
+                          <span class="material-symbols-outlined text-[16px]">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- TAB 3: ADMIN AUDIT LOG -->
+          ${this.currentTab === 'audit' ? `
+            <div class="bg-white p-5 sm:p-6 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+              <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+                <div>
+                  <span class="text-xs uppercase tracking-widest text-secondary font-bold">Platform Governance</span>
+                  <h2 class="font-display text-lg sm:text-xl font-bold text-stone-900">Administrative Audit Log</h2>
+                </div>
+                <span class="text-xs text-stone-500">${auditLogs.length} Events Logged</span>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse min-w-[650px]">
+                  <thead>
+                    <tr class="bg-stone-50 text-stone-600 text-[11px] font-bold uppercase tracking-wider border-b border-stone-200">
+                      <th class="p-3 rounded-l-lg">Timestamp</th>
+                      <th class="p-3">Operator</th>
+                      <th class="p-3">Action Executed</th>
+                      <th class="p-3">Target Entity</th>
+                      <th class="p-3 rounded-r-lg">Details</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-stone-100">
+                    ${auditLogs.map(l => `
+                      <tr class="hover:bg-stone-50/70 transition-colors">
+                        <td class="p-3 text-stone-500 whitespace-nowrap">${l.date}</td>
+                        <td class="p-3 font-semibold text-stone-900">${l.admin_name}</td>
+                        <td class="p-3 font-bold text-secondary">${l.action}</td>
+                        <td class="p-3 font-semibold text-stone-900">${l.affected_record}</td>
+                        <td class="p-3 text-stone-600">${l.details}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- TAB 4: REPORTS & COMPLAINTS -->
+          ${this.currentTab === 'reports' ? `
+            <div class="bg-white p-5 sm:p-6 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+              <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+                <div>
+                  <span class="text-xs uppercase tracking-widest text-rose-700 font-bold">Trust & Safety</span>
+                  <h2 class="font-display text-lg sm:text-xl font-bold text-stone-900">Flagged Customer Complaints</h2>
+                </div>
+                <span class="text-xs text-stone-500">${reports.length} Open Reports</span>
+              </div>
+
+              ${reports.length === 0 ? `
+                <div class="py-12 text-center bg-stone-50 rounded-xl border border-dashed border-stone-200">
+                  <p class="text-xs text-stone-500">No active safety complaints or reports.</p>
+                </div>
+              ` : `
+                <div class="space-y-3">
+                  ${reports.map(r => `
+                    <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                      <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-bold uppercase">${r.reason}</span>
+                          <span class="font-bold text-xs text-stone-900">${r.hall_name}</span>
+                          <span class="text-[11px] text-stone-500">• Reported by ${r.reporter_name}</span>
+                        </div>
+                        <p class="text-xs text-stone-600 mt-1.5 leading-relaxed">${r.details}</p>
+                      </div>
+                      <div class="flex items-center gap-2 shrink-0 self-end md:self-auto">
+                        <button 
+                          class="px-3 py-1.5 bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-bold rounded-lg transition-colors min-h-[38px]" 
+                          onclick="AdminDashboardView.dismissReport('${r.id}')">
+                          Dismiss
+                        </button>
+                        <button 
+                          class="px-3 py-1.5 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-lg transition-colors min-h-[38px]" 
+                          onclick="AdminDashboardView.suspendListing('${r.hall_id}'); AdminDashboardView.dismissReport('${r.id}');">
+                          Suspend Venue
+                        </button>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              `}
+            </div>
+          ` : ''}
+
+        </div>
+      </div>
+    `;
+  },
+
+  setTab(tab) {
+    this.currentTab = tab;
+    const container = document.getElementById('app-content');
+    if (container) container.innerHTML = this.render();
+  },
+
+  openReviewModal(hallId) {
+    const hall = window.appStore.getHallById(hallId);
+    if (!hall) return;
+
+    let modalContainer = document.getElementById('modal-container');
+    if (!modalContainer) {
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'modal-container';
+      document.body.appendChild(modalContainer);
+    }
+
+    modalContainer.innerHTML = `
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onclick="if(event.target === this) AdminDashboardView.closeModal()">
+        <div class="bg-white max-w-2xl w-full rounded-2xl shadow-2xl border border-stone-200 overflow-hidden max-h-[90vh] flex flex-col text-left">
+          
+          <div class="p-5 border-b border-stone-200 flex items-center justify-between bg-stone-50">
+            <div>
+              <span class="text-xs font-bold text-secondary uppercase tracking-wider">Verification Review</span>
+              <h3 class="font-display text-lg font-bold text-stone-900">${hall.name}</h3>
+            </div>
+            <button onclick="AdminDashboardView.closeModal()" class="p-1 rounded-full text-stone-500 hover:bg-stone-200">
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
+
+          <div class="p-6 overflow-y-auto space-y-5 text-xs text-stone-700 flex-1">
+            <div class="aspect-video w-full rounded-xl overflow-hidden bg-stone-100 border border-stone-200">
+              <img 
+                src="${hall.cover_image}" 
+                class="w-full h-full object-cover"
+                onerror="this.src=window.appStore.getPlaceholderImage('Venue')">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
+              <div>
+                <span class="text-stone-500 block text-[10px] uppercase">Venue Type:</span>
+                <span class="font-bold text-stone-900 text-sm">${hall.hall_type}</span>
+              </div>
+              <div>
+                <span class="text-stone-500 block text-[10px] uppercase">Location:</span>
+                <span class="font-bold text-stone-900 text-sm">${hall.city}, Karnataka</span>
+              </div>
+              <div>
+                <span class="text-stone-500 block text-[10px] uppercase">Seating / Max Pax:</span>
+                <span class="font-bold text-stone-900 text-sm">${hall.seating_capacity} / ${hall.maximum_capacity} Guests</span>
+              </div>
+              <div>
+                <span class="text-stone-500 block text-[10px] uppercase">Total Area:</span>
+                <span class="font-bold text-stone-900 text-sm">${(hall.size_sqft || 10000).toLocaleString()} sq ft</span>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="font-bold text-stone-900 uppercase text-[11px] mb-1">Description</h4>
+              <p class="text-stone-600 leading-relaxed">${hall.description || 'No description provided.'}</p>
+            </div>
+
+            <div>
+              <h4 class="font-bold text-stone-900 uppercase text-[11px] mb-1.5">Amenities & Facilities</h4>
+              <div class="flex flex-wrap gap-1.5">
+                ${(hall.facilities || []).map(f => `
+                  <span class="px-2.5 py-1 bg-stone-100 rounded-md text-[11px] font-medium text-stone-800 border border-stone-200">
+                    ${f}
+                  </span>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-1">
+              <h4 class="font-bold text-stone-900 uppercase text-[11px]">Owner / Proprietor Contact</h4>
+              <p><strong>Name:</strong> ${hall.contact?.owner_name || 'Host'}</p>
+              <p><strong>Phone:</strong> ${hall.contact?.phone || '+91 82582 29988'}</p>
+              <p><strong>Email:</strong> ${hall.contact?.email || 'owner@venuecraft.com'}</p>
+            </div>
+          </div>
+
+          <div class="p-4 bg-stone-50 border-t border-stone-200 flex items-center justify-between gap-3">
+            <button 
+              class="px-4 py-2 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded-lg font-bold text-xs transition-colors"
+              onclick="AdminDashboardView.rejectListing('${hall.id}'); AdminDashboardView.closeModal();">
+              Reject Submission
+            </button>
+            <button 
+              class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold text-xs shadow-sm flex items-center gap-1.5 transition-colors"
+              onclick="AdminDashboardView.approveListing('${hall.id}'); AdminDashboardView.closeModal();">
+              <span class="material-symbols-outlined text-[16px]">check</span> Approve & Publish Live
+            </button>
+          </div>
+
+        </div>
+      </div>
+    `;
+  },
+
+  closeModal() {
+    const modalContainer = document.getElementById('modal-container');
+    if (modalContainer) modalContainer.innerHTML = '';
+  },
+
+  approveListing(id) {
+    window.appStore.approveHall(id);
+    Toast.success('Hall Approved', 'Venue status is now LIVE and immediately searchable in public directory.');
+    this.setTab('queue');
+  },
+
+  rejectListing(id) {
+    window.appStore.rejectHall(id, 'Incomplete documentation or verification criteria unmet.');
+    Toast.error('Submission Rejected', 'Venue status updated to REJECTED.');
+    this.setTab('queue');
+  },
+
+  suspendListing(id) {
+    window.appStore.suspendHall(id, 'Admin discretion or compliance review.');
+    Toast.info('Listing Suspended', 'Venue removed from public customer search.');
+    this.setTab('all_halls');
+  },
+
+  restoreListing(id) {
+    window.appStore.restoreHall(id);
+    Toast.success('Listing Restored', 'Venue is now LIVE in the directory.');
+    this.setTab('all_halls');
+  },
+
+  deleteListing(id) {
+    if (confirm('Permanently delete this venue listing?')) {
+      window.appStore.deleteHall(id);
+      Toast.info('Venue Deleted', 'Listing permanently purged from platform.');
+      this.setTab('all_halls');
+    }
+  },
+
+  dismissReport(id) {
+    window.appStore.resolveReport(id, 'Audited and dismissed by administrator.');
+    Toast.success('Report Resolved', 'Safety ticket marked as resolved.');
+    this.setTab('reports');
+  }
+};
+
+window.AdminDashboardView = AdminDashboardView;

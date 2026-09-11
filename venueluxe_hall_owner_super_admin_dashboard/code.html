@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>VenueLuxe — Management &amp; Operation Suite</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"primary-fixed-dim":"#bec6e0","surface-container":"#eceef0","surface-dim":"#d8dadc","secondary-fixed-dim":"#ffb68e","inverse-surface":"#2d3133","on-tertiary-container":"#009668","outline":"#76777d","tertiary":"#000000","on-secondary-fixed":"#331200","surface-variant":"#e0e3e5","on-primary-fixed-variant":"#3f465c","surface-tint":"#565e74","on-primary-container":"#7c839b","tertiary-fixed-dim":"#4edea3","secondary":"#9b4500","on-tertiary":"#ffffff","surface-container-low":"#f2f4f6","on-error-container":"#93000a","primary-container":"#131b2e","on-tertiary-fixed-variant":"#005236","outline-variant":"#c6c6cd","surface-container-lowest":"#ffffff","surface-container-high":"#e6e8ea","on-secondary-container":"#682c00","primary-fixed":"#dae2fd","on-primary-fixed":"#131b2e","on-primary":"#ffffff","tertiary-fixed":"#6ffbbe","inverse-primary":"#bec6e0","on-error":"#ffffff","on-secondary":"#ffffff","primary":"#000000","on-surface-variant":"#45464d","surface-container-highest":"#e0e3e5","inverse-on-surface":"#eff1f3","error":"#ba1a1a","on-tertiary-fixed":"#002113","surface":"#f7f9fb","secondary-fixed":"#ffdbca","on-secondary-fixed-variant":"#763300","on-background":"#191c1e","error-container":"#ffdad6","background":"#f7f9fb","secondary-container":"#fd8a42","surface-bright":"#f7f9fb","tertiary-container":"#002113","on-surface":"#191c1e"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"gutter-tablet":"1.5rem","gutter-desktop":"2rem","space-md":"1rem","gutter-mobile":"1rem","container-max":"1360px","space-xl":"2rem","space-2xl":"3rem","space-2xs":"0.25rem","space-xs":"0.5rem","space-3xl":"4rem","space-sm":"0.75rem","space-lg":"1.5rem"},"fontFamily":{"label-md":["Plus Jakarta Sans"],"title-lg":["Plus Jakarta Sans"],"headline-lg-mobile":["Playfair Display"],"body-lg":["Plus Jakarta Sans"],"headline-sm":["Playfair Display"],"display-lg-mobile":["Playfair Display"],"label-sm":["Plus Jakarta Sans"],"title-md":["Plus Jakarta Sans"],"headline-md":["Playfair Display"],"body-md":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"display-lg":["Playfair Display"],"headline-lg":["Playfair Display"]},"fontSize":{"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.06em","fontWeight":"700"}],"title-lg":["18px",{"lineHeight":"26px","fontWeight":"700"}],"headline-lg-mobile":["26px",{"lineHeight":"34px","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}],"headline-sm":["20px",{"lineHeight":"28px","fontWeight":"600"}],"display-lg-mobile":["34px",{"lineHeight":"42px","letterSpacing":"-0.015em","fontWeight":"600"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"600"}],"title-md":["16px",{"lineHeight":"24px","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"32px","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}],"body-sm":["12px",{"lineHeight":"18px","fontWeight":"400"}],"display-lg":["48px",{"lineHeight":"56px","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.01em","fontWeight":"600"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-64 bg-primary-container text-on-primary-container z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.08)]"><div class="p-space-lg"><div class="flex items-center gap-space-sm mb-space-2xl"><img alt="VenueLuxe Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WM0w9b--RurO_TdpVt3JhGIVdrVlJ6_yCLdKWPk7DGX9aR_496z7kI0rkvtadFaTQ40ygrP1pl4xWlyAEiPnzZqMPt5EpuoGDyxot7yRFs7Ipk2-4crDoey_pI4jW0dHCb0CE0cHSw5qQvo9LhOU1zNATz07hdhsGc2GFeQgzNaCG2h7gxcMInelwwaxEDufc4nryMV3bJsPgcwQilNkC8D07uUBLaZnXY5WaFt1PhXCJbzD2FF6LSiQ"/><span class="font-headline-sm text-headline-sm text-on-primary tracking-tight">Venue<span class="text-secondary-container">Luxe</span></span></div><div class="mb-space-md px-space-xs"><span class="font-label-sm text-label-sm uppercase tracking-widest text-on-primary-container">Portal Management</span></div><nav class="space-y-space-xs" data-active-classes="bg-primary text-on-primary font-bold rounded-lg shadow-sm"><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-on-primary-container hover:bg-surface-container-highest hover:text-on-surface transition-all" data-path="admin-portal" href="#"><span class="material-symbols-outlined text-[20px]">admin_panel_settings</span><span class="font-body-md text-body-md">Overview</span></a><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-space-xs transition-all bg-primary text-on-primary font-bold rounded-lg shadow-sm" data-path="owner-hall-management" href="#"><span class="material-symbols-outlined text-[20px]">domain</span><span class="font-body-md text-body-md">Hall Listings</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-on-primary-container hover:bg-surface-container-highest hover:text-on-surface transition-all" data-path="enquiries-and-bookings" href="#"><span class="material-symbols-outlined text-[20px]">calendar_month</span><span class="font-body-md text-body-md">Bookings &amp; Slots</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-on-primary-container hover:bg-surface-container-highest hover:text-on-surface transition-all" data-path="payouts-and-audits" href="#"><span class="material-symbols-outlined text-[20px]">payments</span><span class="font-body-md text-body-md">Escrow &amp; Payouts</span></a></nav></div><div class="p-space-lg bg-inverse-surface/40 space-y-space-md"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div><p class="font-title-md text-body-sm text-on-primary font-semibold">Estate Host</p><p class="font-label-sm text-label-sm text-on-primary-container">Super Admin Tier</p></div></div><a class="block text-center w-full py-space-xs rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md uppercase tracking-wider hover:bg-surface-container transition-all" data-path="find-halls" href="#">Customer View</a></div></aside><div class="pl-64 flex flex-col min-h-screen"><header class="fixed top-0 left-64 right-0 h-20 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-xl"><div class="flex items-center gap-space-sm"><img alt="VenueLuxe Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WM0w9b--RurO_TdpVt3JhGIVdrVlJ6_yCLdKWPk7DGX9aR_496z7kI0rkvtadFaTQ40ygrP1pl4xWlyAEiPnzZqMPt5EpuoGDyxot7yRFs7Ipk2-4crDoey_pI4jW0dHCb0CE0cHSw5qQvo9LhOU1zNATz07hdhsGc2GFeQgzNaCG2h7gxcMInelwwaxEDufc4nryMV3bJsPgcwQilNkC8D07uUBLaZnXY5WaFt1PhXCJbzD2FF6LSiQ"/><span class="font-label-md text-label-md uppercase tracking-wider text-secondary font-bold">Operations Workspace</span></div><div class="flex items-center gap-space-md"><div class="flex items-center p-space-2xs bg-surface-container rounded-full"><a class="px-space-sm py-space-2xs font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface rounded-full transition-all" data-path="find-halls" href="#">Customer</a><a class="px-space-sm py-space-2xs font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface rounded-full transition-all" data-path="owner-hall-management" href="#">Hall Owner</a><a class="px-space-sm py-space-2xs font-label-sm text-label-sm text-on-surface bg-surface-container-lowest rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.04)] font-bold transition-all" data-path="admin-portal" href="#">Super Admin</a></div><a class="relative p-space-xs text-on-surface-variant hover:text-on-surface transition-colors rounded-lg hover:bg-surface-container" data-path="saved-venues" href="#"><span class="material-symbols-outlined text-[20px]">favorite</span><span class="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-secondary text-on-secondary font-label-sm text-[10px] flex items-center justify-center font-bold">3</span></a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative pt-20 w-full px-space-xl bg-surface flex-1"><div class="flex flex-col w-full pb-space-3xl">
+<!-- Mode Switcher Floating Hub -->
+<div class="sticky top-20 z-30 w-full py-space-sm bg-surface/80 backdrop-blur-md mb-space-lg">
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-sm bg-surface-container-lowest p-space-xs rounded-full shadow-sm">
+<div class="flex items-center gap-space-xs w-full sm:w-auto">
+<button class="flex items-center justify-center gap-space-xs px-space-md py-space-xs rounded-full font-label-md text-label-md transition-all duration-200 bg-primary text-on-primary shadow-sm" id="toggle-owner-btn" onclick="switchRole('owner')">
+<span class="material-symbols-outlined text-[18px]">real_estate_agent</span>
+<span>Hall Owner Dashboard</span>
+</button>
+<button class="flex items-center justify-center gap-space-xs px-space-md py-space-xs rounded-full font-label-md text-label-md transition-all duration-200 text-on-surface-variant hover:text-on-surface hover:bg-surface-container" id="toggle-admin-btn" onclick="switchRole('admin')">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span>Super Admin Control Tower</span>
+<span class="px-space-2xs py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-bold">6 Pending</span>
+</button>
+</div>
+<div class="hidden sm:flex items-center gap-space-md pr-space-md">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="inline-block w-2 h-2 rounded-full bg-on-tertiary-container animate-pulse"></span>
+<span>Gateway: Escrow &amp; Sync Active</span>
+</div>
+<div class="text-on-surface-variant font-label-sm text-label-sm text-opacity-50">|</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Auth: UID-88942-HQ</span>
+</div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- VIEW 1: HALL OWNER OPERATIONAL WORKSPACE                                    -->
+<!-- ========================================================================= -->
+<div class="flex flex-col w-full space-y-space-xl" id="view-owner">
+<!-- Top Identity & Status Banner -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md bg-surface-container-low p-space-xl rounded-xl">
+<div class="space-y-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">Estate Console</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">• Verified Partner #VO-9021</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Regal Horizons Grand Estate</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+          Coordinate real-time banquet slots, review direct patron enquiries, manage dual hall availability, and audit monthly revenue allocations.
+        </p>
+</div>
+<div class="flex items-center gap-space-sm flex-wrap">
+<button class="flex items-center gap-space-xs px-space-lg py-space-sm bg-primary text-on-primary font-label-md text-label-md rounded-lg hover:bg-inverse-surface shadow-sm transition-all" onclick="openWizardModal()">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>Add New Hall</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-sm bg-surface-container-lowest text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+<span>Shift Config</span>
+</button>
+</div>
+</div>
+<!-- Owner Summary Metrics Bento -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-space-md">
+<!-- Metric 1 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-surface-variant mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Halls Listed</span>
+<span class="material-symbols-outlined text-[18px]">apartment</span>
+</div>
+<div>
+<div class="font-display-lg text-headline-md text-on-surface">3</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">2 Published • 1 Draft</p>
+</div>
+</div>
+<!-- Metric 2 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-secondary mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Under Review</span>
+<span class="material-symbols-outlined text-[18px]">hourglass_top</span>
+</div>
+<div>
+<div class="font-display-lg text-headline-md text-secondary">1</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">The Glass Pavilion</p>
+</div>
+</div>
+<!-- Metric 3 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-tertiary-container mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Live &amp; Bookable</span>
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+</div>
+<div>
+<div class="font-display-lg text-headline-md text-on-tertiary-container">2</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">100% SLA uptime</p>
+</div>
+</div>
+<!-- Metric 4 -->
+<div class="bg-secondary-fixed p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-secondary-fixed mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider font-bold">New Requests</span>
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+</div>
+<div>
+<div class="font-display-lg text-headline-md text-on-secondary-fixed">5</div>
+<p class="font-body-sm text-body-sm text-on-secondary-fixed font-medium">Require owner sign-off</p>
+</div>
+</div>
+<!-- Metric 5 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-surface-variant mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Confirmed</span>
+<span class="material-symbols-outlined text-[18px]">event_available</span>
+</div>
+<div>
+<div class="font-display-lg text-headline-md text-on-surface">18</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">For current month</p>
+</div>
+</div>
+<!-- Metric 6 -->
+<div class="bg-primary-container p-space-md rounded-xl text-on-primary flex flex-col justify-between shadow-sm">
+<div class="flex items-center justify-between text-on-primary-container mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Gross Bookings</span>
+<span class="material-symbols-outlined text-[18px] text-secondary-container">trending_up</span>
+</div>
+<div>
+<div class="font-display-lg text-headline-md text-on-primary">$42.8k</div>
+<p class="font-body-sm text-body-sm text-on-primary-container">+14.2% vs last month</p>
+</div>
+</div>
+</div>
+<!-- 9-Step Onboarding Architecture Preview -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm space-y-space-md">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-xs">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">Architectural Listing Engine</span>
+<h2 class="font-title-lg text-title-lg text-on-surface">9-Step Listing Pipeline Preview</h2>
+</div>
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span>Currently Editing: <strong>Crystal Atrium Ballroom</strong> (Draft Stage 6 of 9)</span>
+</div>
+</div>
+<!-- Stepper Track -->
+<div class="overflow-x-auto pb-space-xs">
+<div class="flex items-center min-w-[860px] justify-between relative">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 w-full bg-surface-container-highest z-0"></div>
+<!-- Step 1 Complete -->
+<div class="relative z-10 flex flex-col items-center group cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-sm text-label-sm font-bold shadow-sm">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm font-bold text-on-surface">1. Basic Info</span>
+</div>
+<!-- Step 2 Complete -->
+<div class="relative z-10 flex flex-col items-center group cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-sm text-label-sm font-bold shadow-sm">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm font-bold text-on-surface">2. Dimensions</span>
+</div>
+<!-- Step 3 Complete -->
+<div class="relative z-10 flex flex-col items-center group cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-sm text-label-sm font-bold shadow-sm">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm font-bold text-on-surface">3. Facilities</span>
+</div>
+<!-- Step 4 Complete -->
+<div class="relative z-10 flex flex-col items-center group cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-sm text-label-sm font-bold shadow-sm">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm font-bold text-on-surface">4. Slot Pricing</span>
+</div>
+<!-- Step 5 Complete -->
+<div class="relative z-10 flex flex-col items-center group cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-sm text-label-sm font-bold shadow-sm">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<span class="mt-1 font-label-sm text-label-sm font-bold text-on-surface">5. Media Vault</span>
+</div>
+<!-- Step 6 In Progress -->
+<div class="relative z-10 flex flex-col items-center group cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-label-sm text-label-sm font-bold shadow-md ring-4 ring-secondary-fixed">
+              6
+            </div>
+<span class="mt-1 font-label-sm text-label-sm font-bold text-secondary">6. Map Pin</span>
+</div>
+<!-- Step 7 Pending -->
+<div class="relative z-10 flex flex-col items-center group opacity-50">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-label-sm text-label-sm font-bold">
+              7
+            </div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface-variant">7. Contact</span>
+</div>
+<!-- Step 8 Pending -->
+<div class="relative z-10 flex flex-col items-center group opacity-50">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-label-sm text-label-sm font-bold">
+              8
+            </div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface-variant">8. Visibility Toggles</span>
+</div>
+<!-- Step 9 Final -->
+<div class="relative z-10 flex flex-col items-center group opacity-50">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-label-sm text-label-sm font-bold">
+              9
+            </div>
+<span class="mt-1 font-label-sm text-label-sm text-on-surface-variant">9. Verify</span>
+</div>
+</div>
+</div>
+<!-- Quick Step 8 Toggle Simulation Card within the bar -->
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-md">
+<div class="space-y-1">
+<p class="font-title-md text-body-md font-bold text-on-surface">Step 8 Configuration Snapshot: Public Availability &amp; Concierge Routing</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Toggling affects customer-facing search indexing on the public venue portal instantly.</p>
+</div>
+<div class="flex items-center gap-space-lg">
+<!-- Toggle 1 -->
+<label class="flex items-center gap-space-xs cursor-pointer select-none">
+<span class="font-label-sm text-label-sm font-semibold text-on-surface">Show Availability Publicly</span>
+<div class="relative inline-flex items-center">
+<input checked="" class="sr-only peer" id="toggle-avail" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface-container-lowest after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface-container-lowest after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</div>
+</label>
+<!-- Toggle 2 -->
+<label class="flex items-center gap-space-xs cursor-pointer select-none">
+<span class="font-label-sm text-label-sm font-semibold text-on-surface">Show Direct WhatsApp</span>
+<div class="relative inline-flex items-center">
+<input checked="" class="sr-only peer" id="toggle-wa" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface-container-lowest after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface-container-lowest after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-on-tertiary-container"></div>
+</div>
+</label>
+</div>
+</div>
+</div>
+<!-- Interactive Slot Manager Matrix & Real-Time Schedule -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- Slot Matrix Column -->
+<div class="lg:col-span-8 bg-surface-container-lowest p-space-lg rounded-xl shadow-sm space-y-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">Shift &amp; Allotment Matrix</span>
+<h2 class="font-title-lg text-title-lg text-on-surface">Interactive Slot Calendar (7-Day Projection)</h2>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-xs py-1 rounded bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<span class="font-label-sm text-label-sm font-bold text-on-surface">Nov 20 - Nov 26, 2024</span>
+<button class="px-space-xs py-1 rounded bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-space-md text-body-sm text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded-full bg-surface-container-high"></span>
+<span>Available</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span>Booked (Paid)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded-full bg-error"></span>
+<span>Blocked / Maintenance</span>
+</div>
+<span class="text-xs text-on-surface-variant italic ml-auto hidden sm:inline">*Click any tile to toggle status</span>
+</div>
+<!-- Matrix Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left text-body-sm border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase">
+<th class="p-space-xs rounded-l-lg">Shift Slot</th>
+<th class="p-space-xs text-center">Wed 20</th>
+<th class="p-space-xs text-center">Thu 21</th>
+<th class="p-space-xs text-center">Fri 22</th>
+<th class="p-space-xs text-center bg-secondary-fixed/30 font-bold text-secondary">Sat 23</th>
+<th class="p-space-xs text-center bg-secondary-fixed/30 font-bold text-secondary">Sun 24</th>
+<th class="p-space-xs text-center">Mon 25</th>
+<th class="p-space-xs text-center rounded-r-lg">Tue 26</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container">
+<!-- Morning Shift -->
+<tr>
+<td class="p-space-xs font-title-md text-body-sm font-semibold text-on-surface whitespace-nowrap">
+<div>Morning</div>
+<div class="text-[10px] text-on-surface-variant font-normal">08:00 AM - 01:00 PM</div>
+</td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-primary text-on-primary shadow-sm hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Booked</button></td>
+<td class="p-space-2xs text-center bg-secondary-fixed/20"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-primary text-on-primary shadow-sm hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Booked</button></td>
+<td class="p-space-2xs text-center bg-secondary-fixed/20"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-primary text-on-primary shadow-sm hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Booked</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+</tr>
+<!-- Afternoon Shift -->
+<tr>
+<td class="p-space-xs font-title-md text-body-sm font-semibold text-on-surface whitespace-nowrap">
+<div>Afternoon</div>
+<div class="text-[10px] text-on-surface-variant font-normal">01:00 PM - 05:00 PM</div>
+</td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-error text-on-error hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Blocked</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+<td class="p-space-2xs text-center bg-secondary-fixed/20"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-primary text-on-primary shadow-sm hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Booked</button></td>
+<td class="p-space-2xs text-center bg-secondary-fixed/20"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+</tr>
+<!-- Evening Shift -->
+<tr>
+<td class="p-space-xs font-title-md text-body-sm font-semibold text-on-surface whitespace-nowrap">
+<div>Evening</div>
+<div class="text-[10px] text-on-surface-variant font-normal">06:00 PM - 11:30 PM</div>
+</td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-primary text-on-primary shadow-sm hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Booked</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-primary text-on-primary shadow-sm hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Booked</button></td>
+<td class="p-space-2xs text-center bg-secondary-fixed/20"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-primary text-on-primary shadow-sm hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Booked</button></td>
+<td class="p-space-2xs text-center bg-secondary-fixed/20"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-primary text-on-primary shadow-sm hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Booked</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+</tr>
+<!-- Night / Vigil Shift -->
+<tr>
+<td class="p-space-xs font-title-md text-body-sm font-semibold text-on-surface whitespace-nowrap">
+<div>Overnight Setup</div>
+<div class="text-[10px] text-on-surface-variant font-normal">12:00 AM - 06:00 AM</div>
+</td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-error text-on-error hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Blocked</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+<td class="p-space-2xs text-center bg-secondary-fixed/20"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+<td class="p-space-2xs text-center bg-secondary-fixed/20"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-error text-on-error hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Blocked</button></td>
+<td class="p-space-2xs text-center"><button class="slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all" onclick="toggleSlot(this)">Available</button></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Hall Assets Snapshot Card -->
+<div class="lg:col-span-4 bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between space-y-space-md">
+<div class="space-y-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">Featured Hall Asset</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-[10px] uppercase font-bold">AC Central</span>
+</div>
+<div class="relative rounded-lg overflow-hidden h-40">
+<img class="w-full h-full object-cover" data-alt="Grand opulent wedding banquet hall interior featuring double-height coffered ceilings with crystal chandeliers, polished Italian marble floors, gold leaf accents, and ambient twilight illumination reflecting off glass archways." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMiKmoTCUc2z28rfJXpoJ1Vx5Z2nnGEXdqNjf5Jz0jUN63HZ4URPvrrxsNFDxAB57n1So6GYO0AIw1M49_PWpL2eQns52d3d6fFFxOAL2TlWb2eA2NrwxkRwlQKiVrfNI6WJHvFVtyEddZloeRf4o8QixCNUH8nF2j7x5B7B5lddbSUeUFf4LUO9g4jgWs2lVBrJSB9mD1krgNy1qidOxmu64kMm2hGEDNCuue-_tZoKadvO-dpqU"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container/80 via-transparent to-transparent flex items-end p-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-primary">The Imperial Grand Ballroom</span>
+</div>
+</div>
+<div class="space-y-space-xs font-body-sm text-body-sm text-on-surface-variant">
+<div class="flex justify-between py-1">
+<span>Seated / Floating Capacity:</span>
+<span class="font-bold text-on-surface">850 / 1,400 Guests</span>
+</div>
+<div class="flex justify-between py-1">
+<span>Base Day-Rate (Double Shift):</span>
+<span class="font-bold text-on-surface">$4,800 / day</span>
+</div>
+<div class="flex justify-between py-1">
+<span>Next Upcoming Event:</span>
+<span class="font-semibold text-secondary">Nov 23 (Wedding Gala)</span>
+</div>
+</div>
+</div>
+<div class="pt-space-sm">
+<button class="w-full py-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container font-label-md text-label-md text-on-surface transition-all flex items-center justify-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px]">edit_calendar</span>
+<span>Bulk Blackout Dates</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Incoming Booking & Enquiry Queue -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm space-y-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">Inbound Demands</span>
+<h2 class="font-title-lg text-title-lg text-on-surface">Incoming Bookings &amp; Patron Enquiries Queue</h2>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm py-1.5 rounded-lg bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold hover:bg-surface-container-high transition-colors">Export Manifest</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm font-semibold shadow-sm hover:bg-inverse-surface transition-colors">Filter (All 5)</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-body-sm border-collapse min-w-[900px]">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-space-sm px-space-md rounded-l-lg">Customer Name</th>
+<th class="py-space-sm px-space-md">Target Hall</th>
+<th class="py-space-sm px-space-md">Event Type</th>
+<th class="py-space-sm px-space-md">Date &amp; Slot</th>
+<th class="py-space-sm px-space-md">Guests</th>
+<th class="py-space-sm px-space-md">Status</th>
+<th class="py-space-sm px-space-md text-right rounded-r-lg">Action Controls</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container">
+<!-- Row 1: Pending Approval -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-space-md px-space-md">
+<div class="font-title-md text-body-md font-bold text-on-surface">Vikram &amp; Ananya Malhotra</div>
+<div class="text-[11px] text-on-surface-variant">+91 98450-29182</div>
+</td>
+<td class="py-space-md px-space-md font-medium text-on-surface">Imperial Ballroom</td>
+<td class="py-space-md px-space-md">
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-[11px]">Wedding Reception</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="font-semibold text-on-surface">Nov 24, 2024</div>
+<div class="text-[11px] text-secondary font-medium">Evening Slot (6PM - 11:30PM)</div>
+</td>
+<td class="py-space-md px-space-md font-medium text-on-surface">950 Pax</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 px-space-xs py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-[11px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                  Pending Approval
+                </span>
+</td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="px-space-sm py-1 bg-primary text-on-primary rounded font-label-sm text-label-sm font-semibold hover:bg-inverse-surface transition-all" onclick="approveRequest(this)">Accept</button>
+<button class="px-space-sm py-1 bg-surface-container text-on-surface-variant rounded font-label-sm text-label-sm font-semibold hover:bg-error-container hover:text-error transition-all" onclick="declineRequest(this)">Decline</button>
+<a class="p-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-tertiary-container transition-colors" href="https://wa.me/" target="_blank" title="Chat on WhatsApp">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+</a>
+<button class="p-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant" title="View Details">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Accepted / Waiting Deposit -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-space-md px-space-md">
+<div class="font-title-md text-body-md font-bold text-on-surface">Karthik Somayaji</div>
+<div class="text-[11px] text-on-surface-variant">+91 97401-11893</div>
+</td>
+<td class="py-space-md px-space-md font-medium text-on-surface">The Glass Pavilion</td>
+<td class="py-space-md px-space-md">
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-[11px]">Corporate Summit</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="font-semibold text-on-surface">Nov 28, 2024</div>
+<div class="text-[11px] text-on-surface-variant">Full Day (8AM - 8PM)</div>
+</td>
+<td class="py-space-md px-space-md font-medium text-on-surface">320 Pax</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 px-space-xs py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-[11px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                  Accepted
+                </span>
+</td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<span class="font-label-sm text-[11px] text-on-surface-variant mr-2">Awaiting Deposit</span>
+<a class="p-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-tertiary-container transition-colors" href="https://wa.me/" target="_blank" title="Chat on WhatsApp">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+</a>
+<button class="p-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant" title="View Details">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Confirmed -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-space-md px-space-md">
+<div class="font-title-md text-body-md font-bold text-on-surface">Dr. Meera Alva</div>
+<div class="text-[11px] text-on-surface-variant">+91 88841-90022</div>
+</td>
+<td class="py-space-md px-space-md font-medium text-on-surface">Imperial Ballroom</td>
+<td class="py-space-md px-space-md">
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-[11px]">Silver Jubilee Gala</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="font-semibold text-on-surface">Dec 02, 2024</div>
+<div class="text-[11px] text-on-tertiary-container font-medium">Night Slot (6PM - 12AM)</div>
+</td>
+<td class="py-space-md px-space-md font-medium text-on-surface">600 Pax</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 px-space-xs py-1 rounded-full bg-tertiary-container text-tertiary-fixed font-label-sm text-[11px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed"></span>
+                  Confirmed (Escrow Paid)
+                </span>
+</td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<span class="font-label-sm text-[11px] text-on-tertiary-container font-semibold mr-2">$2,400 Hold Active</span>
+<a class="p-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-tertiary-container transition-colors" href="https://wa.me/" target="_blank" title="Chat on WhatsApp">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+</a>
+<button class="p-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant" title="View Details">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- VIEW 2: SUPER ADMIN CONTROL TOWER                                         -->
+<!-- ========================================================================= -->
+<div class="hidden flex-col w-full space-y-space-xl" id="view-admin">
+<!-- Super Admin Header Strip -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md bg-primary-container text-on-primary p-space-xl rounded-xl">
+<div class="space-y-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary-container font-bold">Governance &amp; Integrity</span>
+<span class="font-label-sm text-label-sm text-on-primary-container">• Platform Root Authority</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-primary tracking-tight">Super Admin Verification Tower</h1>
+<p class="font-body-md text-body-md text-on-primary-container max-w-2xl">
+          Review venue licensing certifications, verify fire safety compliance, moderate live inventory, and audit platform-wide escrow settlements.
+        </p>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="px-space-md py-space-xs rounded-full bg-on-tertiary-container/20 text-tertiary-fixed font-label-sm text-label-sm flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed"></span>
+          Audit Engine: Compliant
+        </span>
+</div>
+</div>
+<!-- Platform Governance KPIs -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-space-md">
+<!-- Total Users -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between text-on-surface-variant mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Total Users</span>
+<span class="material-symbols-outlined text-[18px]">group</span>
+</div>
+<div class="font-display-lg text-headline-md text-on-surface">1,420</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">+64 this week</p>
+</div>
+<!-- Hall Owners -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between text-on-surface-variant mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Hall Owners</span>
+<span class="material-symbols-outlined text-[18px]">badge</span>
+</div>
+<div class="font-display-lg text-headline-md text-on-surface">210</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Active hosts</p>
+</div>
+<!-- Total Halls -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between text-on-surface-variant mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Total Halls</span>
+<span class="material-symbols-outlined text-[18px]">corporate_fare</span>
+</div>
+<div class="font-display-lg text-headline-md text-on-surface">385</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Across 14 regions</p>
+</div>
+<!-- Pending Approval Queue -->
+<div class="bg-secondary-fixed p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between text-on-secondary-fixed mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider font-bold">Pending Review</span>
+<span class="material-symbols-outlined text-[18px]">verified</span>
+</div>
+<div class="font-display-lg text-headline-md text-on-secondary-fixed">6</div>
+<p class="font-body-sm text-body-sm text-on-secondary-fixed font-semibold">Action needed</p>
+</div>
+<!-- Platform Bookings -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between text-on-surface-variant mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Monthly Bookings</span>
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+</div>
+<div class="font-display-lg text-headline-md text-on-surface">412</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">99.2% fulfillment rate</p>
+</div>
+</div>
+<!-- Verification & Moderation Pipeline Table -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm space-y-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">Compliance Gate</span>
+<h2 class="font-title-lg text-title-lg text-on-surface">Pending Verification &amp; Moderation Queue</h2>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Showing 3 of 6 Urgent Submissions</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-body-sm border-collapse min-w-[950px]">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-space-sm px-space-md rounded-l-lg">Owner Identity</th>
+<th class="py-space-sm px-space-md">Proposed Venue</th>
+<th class="py-space-sm px-space-md">Location</th>
+<th class="py-space-sm px-space-md">Submission Date</th>
+<th class="py-space-sm px-space-md">Compliance Badges</th>
+<th class="py-space-sm px-space-md">Status</th>
+<th class="py-space-sm px-space-md text-right rounded-r-lg">Super Admin Decision</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container" id="moderation-tbody">
+<!-- Queue Item 1 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-space-md px-space-md">
+<div class="font-title-md text-body-md font-bold text-on-surface">Kailashnath Shetty</div>
+<div class="text-[11px] text-on-surface-variant">GSTIN: 29AAACK4812Q1Z3</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="font-bold text-on-surface">The Heritage Mangalore Estate</div>
+<div class="text-[11px] text-on-surface-variant">Cap: 1,800 Pax • Lawn + Banquet</div>
+</td>
+<td class="py-space-md px-space-md font-medium text-on-surface">Kodialbail, Mangaluru</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Nov 19, 2024 (2d ago)</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1 flex-wrap">
+<span class="px-2 py-0.5 rounded bg-tertiary-container text-tertiary-fixed text-[10px] font-bold">Fire Safety NOC</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface text-[10px] font-bold">Trade Lic. #291</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 px-space-xs py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-[11px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                  PENDING APPROVAL
+                </span>
+</td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="px-space-sm py-1 bg-surface-container hover:bg-surface-container-high rounded text-on-surface font-label-sm text-label-sm font-semibold transition-all" onclick="inspectHall('The Heritage Mangalore Estate')">Inspect</button>
+<button class="px-space-sm py-1 bg-on-tertiary-container text-on-tertiary rounded font-label-sm text-label-sm font-bold shadow-sm hover:opacity-90 transition-all" onclick="approveHall(this, 'The Heritage Mangalore Estate')">Approve &amp; Live</button>
+<button class="px-space-sm py-1 bg-surface-container-high hover:bg-secondary-fixed text-on-surface font-label-sm text-label-sm font-semibold transition-all" onclick="requestChanges(this)">Changes</button>
+<button class="p-1 rounded bg-error-container text-on-error-container hover:opacity-90 transition-all" onclick="rejectHall(this)" title="Reject / Suspend">
+<span class="material-symbols-outlined text-[16px]">block</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Queue Item 2 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-space-md px-space-md">
+<div class="font-title-md text-body-md font-bold text-on-surface">Shalini Sen-Gupta</div>
+<div class="text-[11px] text-on-surface-variant">GSTIN: 19AABCS8821L1M2</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="font-bold text-on-surface">Grand Celeste Glasshouse</div>
+<div class="text-[11px] text-on-surface-variant">Cap: 650 Pax • Botanical Pavilion</div>
+</td>
+<td class="py-space-md px-space-md font-medium text-on-surface">Whitefield, Bengaluru</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Nov 20, 2024 (1d ago)</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1 flex-wrap">
+<span class="px-2 py-0.5 rounded bg-tertiary-container text-tertiary-fixed text-[10px] font-bold">FSSAI Certified</span>
+<span class="px-2 py-0.5 rounded bg-error-container text-error text-[10px] font-bold">NOC Expiring</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 px-space-xs py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-[11px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                  PENDING APPROVAL
+                </span>
+</td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="px-space-sm py-1 bg-surface-container hover:bg-surface-container-high rounded text-on-surface font-label-sm text-label-sm font-semibold transition-all" onclick="inspectHall('Grand Celeste Glasshouse')">Inspect</button>
+<button class="px-space-sm py-1 bg-on-tertiary-container text-on-tertiary rounded font-label-sm text-label-sm font-bold shadow-sm hover:opacity-90 transition-all" onclick="approveHall(this, 'Grand Celeste Glasshouse')">Approve &amp; Live</button>
+<button class="px-space-sm py-1 bg-surface-container-high hover:bg-secondary-fixed text-on-surface font-label-sm text-label-sm font-semibold transition-all" onclick="requestChanges(this)">Changes</button>
+<button class="p-1 rounded bg-error-container text-on-error-container hover:opacity-90 transition-all" onclick="rejectHall(this)" title="Reject / Suspend">
+<span class="material-symbols-outlined text-[16px]">block</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Queue Item 3 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-space-md px-space-md">
+<div class="font-title-md text-body-md font-bold text-on-surface">Farhan Merchant</div>
+<div class="text-[11px] text-on-surface-variant">GSTIN: 27AABCM9102K1Z9</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="font-bold text-on-surface">The Palm Courtyard</div>
+<div class="text-[11px] text-on-surface-variant">Cap: 400 Pax • Open Amphitheatre</div>
+</td>
+<td class="py-space-md px-space-md font-medium text-on-surface">Juhu Beach, Mumbai</td>
+<td class="py-space-md px-space-md text-on-surface-variant">Nov 21, 2024 (Today)</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1 flex-wrap">
+<span class="px-2 py-0.5 rounded bg-tertiary-container text-tertiary-fixed text-[10px] font-bold">Coastal Reg. Zone</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface text-[10px] font-bold">Police Clearance</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 px-space-xs py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-[11px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                  PENDING APPROVAL
+                </span>
+</td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="px-space-sm py-1 bg-surface-container hover:bg-surface-container-high rounded text-on-surface font-label-sm text-label-sm font-semibold transition-all" onclick="inspectHall('The Palm Courtyard')">Inspect</button>
+<button class="px-space-sm py-1 bg-on-tertiary-container text-on-tertiary rounded font-label-sm text-label-sm font-bold shadow-sm hover:opacity-90 transition-all" onclick="approveHall(this, 'The Palm Courtyard')">Approve &amp; Live</button>
+<button class="px-space-sm py-1 bg-surface-container-high hover:bg-secondary-fixed text-on-surface font-label-sm text-label-sm font-semibold transition-all" onclick="requestChanges(this)">Changes</button>
+<button class="p-1 rounded bg-error-container text-on-error-container hover:opacity-90 transition-all" onclick="rejectHall(this)" title="Reject / Suspend">
+<span class="material-symbols-outlined text-[16px]">block</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Dual Split: Verification Inspector Preview & Real-Time Audit Log -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- Inspector Sandbox -->
+<div class="lg:col-span-6 bg-surface-container-lowest p-space-lg rounded-xl shadow-sm space-y-space-md">
+<div class="flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">Asset Audit Sandbox</span>
+<h3 class="font-title-lg text-title-lg text-on-surface">Inspection Dossier</h3>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface font-semibold">Active Review Target</span>
+</div>
+<div class="space-y-space-sm">
+<div class="relative rounded-lg overflow-hidden h-44">
+<img class="w-full h-full object-cover" data-alt="High resolution architectural interior photo of a sprawling heritage estate hall in coastal India, showing teak wood pillars, ornate vintage brass lanterns, high timber ceiling, and wide double doors opening to manicured lawns." id="inspect-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfrql-quvIVDk-ECz2aEjJRgWTTIybUzNwm6r7qPzfI7185JtE_NuaJWmk6ZTcbnOa3V3dcj3TSE879TVmEOQjiv0yNohHnvUM-oR2kYOJMRyJtw7Wi0hFFU3c3ZiLyTtKxFUmG6VpNSGaLrUCH4ddpBKf6Uq6QWLuplOJPkPZ7IsXr8oGiaBpNA1JUL-clD86FWAkWNL21G05oRQhfV1UdyeF4M2vfniBrLCuCNSAIT2kYmNLU3M"/>
+<div class="absolute bottom-2 left-2 bg-inverse-surface/80 backdrop-blur-sm text-on-primary px-2 py-1 rounded text-[11px] font-medium">
+              Geotag: 12.8700° N, 74.8800° E (Verified Match)
+            </div>
+</div>
+<div class="grid grid-cols-2 gap-space-sm text-body-sm">
+<div class="p-space-xs bg-surface-container-low rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Hall Identity:</span>
+<span class="font-bold text-on-surface" id="inspect-name">The Heritage Mangalore Estate</span>
+</div>
+<div class="p-space-xs bg-surface-container-low rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Seating Verification:</span>
+<span class="font-bold text-on-surface">Verified 1,800 Max</span>
+</div>
+<div class="p-space-xs bg-surface-container-low rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Parking Allowance:</span>
+<span class="font-bold text-on-surface">220 Dedicated Car Slots</span>
+</div>
+<div class="p-space-xs bg-surface-container-low rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Licence Authenticity:</span>
+<span class="font-bold text-on-tertiary-container flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">verified</span> Government API Cleared
+              </span>
+</div>
+</div>
+</div>
+<div class="p-space-sm bg-surface-container-low rounded-lg text-body-sm space-y-1">
+<p class="font-semibold text-on-surface">Admin Review Remarks (Internal Only):</p>
+<p class="text-on-surface-variant text-body-sm">Catering vendor policies verified. Fire exits compliant with municipal standards. Escrow bank IFSC and cancel cheque verified with State Bank of India.</p>
+</div>
+</div>
+<!-- Real-Time Audit Activity Log -->
+<div class="lg:col-span-6 bg-surface-container-lowest p-space-lg rounded-xl shadow-sm space-y-space-md flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">System Telemetry</span>
+<h3 class="font-title-lg text-title-lg text-on-surface">Real-Time Platform Audit Stream</h3>
+</div>
+<span class="w-2.5 h-2.5 rounded-full bg-on-tertiary-container animate-ping"></span>
+</div>
+<!-- Event Stream List -->
+<div class="space-y-space-sm max-h-96 overflow-y-auto pr-1" id="audit-log-stream">
+<!-- Event 1 -->
+<div class="flex items-start gap-space-sm p-space-xs rounded-lg hover:bg-surface-container-low transition-colors">
+<div class="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[16px] text-primary">verified_user</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-body-sm font-semibold text-on-surface">
+                  Admin Rajesh approved <span class="text-secondary">'Royal Orchid Banquet'</span>
+</p>
+<p class="text-body-sm text-on-surface-variant text-[11px]">Badge issued: Verified Luxury Partner • 8 mins ago</p>
+</div>
+</div>
+<!-- Event 2 -->
+<div class="flex items-start gap-space-sm p-space-xs rounded-lg hover:bg-surface-container-low transition-colors">
+<div class="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[16px] text-secondary">visibility</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-body-sm font-semibold text-on-surface">
+                  Owner Suresh toggled public calendar <span class="text-on-tertiary-container font-bold">ON</span>
+</p>
+<p class="text-body-sm text-on-surface-variant text-[11px]">Listing: Mangalore Emerald Grand • 24 mins ago</p>
+</div>
+</div>
+<!-- Event 3 -->
+<div class="flex items-start gap-space-sm p-space-xs rounded-lg hover:bg-surface-container-low transition-colors">
+<div class="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[16px] text-on-tertiary-container">paid</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-body-sm font-semibold text-on-surface">
+                  Booking <span class="font-mono text-xs">#1092</span> confirmed for <span class="text-on-surface font-bold">Mangalore Grand</span>
+</p>
+<p class="text-body-sm text-on-surface-variant text-[11px]">$3,200 deposited to escrow smart vault • 42 mins ago</p>
+</div>
+</div>
+<!-- Event 4 -->
+<div class="flex items-start gap-space-sm p-space-xs rounded-lg hover:bg-surface-container-low transition-colors">
+<div class="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[16px] text-error">edit_calendar</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-body-sm font-semibold text-on-surface">
+                  Owner Anil blocked evening shift for Nov 30
+                </p>
+<p class="text-body-sm text-on-surface-variant text-[11px]">Reason: Annual HVAC preventive maintenance • 1 hour ago</p>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-space-sm">
+<div class="p-space-xs bg-surface-container-low rounded flex items-center justify-between text-body-sm text-on-surface-variant">
+<span>Audit retention window: 365 Days</span>
+<button class="font-label-sm text-label-sm font-bold text-secondary hover:underline" onclick="clearAuditLog()">Flush Cache</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- MODAL: ADD NEW HALL FULL 9-STEP WORKFLOW WIZARD                           -->
+<!-- ========================================================================= -->
+<div class="fixed inset-0 z-50 hidden bg-inverse-surface/60 backdrop-blur-sm flex items-center justify-center p-space-md" id="modal-wizard">
+<div class="bg-surface-container-lowest rounded-xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fadeIn">
+<!-- Modal Header -->
+<div class="p-space-lg bg-surface-container-low flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">Listing Architecture</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Register New Venue Hall Asset</h2>
+</div>
+<button class="p-1 rounded-full bg-surface-container hover:bg-surface-container-high transition-colors" onclick="closeWizardModal()">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Modal Stepper Indicator -->
+<div class="px-space-lg py-space-sm bg-surface-container-lowest border-b border-surface-container flex items-center justify-between overflow-x-auto text-[11px] font-bold">
+<span class="text-secondary">1. Info</span>
+<span class="text-on-surface-variant">→</span>
+<span class="text-on-surface-variant">2. Dimensions</span>
+<span class="text-on-surface-variant">→</span>
+<span class="text-on-surface-variant">3. Amenities</span>
+<span class="text-on-surface-variant">→</span>
+<span class="text-on-surface-variant">4. Pricing</span>
+<span class="text-on-surface-variant">→</span>
+<span class="text-on-surface-variant">5. Media</span>
+<span class="text-on-surface-variant">→</span>
+<span class="text-on-surface-variant">6. Geolocation</span>
+<span class="text-on-surface-variant">→</span>
+<span class="text-on-surface-variant">7. Contact</span>
+<span class="text-on-surface-variant">→</span>
+<span class="text-on-surface-variant">8. Privacy</span>
+<span class="text-on-surface-variant">→</span>
+<span class="text-on-surface-variant">9. Submit</span>
+</div>
+<!-- Modal Body (Form Fields) -->
+<div class="p-space-lg overflow-y-auto flex-1 space-y-space-md">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm font-bold text-on-surface">Hall Commercial Title *</label>
+<input class="w-full px-space-sm py-space-xs rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. Royal Sapphire Ballroom" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm font-bold text-on-surface">Hall Category / Format *</label>
+<select class="w-full px-space-sm py-space-xs rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary">
+<option>Banquet &amp; Wedding Hall</option>
+<option>Heritage Estate / Lawn</option>
+<option>Convention Center</option>
+<option>Botanical Glasshouse</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm font-bold text-on-surface">Carpet Area (Sq. Ft)</label>
+<input class="w-full px-space-sm py-space-xs rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="12,500" type="number"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm font-bold text-on-surface">Seated Capacity</label>
+<input class="w-full px-space-sm py-space-xs rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="750" type="number"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm font-bold text-on-surface">Floating Capacity</label>
+<input class="w-full px-space-sm py-space-xs rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="1,200" type="number"/>
+</div>
+</div>
+<!-- Privacy & Visibility Switches preview -->
+<div class="p-space-md bg-surface-container-low rounded-lg space-y-space-sm">
+<span class="font-label-sm text-label-sm font-bold uppercase tracking-wider text-secondary">Step 8 Parameters (Privacy &amp; Channel Dispatch)</span>
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-sm">
+<div>
+<p class="font-title-md text-body-md font-bold text-on-surface">Show Real-Time Slot Calendar on Customer Portal</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Allows couples &amp; planners to directly see booked dates without having to call.</p>
+</div>
+<input checked="" class="w-5 h-5 accent-primary" type="checkbox"/>
+</div>
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-sm pt-2">
+<div>
+<p class="font-title-md text-body-md font-bold text-on-surface">Enable Direct WhatsApp Concierge Link</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Displays an instantaneous WhatsApp chat bubble on public listing profile.</p>
+</div>
+<input checked="" class="w-5 h-5 accent-on-tertiary-container" type="checkbox"/>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="p-space-lg bg-surface-container-low flex items-center justify-between">
+<button class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors" onclick="closeWizardModal()">
+          Cancel &amp; Exit
+        </button>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-md py-space-xs rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors">
+            Save Draft
+          </button>
+<button class="px-space-lg py-space-xs rounded-lg bg-primary text-on-primary font-label-md text-label-md font-bold hover:bg-inverse-surface shadow-sm transition-all" onclick="submitWizard()">
+            Submit for Admin Verification
+          </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- INLINE INTERACTION SCRIPT                                                 -->
+<!-- ========================================================================= -->
+<script>
+  // 1. Role Toggle Engine (Owner vs Admin)
+  function switchRole(role) {
+    const ownerView = document.getElementById('view-owner');
+    const adminView = document.getElementById('view-admin');
+    const ownerBtn = document.getElementById('toggle-owner-btn');
+    const adminBtn = document.getElementById('toggle-admin-btn');
+
+    if (role === 'owner') {
+      ownerView.classList.remove('hidden');
+      adminView.classList.add('hidden');
+
+      ownerBtn.className = 'flex items-center justify-center gap-space-xs px-space-md py-space-xs rounded-full font-label-md text-label-md transition-all duration-200 bg-primary text-on-primary shadow-sm';
+      adminBtn.className = 'flex items-center justify-center gap-space-xs px-space-md py-space-xs rounded-full font-label-md text-label-md transition-all duration-200 text-on-surface-variant hover:text-on-surface hover:bg-surface-container';
+    } else {
+      ownerView.classList.add('hidden');
+      adminView.classList.remove('hidden');
+
+      adminBtn.className = 'flex items-center justify-center gap-space-xs px-space-md py-space-xs rounded-full font-label-md text-label-md transition-all duration-200 bg-primary text-on-primary shadow-sm';
+      ownerBtn.className = 'flex items-center justify-center gap-space-xs px-space-md py-space-xs rounded-full font-label-md text-label-md transition-all duration-200 text-on-surface-variant hover:text-on-surface hover:bg-surface-container';
+    }
+  }
+
+  // 2. Slot Manager Matrix 3-State Cyclic Toggle
+  function toggleSlot(button) {
+    const currentText = button.textContent.trim();
+    if (currentText === 'Available') {
+      button.textContent = 'Booked';
+      button.className = 'slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-primary text-on-primary shadow-sm hover:ring-2 hover:ring-primary transition-all';
+      appendAuditLog(`Owner toggled slot to 'Booked'`);
+    } else if (currentText === 'Booked') {
+      button.textContent = 'Blocked';
+      button.className = 'slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-error text-on-error hover:ring-2 hover:ring-primary transition-all';
+      appendAuditLog(`Owner blocked shift for maintenance`);
+    } else {
+      button.textContent = 'Available';
+      button.className = 'slot-tile w-full py-2 px-1 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface hover:ring-2 hover:ring-primary transition-all';
+      appendAuditLog(`Owner reopened slot to public availability`);
+    }
+  }
+
+  // 3. Hall Owner Request Actions
+  function approveRequest(btn) {
+    const row = btn.closest('tr');
+    const statusCell = row.querySelector('td:nth-child(6)');
+    statusCell.innerHTML = `
+      <span class="inline-flex items-center gap-1 px-space-xs py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-[11px] font-bold">
+        <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+        Accepted
+      </span>
+    `;
+    btn.parentElement.innerHTML = `
+      <span class="font-label-sm text-[11px] text-on-tertiary-container font-bold mr-2">Accepted by Host</span>
+      <button class="p-1 rounded bg-surface-container-low text-on-surface-variant"><span class="material-symbols-outlined text-[18px]">chat</span></button>
+    `;
+    appendAuditLog(`Owner accepted booking request for Imperial Ballroom`);
+  }
+
+  function declineRequest(btn) {
+    const row = btn.closest('tr');
+    row.style.opacity = '0.35';
+    btn.parentElement.innerHTML = `<span class="font-label-sm text-[11px] text-error font-bold">Declined</span>`;
+    appendAuditLog(`Owner declined booking request`);
+  }
+
+  // 4. Super Admin Moderation Decisions
+  function approveHall(btn, hallName) {
+    const row = btn.closest('tr');
+    const statusCell = row.querySelector('td:nth-child(6)');
+    statusCell.innerHTML = `
+      <span class="inline-flex items-center gap-1 px-space-xs py-1 rounded-full bg-tertiary-container text-tertiary-fixed font-label-sm text-[11px] font-bold">
+        <span class="material-symbols-outlined text-[14px]">verified</span>
+        LIVE & VERIFIED
+      </span>
+    `;
+    btn.parentElement.innerHTML = `
+      <span class="font-label-sm text-[11px] text-on-tertiary-container font-bold mr-2">Verified & Published</span>
+    `;
+    appendAuditLog(`Super Admin approved '${hallName}' (Verified Luxury Partner Badge Granted)`);
+  }
+
+  function requestChanges(btn) {
+    const row = btn.closest('tr');
+    const statusCell = row.querySelector('td:nth-child(6)');
+    statusCell.innerHTML = `
+      <span class="inline-flex items-center gap-1 px-space-xs py-1 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-[11px] font-bold">
+        Revision Requested
+      </span>
+    `;
+    btn.parentElement.innerHTML = `
+      <span class="font-label-sm text-[11px] text-secondary font-bold mr-2">Notification Sent</span>
+    `;
+    appendAuditLog(`Super Admin requested document revisions from hall owner`);
+  }
+
+  function rejectHall(btn) {
+    const row = btn.closest('tr');
+    row.style.opacity = '0.4';
+    const statusCell = row.querySelector('td:nth-child(6)');
+    statusCell.innerHTML = `
+      <span class="inline-flex items-center gap-1 px-space-xs py-1 rounded-full bg-error-container text-on-error-container font-label-sm text-[11px] font-bold">
+        REJECTED / SUSPENDED
+      </span>
+    `;
+    btn.parentElement.innerHTML = `<span class="font-label-sm text-[11px] text-error font-bold">Rejected</span>`;
+    appendAuditLog(`Super Admin rejected & blacklisted hall submission`);
+  }
+
+  function inspectHall(hallName) {
+    document.getElementById('inspect-name').textContent = hallName;
+    appendAuditLog(`Super Admin loaded inspection dossier for '${hallName}'`);
+  }
+
+  // 5. Audit Log Dynamic Appender
+  function appendAuditLog(text) {
+    const stream = document.getElementById('audit-log-stream');
+    if (!stream) return;
+    const item = document.createElement('div');
+    item.className = 'flex items-start gap-space-sm p-space-xs rounded-lg bg-surface-container-low transition-colors animate-fadeIn';
+    item.innerHTML = `
+      <div class="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center shrink-0 mt-0.5">
+        <span class="material-symbols-outlined text-[16px] text-secondary">update</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-body-sm font-semibold text-on-surface">${text}</p>
+        <p class="text-body-sm text-on-surface-variant text-[11px]">Just now • Audit Node #4</p>
+      </div>
+    `;
+    stream.prepend(item);
+  }
+
+  function clearAuditLog() {
+    const stream = document.getElementById('audit-log-stream');
+    if (stream) stream.innerHTML = '<p class="text-body-sm text-on-surface-variant italic p-space-xs">Telemetry log cleared.</p>';
+  }
+
+  // 6. Wizard Modal Controls
+  function openWizardModal() {
+    document.getElementById('modal-wizard').classList.remove('hidden');
+  }
+
+  function closeWizardModal() {
+    document.getElementById('modal-wizard').classList.add('hidden');
+  }
+
+  function submitWizard() {
+    alert("New venue successfully drafted and submitted to the Super Admin Control Tower for fire & trade license verification.");
+    closeWizardModal();
+    appendAuditLog("Owner submitted 'Royal Sapphire Ballroom' for verification review.");
+  }
+</script></main></div></body></html>
