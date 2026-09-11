@@ -91,23 +91,6 @@ const SearchView = {
               </div>
             </div>
 
-            <!-- AI Voice & Natural Language Search Bar -->
-            <div class="pt-1">
-              <div class="flex items-center gap-2 p-1.5 sm:p-2 bg-surface-container rounded-xl border border-secondary/30 shadow-inner">
-                <button type="button" id="search-voice-mic-btn" class="w-9 h-9 rounded-lg bg-secondary text-on-secondary flex items-center justify-center hover:bg-on-secondary-container transition-all shrink-0 cursor-pointer shadow-sm animate-pulse-ring" onclick="SearchView.startVoiceSearch()" title="Click to speak (AI Voice Search)">
-                  <span class="material-symbols-outlined text-[20px]">mic</span>
-                </button>
-                <input type="text" id="search-ai-voice-input" class="flex-1 bg-transparent text-xs sm:text-sm font-semibold text-on-surface focus:outline-none placeholder:text-on-surface-variant/60" placeholder="Say or type: 'Show AC halls in Karkala for 800 guests under 1 lakh'..." onkeydown="if(event.key==='Enter'){event.preventDefault(); SearchView.submitAISearch();}">
-                <button type="button" class="px-3 py-1.5 bg-primary text-on-primary rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-inverse-surface transition-all flex items-center gap-1 shrink-0 cursor-pointer shadow-sm" onclick="SearchView.submitAISearch()">
-                  <span class="material-symbols-outlined text-[15px]">smart_toy</span>
-                  <span class="hidden sm:inline">AI Filter</span>
-                </button>
-              </div>
-
-              <!-- Active AI Filter Badges Strip -->
-              ${this.renderAIFilterRibbon()}
-            </div>
-
             <!-- Horizontally Scrollable Sort Chips (No mobile clipping) -->
             <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar text-nowrap" id="search-sort-chips">
               ${this.renderSortChips()}
@@ -130,21 +113,26 @@ const SearchView = {
             <!-- 2. RESULTS & MAP CONTAINER (9 Columns on Desktop, 12 on Mobile) -->
             <div class="col-span-12 lg:col-span-9 space-y-4">
               
-              <div class="grid grid-cols-1 ${this.currentLayout === 'split' ? 'xl:grid-cols-12' : 'sm:grid-cols-2 lg:grid-cols-3'} gap-4 md:gap-5">
+              <!-- Results Count & Active Layout Badge -->
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-sm text-on-surface" id="search-results-count">${filteredHalls.length} venues found</span>
+                <span class="text-xs text-on-surface-variant font-medium">Sorted by: <strong class="capitalize text-secondary">${this.filters.sortBy.replace('_', ' ')}</strong></span>
+              </div>
+
+              <!-- Content Area: Split View vs Grid View -->
+              <div class="grid grid-cols-1 xl:grid-cols-12 gap-4">
                 
-                <!-- Hall Cards Column -->
-                <div class="${this.currentLayout === 'split' ? 'xl:col-span-7 space-y-4' : 'col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5'}" id="search-cards-list">
-                  ${this.renderHallCards()}
+                <!-- Cards List (7 Cols in Split Mode, 12 in Grid Mode) -->
+                <div class="${this.currentLayout === 'split' ? 'xl:col-span-7' : 'xl:col-span-12'}">
+                  <div class="grid grid-cols-1 ${this.currentLayout === 'grid' ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'} gap-4" id="search-cards-list">
+                    ${this.renderHallCards()}
+                  </div>
                 </div>
 
-                <!-- Interactive Map Pane (Split View Desktop) -->
+                <!-- Interactive Desktop Map (5 Cols in Split Mode, Hidden in Grid Mode) -->
                 ${this.currentLayout === 'split' ? `
                   <div class="hidden xl:block xl:col-span-5 h-[calc(100vh-14rem)] sticky top-48 rounded-xl overflow-hidden shadow-sm border border-outline bg-surface-container relative">
-                    <div id="leaflet-search-map" class="w-full h-full"></div>
-                    <div class="absolute top-3 left-3 z-[1000] bg-white/95 backdrop-blur px-3 py-1 rounded-lg shadow-sm border border-outline text-[11px] font-bold text-on-surface flex items-center gap-1.5">
-                      <span class="material-symbols-outlined text-[15px] text-secondary">explore</span>
-                      <span>Live Venue Map</span>
-                    </div>
+                    <div id="leaflet-search-map" class="w-full h-full z-0"></div>
                   </div>
                 ` : ''}
 
@@ -155,42 +143,51 @@ const SearchView = {
           </div>
         </div>
 
-        <!-- Sticky Floating Map Toggle Button for Mobile -->
-        <button class="xl:hidden fixed bottom-6 right-6 z-40 bg-primary text-white shadow-xl px-4 py-3 rounded-full font-bold text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-inverse-surface active:scale-95 transition-all" onclick="SearchView.toggleMobileMap()">
-          <span class="material-symbols-outlined text-[18px]">${this.mobileMapOpen ? 'list' : 'map'}</span>
-          <span>${this.mobileMapOpen ? 'Show List' : 'View Map'}</span>
-        </button>
-
-        <!-- Mobile Dedicated Map Overlay Drawer -->
-        <div class="${this.mobileMapOpen ? 'flex' : 'hidden'} xl:hidden fixed inset-0 z-50 flex-col bg-white">
-          <div class="h-14 px-4 bg-surface-container-lowest border-b border-outline flex items-center justify-between">
-            <span class="font-bold text-sm text-on-surface flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[18px] text-secondary">explore</span>
-              <span>Map View (${filteredHalls.length} Halls)</span>
-            </span>
-            <button class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container text-on-surface" onclick="SearchView.toggleMobileMap()">
-              <span class="material-symbols-outlined text-[20px]">close</span>
-            </button>
-          </div>
-          <div id="leaflet-mobile-map" class="flex-1 w-full"></div>
+        <!-- Mobile Floating Map Trigger (Bottom Right Floating Action Button) -->
+        <div class="lg:hidden fixed bottom-6 right-6 z-40">
+          <button class="flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary text-white shadow-xl hover:bg-inverse-surface active:scale-95 font-bold text-xs uppercase tracking-wider transition-all" onclick="SearchView.toggleMobileMap()">
+            <span class="material-symbols-outlined text-[18px]">${this.mobileMapOpen ? 'grid_view' : 'map'}</span>
+            <span>${this.mobileMapOpen ? 'Show List' : 'View on Map'}</span>
+          </button>
         </div>
 
-        <!-- Mobile Filter Bottom Sheet / Slide Drawer -->
-        <div class="hidden lg:hidden fixed inset-0 z-50" id="mobile-filter-drawer">
-          <div class="fixed inset-0 bg-primary/40 backdrop-blur-sm drawer-backdrop" onclick="SearchView.toggleMobileFilters()"></div>
+        <!-- Fullscreen Mobile Map Overlay -->
+        ${this.mobileMapOpen ? `
+          <div class="lg:hidden fixed inset-0 z-50 bg-surface flex flex-col pt-20">
+            <div class="h-14 px-4 bg-surface-container-lowest border-b border-outline flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-secondary">map</span>
+                <span class="font-bold text-sm text-on-surface">Interactive Map (${filteredHalls.length} Halls)</span>
+              </div>
+              <button class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container text-on-surface" onclick="SearchView.toggleMobileMap()">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div class="flex-1 w-full relative">
+              <div id="leaflet-mobile-map" class="w-full h-full z-0"></div>
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- Mobile Filter Drawer (Responsive Bottom Sheet) -->
+        <div id="mobile-filter-drawer" class="lg:hidden hidden fixed inset-0 z-50">
+          <div class="absolute inset-0 bg-black/50 backdrop-blur-xs" onclick="SearchView.toggleMobileFilters()"></div>
           <div class="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-surface-container-lowest rounded-t-2xl shadow-2xl p-5 overflow-y-auto bottomsheet-content border-t border-outline flex flex-col justify-between">
-            <div class="space-y-4">
-              <div class="flex items-center justify-between pb-2 border-b border-outline">
-                <span class="font-title-md text-base font-bold text-on-surface">Filters</span>
+            <div>
+              <div class="flex items-center justify-between pb-3 border-b border-outline mb-4">
+                <span class="font-bold text-base text-on-surface">Filters</span>
                 <button class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface hover:bg-surface-container" onclick="SearchView.toggleMobileFilters()">
                   <span class="material-symbols-outlined text-[20px]">close</span>
                 </button>
               </div>
               ${this.renderFiltersContent()}
             </div>
-            <div class="pt-4 mt-4 border-t border-outline">
-              <button class="w-full py-3 bg-primary text-white rounded-xl font-bold text-xs uppercase tracking-wider" onclick="SearchView.toggleMobileFilters()">
-                Apply Filters (${filteredHalls.length} Results)
+            <div class="pt-4 mt-6 border-t border-outline flex items-center gap-3">
+              <button class="w-1/2 py-2.5 rounded-lg border border-outline text-on-surface font-bold text-xs uppercase tracking-wider hover:bg-surface-container" onclick="SearchView.resetFilters()">
+                Reset
+              </button>
+              <button class="w-1/2 py-2.5 rounded-lg bg-primary text-white font-bold text-xs uppercase tracking-wider hover:bg-inverse-surface shadow-md" onclick="SearchView.toggleMobileFilters()">
+                Apply Filters
               </button>
             </div>
           </div>
@@ -203,10 +200,6 @@ const SearchView = {
   renderSortChips() {
     return `
       <span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">Sort:</span>
-      <button class="px-3 py-1 font-label-sm text-xs rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${this.filters.sortBy === 'ai_match' ? 'bg-secondary text-white font-bold shadow-sm' : 'bg-surface-container hover:bg-surface-container-high text-on-surface'}" onclick="SearchView.setSort('ai_match')">
-        <span class="material-symbols-outlined text-[14px]">auto_awesome</span>
-        <span>AI Smart Match</span>
-      </button>
       <button class="px-3 py-1 font-label-sm text-xs rounded-full transition-all flex items-center gap-1 cursor-pointer ${this.filters.sortBy === 'nearest' ? 'bg-primary text-white font-bold shadow-sm' : 'bg-surface-container hover:bg-surface-container-high text-on-surface'}" onclick="SearchView.setSort('nearest')">
         <span class="material-symbols-outlined text-[13px]">near_me</span> Nearest First
       </button>
@@ -322,66 +315,6 @@ const SearchView = {
   getFilteredHalls() {
     let halls = window.appStore.getPublicHalls();
 
-    // Check for active AI Concierge criteria
-    let aiCriteria = null;
-    try {
-      const stored = sessionStorage.getItem('ai_active_criteria');
-      if (stored) aiCriteria = JSON.parse(stored);
-    } catch (e) {}
-
-    if (aiCriteria) {
-      // 1. City / Locality matching
-      if (aiCriteria.city) {
-        const c = aiCriteria.city.toLowerCase();
-        halls = halls.filter(h => 
-          h.city.toLowerCase().includes(c) || 
-          (h.area && h.area.toLowerCase().includes(c)) ||
-          (h.address && h.address.toLowerCase().includes(c))
-        );
-      }
-
-      // 2. Capacity constraints
-      if (aiCriteria.capacityMin) {
-        halls = halls.filter(h => (h.seating_capacity || 0) >= aiCriteria.capacityMin || (h.maximum_capacity || 0) >= aiCriteria.capacityMin);
-      }
-      if (aiCriteria.capacityMax) {
-        halls = halls.filter(h => (h.seating_capacity || 0) <= aiCriteria.capacityMax);
-      }
-
-      // 3. AC vs Non-AC
-      if (aiCriteria.acType) {
-        if (aiCriteria.acType.toLowerCase().includes('non')) {
-          halls = halls.filter(h => h.ac_status.toLowerCase().includes('non'));
-        } else {
-          halls = halls.filter(h => !h.ac_status.toLowerCase().includes('non'));
-        }
-      }
-
-      // 4. Indoor vs Outdoor / Lawns
-      if (aiCriteria.indoorOutdoor) {
-        halls = halls.filter(h => h.indoor_outdoor.toLowerCase().includes(aiCriteria.indoorOutdoor.toLowerCase()));
-      }
-
-      // 5. Price / Budget cap
-      if (aiCriteria.maxPrice) {
-        halls = halls.filter(h => {
-          const evening = h.pricing?.evening || 0;
-          const morning = h.pricing?.morning || 0;
-          return evening <= aiCriteria.maxPrice || morning <= aiCriteria.maxPrice;
-        });
-      }
-
-      // 6. Event Type matching
-      if (aiCriteria.eventType) {
-        const ev = aiCriteria.eventType.toLowerCase();
-        halls = halls.filter(h => {
-          if (h.hall_type && h.hall_type.toLowerCase().includes(ev.split(' ')[0])) return true;
-          if (h.suitable_for && h.suitable_for.some(s => ev.includes(s.toLowerCase()) || s.toLowerCase().includes(ev.split(' ')[0]))) return true;
-          return false;
-        });
-      }
-    }
-
     if (this.filters.query) {
       const q = this.filters.query.toLowerCase();
       halls = halls.filter(h => 
@@ -415,15 +348,7 @@ const SearchView = {
       halls = halls.filter(h => (h.pricing?.evening || 0) <= this.filters.maxPrice);
     }
 
-    if (this.filters.sortBy === 'ai_match') {
-      let criteria = {};
-      try {
-        criteria = JSON.parse(sessionStorage.getItem('ai_active_criteria') || '{}');
-      } catch (e) {}
-      if (window.aiConcierge) {
-        halls = window.aiConcierge.rankHallsWithAI(halls, criteria, 'ai_recommended');
-      }
-    } else if (this.filters.sortBy === 'nearest') {
+    if (this.filters.sortBy === 'nearest') {
       halls.sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
     } else if (this.filters.sortBy === 'rating') {
       halls.sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0));
@@ -551,184 +476,10 @@ const SearchView = {
     }).join('');
   },
 
-  renderAIFilterRibbon() {
-    let criteria = null;
-    try {
-      const stored = sessionStorage.getItem('ai_active_criteria');
-      if (stored) criteria = JSON.parse(stored);
-    } catch (e) {}
-
-    if (!criteria || !criteria.tags || criteria.tags.length === 0) {
-      return `
-        <div class="mt-2 flex items-center justify-between gap-2 px-3 py-1.5 bg-surface-container/70 rounded-lg text-[11px] text-on-surface-variant border border-outline/50">
-          <div class="flex items-center gap-1.5 truncate">
-            <span class="material-symbols-outlined text-[14px] text-secondary">tips_and_updates</span>
-            <span class="truncate">Tip: Try speaking <span class="text-secondary font-semibold italic">"Find AC wedding hall in Karkala for 800 guests under 1 lakh"</span></span>
-          </div>
-          <button type="button" class="text-secondary hover:underline font-bold shrink-0 text-[10px] uppercase tracking-wider cursor-pointer" onclick="AIChatWidget.openWithPrompt('Show top AC wedding halls in Mangalore')">Open AI Chatbot</button>
-        </div>
-      `;
-    }
-
-    return `
-      <div class="mt-2 p-2.5 bg-secondary/10 border border-secondary/30 rounded-xl flex flex-wrap items-center justify-between gap-2 shadow-xs">
-        <div class="flex flex-wrap items-center gap-1.5">
-          <span class="flex items-center gap-1 text-[11px] font-bold text-secondary uppercase tracking-wider mr-1">
-            <span class="material-symbols-outlined text-[15px] animate-pulse">auto_awesome</span>
-            AI Smart Filters:
-          </span>
-          ${criteria.tags.map(t => `<span class="ai-tag-glow text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white border border-secondary/40 text-on-surface flex items-center gap-1 shadow-2xs">${t}</span>`).join('')}
-        </div>
-        <div class="flex items-center gap-2">
-          <button type="button" class="text-xs text-secondary font-bold hover:underline flex items-center gap-1 cursor-pointer" onclick="AIChatWidget.openWithPrompt('${criteria.rawQuery ? criteria.rawQuery.replace(/'/g, "\\'") : ''}')">
-            <span class="material-symbols-outlined text-[14px]">forum</span> Ask AI Concierge
-          </button>
-          <button type="button" class="text-xs text-error font-bold hover:underline flex items-center gap-1 cursor-pointer bg-white px-2 py-0.5 rounded border border-error/30" onclick="SearchView.clearAIFilters()">
-            <span class="material-symbols-outlined text-[13px]">close</span> Clear AI Filters
-          </button>
-        </div>
-      </div>
-    `;
-  },
-
-  startVoiceSearch() {
-    const input = document.getElementById('search-ai-voice-input');
-    const micBtn = document.getElementById('search-voice-mic-btn');
-
-    if (!window.aiConcierge) {
-      if (window.Notification) window.Notification.show('AI Concierge is initializing...', 'info');
-      return;
-    }
-
-    if (window.aiConcierge.isListening) {
-      window.aiConcierge.stopListening();
-      if (micBtn) {
-        micBtn.classList.remove('bg-red-600', 'text-white');
-        micBtn.classList.add('bg-secondary', 'text-on-secondary');
-      }
-      return;
-    }
-
-    if (micBtn) {
-      micBtn.classList.remove('bg-secondary', 'text-on-secondary');
-      micBtn.classList.add('bg-red-600', 'text-white');
-    }
-    if (input) {
-      input.placeholder = '🎙️ Listening... Speak your requirements (location, guests, AC, budget)';
-    }
-
-    window.aiConcierge.startListening({
-      onListening: () => {
-        if (window.Notification) window.Notification.show('Listening... Speak your venue needs now', 'info');
-      },
-      onInterim: (text) => {
-        if (input) input.value = text;
-      },
-      onFinal: (text) => {
-        if (input) input.value = text;
-        if (micBtn) {
-          micBtn.classList.remove('bg-red-600', 'text-white');
-          micBtn.classList.add('bg-secondary', 'text-on-secondary');
-        }
-        SearchView.submitAISearch(text);
-      },
-      onError: (errMsg) => {
-        if (micBtn) {
-          micBtn.classList.remove('bg-red-600', 'text-white');
-          micBtn.classList.add('bg-secondary', 'text-on-secondary');
-        }
-        if (input) {
-          input.placeholder = "Say or type: 'Show AC halls in Karkala for 800 guests under 1 lakh'...";
-        }
-        if (window.Notification) window.Notification.show(errMsg, 'error');
-      },
-      onEnd: () => {
-        if (micBtn) {
-          micBtn.classList.remove('bg-red-600', 'text-white');
-          micBtn.classList.add('bg-secondary', 'text-on-secondary');
-        }
-        if (input && !input.value) {
-          input.placeholder = "Say or type: 'Show AC halls in Karkala for 800 guests under 1 lakh'...";
-        }
-      }
-    });
-  },
-
-  submitAISearch(queryOverride) {
-    const input = document.getElementById('search-ai-voice-input');
-    const query = (queryOverride !== undefined ? queryOverride : (input ? input.value : '')).trim();
-
-    if (!query) {
-      if (window.Notification) window.Notification.show('Please speak or type a venue requirement first', 'warning');
-      return;
-    }
-
-    if (!window.aiConcierge) return;
-
-    const criteria = window.aiConcierge.parseQuery(query);
-    sessionStorage.setItem('ai_active_criteria', JSON.stringify(criteria));
-
-    // Synchronize manual filter states where applicable
-    if (criteria.city) {
-      this.filters.city = criteria.city;
-    }
-    if (criteria.maxPrice) {
-      this.filters.maxPrice = criteria.maxPrice;
-    }
-    if (criteria.acType) {
-      this.filters.acType = criteria.acType.toLowerCase().includes('non') ? 'non-ac' : 'central ac';
-    }
-
-    // Automatically sort by detected preference or default to AI Smart Match
-    this.filters.sortBy = criteria.sortBy || 'ai_match';
-
-    // Re-render UI to display active AI badges and filtered halls
-    const container = document.getElementById('app-content');
-    if (container) {
-      container.innerHTML = this.render();
-      this.postRender();
-      const newInput = document.getElementById('search-ai-voice-input');
-      if (newInput) newInput.value = query;
-    }
-
-    const matchedHalls = this.getFilteredHalls();
-    if (window.Notification) {
-      window.Notification.show(`AI extracted filters: Found ${matchedHalls.length} matching venues!`, 'success');
-    }
-    if (window.aiConcierge && !window.aiConcierge.voiceMuted) {
-      const cityText = criteria.city ? ` in ${criteria.city}` : '';
-      const sortLabel = this.filters.sortBy === 'price_asc' ? 'Sorted by lowest price.' : (this.filters.sortBy === 'rating' ? 'Sorted by top rating.' : (this.filters.sortBy === 'capacity' ? 'Sorted by highest capacity.' : 'Sorted by AI smart match.'));
-      window.aiConcierge.speak(`Found ${matchedHalls.length} venues matching your request${cityText}. ${sortLabel}`);
-    }
-  },
-
-  clearAIFilters() {
-    sessionStorage.removeItem('ai_active_criteria');
-    this.resetFilters();
-    const container = document.getElementById('app-content');
-    if (container) {
-      container.innerHTML = this.render();
-      this.postRender();
-    }
-    if (window.Notification) {
-      window.Notification.show('AI filters cleared. Showing all verified venues.', 'info');
-    }
-  },
-
   postRender() {
     if (this.currentLayout === 'split') {
       this.initMap('leaflet-search-map');
     }
-    try {
-      const stored = sessionStorage.getItem('ai_active_criteria');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        const input = document.getElementById('search-ai-voice-input');
-        if (input && parsed.rawQuery && !input.value) {
-          input.value = parsed.rawQuery;
-        }
-      }
-    } catch (e) {}
   },
 
   initMap(mapContainerId) {

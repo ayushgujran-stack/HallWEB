@@ -48,142 +48,57 @@ const LandingView = {
           </div>
 
 
-          <!-- Themed AI Venue Concierge Chat (Directly inside Hero - Replaces boxed console) -->
-          <div id="ai-chat-section" class="max-w-4xl mx-auto relative mt-6">
+          <!-- HERO DISCOVERY SEARCH CONSOLE -->
+          <div class="max-w-5xl mx-auto bg-surface-container-lowest p-4 sm:p-6 md:p-8 rounded-2xl shadow-lg border border-outline mt-6">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+              <div class="md:col-span-4 p-2.5 px-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors">
+                <label class="font-label-sm text-xs uppercase tracking-wider text-on-surface-variant flex items-center gap-1 font-semibold">
+                  <span class="material-symbols-outlined text-[16px] text-secondary">location_on</span>
+                  <span>Location</span>
+                </label>
+                <input class="w-full bg-transparent text-on-surface font-title-md text-sm sm:text-base pt-1 focus:outline-none placeholder:text-on-surface-variant/60 font-semibold" id="hero-location-input" placeholder="City or neighborhood..." type="text" value="Karkala, Karnataka">
+              </div>
+              <div class="md:col-span-3 p-2.5 px-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors">
+                <label class="font-label-sm text-xs uppercase tracking-wider text-on-surface-variant flex items-center gap-1 font-semibold">
+                  <span class="material-symbols-outlined text-[16px] text-secondary">festival</span>
+                  <span>Occasion</span>
+                </label>
+                <div class="relative">
+                  <select id="hero-event-type" class="w-full bg-transparent text-on-surface font-title-md text-sm sm:text-base pt-1 focus:outline-none appearance-none cursor-pointer pr-6 font-semibold">
+                    <option value="" selected>Wedding & Reception</option>
+                    <option value="Birthday / Anniversary">Birthday / Anniversary</option>
+                    <option value="Corporate Summit">Corporate Summit</option>
+                    <option value="Cultural Gathering">Cultural Gathering</option>
+                  </select>
+                  <span class="material-symbols-outlined text-on-surface-variant absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-[18px]">expand_more</span>
+                </div>
+              </div>
+              <div class="md:col-span-3 p-2.5 px-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors">
+                <label class="font-label-sm text-xs uppercase tracking-wider text-on-surface-variant flex items-center gap-1 font-semibold">
+                  <span class="material-symbols-outlined text-[16px] text-secondary">calendar_today</span>
+                  <span>Event Date</span>
+                </label>
+                <input id="hero-date" class="w-full bg-transparent text-on-surface font-title-md text-sm sm:text-base pt-1 focus:outline-none cursor-pointer font-semibold" type="date">
+              </div>
+              <div class="md:col-span-2">
+                <button type="button" onclick="LandingView.performHeroSearch()" class="w-full h-12 inline-flex items-center justify-center gap-2 bg-primary text-on-primary hover:bg-inverse-surface font-label-md text-xs uppercase tracking-wider rounded-xl shadow transition-all active:scale-[0.98] cursor-pointer">
+                  <span class="material-symbols-outlined text-[18px]">search</span>
+                  <span>Search</span>
+                </button>
+              </div>
+            </div>
             
-            <!-- Soft Warm Ambient Glow Behind the Card -->
-            <div class="absolute -inset-2 rounded-3xl bg-gradient-to-r from-secondary/15 via-amber-400/10 to-orange-300/10 blur-2xl -z-10 opacity-70 pointer-events-none"></div>
-
-            <!-- Main Luxury Glassmorphic Card (Matches Website Aesthetic) -->
-            <div class="relative rounded-3xl bg-white/95 backdrop-blur-2xl text-on-surface p-5 sm:p-8 md:p-10 border border-secondary/25 shadow-[0_20px_50px_rgba(166,91,43,0.08),0_4px_16px_rgba(17,24,39,0.04)] overflow-hidden">
-              
-              <!-- Subtle Inner Radial Highlight -->
-              <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-secondary/8 via-transparent to-transparent rounded-full pointer-events-none -z-0"></div>
-
-              <!-- Interactive Mouse Glow -->
-              <div id="ai-mouse-glow" class="absolute w-[24rem] h-[24rem] rounded-full pointer-events-none z-0 opacity-0 transition-opacity duration-300 bg-gradient-to-r from-secondary/15 via-amber-300/15 to-orange-200/10 blur-[70px]" style="transform: translate(-50%, -50%);"></div>
-
-              <div class="w-full relative z-10 space-y-6">
-                
-                <!-- Card Header -->
-                <div class="text-center space-y-2">
-                  <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/20 text-xs font-bold text-secondary tracking-wide uppercase">
-                    <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
-                    <span>AI Venue Concierge</span>
-                  </div>
-                  <h2 class="text-2xl sm:text-3xl md:text-4xl font-serif text-on-surface font-semibold tracking-tight">
-                    How can I help plan your event today?
-                  </h2>
-                  <p class="text-xs sm:text-sm text-on-surface-variant max-w-lg mx-auto">
-                    Type a command like <span class="px-1.5 py-0.5 rounded bg-surface-container font-mono text-secondary font-bold text-[11px]">/wedding</span>, <span class="px-1.5 py-0.5 rounded bg-surface-container font-mono text-secondary font-bold text-[11px]">/ac</span>, <span class="px-1.5 py-0.5 rounded bg-surface-container font-mono text-secondary font-bold text-[11px]">/lawn</span>, or speak your event requirements in natural English
-                  </p>
-                </div>
-
-                <!-- Chat Input Container -->
-                <div class="relative bg-surface-container-lowest rounded-2xl border-2 border-outline hover:border-secondary/40 focus-within:border-secondary focus-within:ring-4 focus-within:ring-secondary/10 transition-all shadow-sm">
-                  
-                  <!-- Floating Command Palette -->
-                  <div id="ai-cmd-palette" class="hidden absolute left-3 right-3 bottom-full mb-2 bg-white/98 backdrop-blur-2xl rounded-2xl z-50 shadow-2xl border border-outline overflow-hidden">
-                    <div class="p-2 divide-y divide-outline/50 max-h-60 overflow-y-auto" id="ai-cmd-items"></div>
-                  </div>
-
-                  <!-- Textarea -->
-                  <div class="p-3 sm:p-4">
-                    <textarea
-                      id="ai-chat-input"
-                      rows="1"
-                      placeholder="Ask VenueLuxe AI Concierge about hall pricing, guest capacities, AC options, or say 'AC hall in Karkala for 800 guests'..."
-                      class="w-full px-2 py-1 resize-none bg-transparent border-none text-on-surface text-sm sm:text-base font-medium focus:outline-none placeholder:text-on-surface-variant/40 min-h-[58px] max-h-[180px]"
-                      style="overflow: hidden;"
-                    ></textarea>
-                  </div>
-
-                  <!-- Bottom Bar Controls -->
-                  <div class="p-3 sm:p-3.5 border-t border-outline bg-surface-container-low/40 rounded-b-2xl flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-1.5 sm:gap-2">
-                      <button
-                        type="button"
-                        id="ai-mic-btn"
-                        title="Voice Search (Speak requirements)"
-                        onclick="LandingView.startVoiceSearch()"
-                        class="p-2 text-on-surface-variant hover:text-secondary rounded-xl hover:bg-surface-container transition-colors cursor-pointer"
-                      >
-                        <span class="material-symbols-outlined text-[20px]">mic</span>
-                      </button>
-                      <button
-                        type="button"
-                        data-command-button
-                        id="ai-cmd-btn"
-                        title="Venue command shortcuts (/)"
-                        onclick="LandingView.toggleCommandPalette()"
-                        class="p-2 text-on-surface-variant hover:text-secondary rounded-xl hover:bg-surface-container transition-colors cursor-pointer"
-                      >
-                        <span class="material-symbols-outlined text-[20px]">terminal</span>
-                      </button>
-                      <button
-                        type="button"
-                        id="ai-settings-btn"
-                        title="AI Voice Models & Search Settings"
-                        onclick="if(window.aiConcierge) window.aiConcierge.openSettingsModal();"
-                        class="p-2 text-on-surface-variant hover:text-secondary rounded-xl hover:bg-surface-container transition-colors cursor-pointer"
-                      >
-                        <span class="material-symbols-outlined text-[20px]">tune</span>
-                      </button>
-                    </div>
-
-                    <button
-                      type="button"
-                      id="ai-send-btn"
-                      onclick="LandingView.handleSendAIChat()"
-                      class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 bg-primary hover:bg-secondary text-white shadow-md shadow-primary/10 active:scale-[0.98] cursor-pointer"
-                    >
-                      <span id="ai-send-spinner" class="hidden material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
-                      <span id="ai-send-icon" class="material-symbols-outlined text-[16px]">send</span>
-                      <span>Send</span>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Quick Command Suggestion Pills -->
-                <div class="flex flex-wrap items-center justify-center gap-2" id="ai-command-pills">
-                  <button type="button" onclick="LandingView.applyCommandPill('/wedding AC hall in Karkala for 800 guests')" class="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-surface-container rounded-full text-xs font-semibold text-on-surface hover:text-secondary transition-all border border-outline hover:border-secondary shadow-2xs cursor-pointer">
-                    <span class="material-symbols-outlined text-[15px] text-secondary">favorite</span>
-                    <span>Wedding in Karkala</span>
-                  </button>
-                  <button type="button" onclick="LandingView.applyCommandPill('/lawn Outdoor seaside lawn in Mangalore for reception')" class="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-surface-container rounded-full text-xs font-semibold text-on-surface hover:text-secondary transition-all border border-outline hover:border-secondary shadow-2xs cursor-pointer">
-                    <span class="material-symbols-outlined text-[15px] text-tertiary">nature_people</span>
-                    <span>Seaside Party Lawn</span>
-                  </button>
-                  <button type="button" onclick="LandingView.applyCommandPill('/budget Banquet hall under ₹50,000 for 250 guests')" class="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-surface-container rounded-full text-xs font-semibold text-on-surface hover:text-secondary transition-all border border-outline hover:border-secondary shadow-2xs cursor-pointer">
-                    <span class="material-symbols-outlined text-[15px] text-amber-600">payments</span>
-                    <span>Banquet under ₹50,000</span>
-                  </button>
-                  <button type="button" onclick="LandingView.applyCommandPill('/ac Centrally AC Convention center in Udupi')" class="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-surface-container rounded-full text-xs font-semibold text-on-surface hover:text-secondary transition-all border border-outline hover:border-secondary shadow-2xs cursor-pointer">
-                    <span class="material-symbols-outlined text-[15px] text-cyan-600">ac_unit</span>
-                    <span>Central AC Convention</span>
-                  </button>
-                </div>
-
-                <!-- Thinking Indicator -->
-                <div id="ai-thinking-pill" class="hidden flex items-center justify-center pt-2">
-                  <div class="backdrop-blur-xl bg-white border border-secondary/30 rounded-full px-4 py-2 shadow-md flex items-center gap-2.5">
-                    <div class="w-6 h-6 rounded-full bg-secondary/15 flex items-center justify-center text-center">
-                      <span class="material-symbols-outlined text-[14px] text-secondary">sparkles</span>
-                    </div>
-                    <div class="flex items-center gap-1.5 text-xs font-semibold text-on-surface">
-                      <span>Thinking</span>
-                      <div class="flex items-center ml-0.5">
-                        <span class="w-1.5 h-1.5 bg-secondary rounded-full mx-0.5 animate-typing-1"></span>
-                        <span class="w-1.5 h-1.5 bg-secondary rounded-full mx-0.5 animate-typing-2"></span>
-                        <span class="w-1.5 h-1.5 bg-secondary rounded-full mx-0.5 animate-typing-3"></span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Live Recommendations Box -->
-                <div id="ai-recommendations-box" class="hidden pt-2 space-y-4"></div>
-
+            <div class="mt-4 pt-3 border-t border-outline/50 flex flex-wrap items-center justify-between gap-3 text-on-surface-variant">
+              <div class="flex items-center gap-1.5 overflow-x-auto py-1 text-xs">
+                <span class="font-semibold text-on-surface-variant mr-1 shrink-0">Popular:</span>
+                <button class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors cursor-pointer" onclick="LandingView.setSearchCity('Mangalore')" type="button">Mangalore</button>
+                <button class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors cursor-pointer" onclick="LandingView.setSearchCity('Udupi')" type="button">Udupi</button>
+                <button class="px-3 py-1 rounded-full bg-secondary text-white font-medium shadow-2xs cursor-pointer" onclick="LandingView.setSearchCity('Karkala')" type="button">Karkala</button>
+                <button class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors cursor-pointer" onclick="LandingView.setSearchCity('Bangalore')" type="button">Bangalore</button>
+              </div>
+              <div class="flex items-center gap-4 text-xs">
+                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-emerald-600">verified</span>Verified Listings</span>
+                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-secondary">lock_clock</span>Zero Hidden Charges</span>
               </div>
             </div>
           </div>
@@ -617,26 +532,10 @@ const LandingView = {
     window.location.hash = '#/search';
   },
 
-  submitAIVoiceQuery() {
-    const input = document.getElementById('hero-ai-voice-input');
-    const text = input ? input.value.trim() : '';
-
-    if (!text) {
-      if (window.AIChatWidget) {
-        window.AIChatWidget.startVoiceCommand();
-      }
-      return;
-    }
-
-    if (window.AIChatWidget) {
-      window.AIChatWidget.openWithQuery(text);
-    }
-  },
-
-  runVoiceSuggestion(text) {
-    const input = document.getElementById('hero-ai-voice-input');
-    if (input) input.value = text;
-    this.submitAIVoiceQuery();
+  setSearchCity(cityName) {
+    const input = document.getElementById('hero-location-input');
+    if (input) input.value = cityName;
+    this.performHeroSearch();
   },
 
   updateFavorites() {
@@ -645,443 +544,7 @@ const LandingView = {
     const container = document.getElementById('app-content');
     if (container && window.location.hash === '#/') {
       container.innerHTML = LandingView.render();
-      if (LandingView.postRender) LandingView.postRender();
     }
-  },
-
-  aiState: {
-    isTyping: false,
-    activeSuggestion: -1,
-    showCommandPalette: false,
-    commands: [
-      { prefix: '/wedding', label: 'Wedding Halls', desc: 'Grand AC wedding halls with mandap & dining', icon: 'favorite' },
-      { prefix: '/ac', label: 'Central AC Halls', desc: 'Climate-controlled halls with backup power', icon: 'ac_unit' },
-      { prefix: '/lawn', label: 'Outdoor Lawns', desc: 'Open-air lush party lawns & seaside venues', icon: 'nature_people' },
-      { prefix: '/budget', label: 'Budget Friendly', desc: 'Top verified halls under ₹1,00,000 per shift', icon: 'payments' },
-      { prefix: '/reception', label: 'Reception Banquets', desc: 'Evening cocktail & banquet celebration spaces', icon: 'celebration' },
-      { prefix: '/dining', label: 'Dining & Kitchen', desc: 'Dedicated veg/non-veg kitchen & dining pavilions', icon: 'restaurant' },
-      { prefix: '/convention', label: 'Convention Auditoriums', desc: 'Large 1,000+ guest auditoriums with acoustic staging', icon: 'theater_comedy' }
-    ]
-  },
-
-  postRender() {
-    this.initAIChatListeners();
-  },
-
-  initAIChatListeners() {
-    const textarea = document.getElementById('ai-chat-input');
-    const glow = document.getElementById('ai-mouse-glow');
-    const chatSection = document.getElementById('ai-chat-section');
-
-    if (textarea) {
-      textarea.addEventListener('input', () => {
-        textarea.style.height = '60px';
-        textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
-        const val = textarea.value;
-        if (val.startsWith('/') && !val.includes(' ')) {
-          this.toggleCommandPalette(true);
-        } else {
-          this.toggleCommandPalette(false);
-        }
-      });
-
-      textarea.addEventListener('focus', () => {
-        if (glow) glow.style.opacity = '0.35';
-      });
-
-      textarea.addEventListener('blur', () => {
-        if (glow) glow.style.opacity = '0';
-      });
-
-      textarea.addEventListener('keydown', (e) => this.handleAIChatKeyDown(e));
-    }
-
-    if (chatSection && glow) {
-      chatSection.addEventListener('mousemove', (e) => {
-        const rect = chatSection.getBoundingClientRect();
-        glow.style.left = (e.clientX - rect.left) + 'px';
-        glow.style.top = (e.clientY - rect.top) + 'px';
-      });
-    }
-
-    // Close command palette on click outside
-    document.addEventListener('click', (e) => {
-      const palette = document.getElementById('ai-cmd-palette');
-      const btn = document.getElementById('ai-cmd-btn');
-      if (palette && !palette.contains(e.target) && !btn?.contains(e.target)) {
-        this.toggleCommandPalette(false);
-      }
-    });
-
-    this.renderCommandPalette();
-  },
-
-  toggleCommandPalette(force) {
-    const palette = document.getElementById('ai-cmd-palette');
-    if (!palette) return;
-    const show = (typeof force === 'boolean') ? force : palette.classList.contains('hidden');
-    if (show) {
-      palette.classList.remove('hidden');
-      this.aiState.showCommandPalette = true;
-      this.renderCommandPalette();
-    } else {
-      palette.classList.add('hidden');
-      this.aiState.showCommandPalette = false;
-      this.aiState.activeSuggestion = -1;
-    }
-  },
-
-  renderCommandPalette() {
-    const container = document.getElementById('ai-cmd-items');
-    if (!container) return;
-    const input = document.getElementById('ai-chat-input');
-    const query = input ? input.value.trim().toLowerCase() : '';
-
-    const matches = this.aiState.commands.filter(cmd => {
-      if (!query.startsWith('/')) return true;
-      return cmd.prefix.toLowerCase().startsWith(query);
-    });
-
-    if (matches.length === 0) {
-      container.innerHTML = `<div class="px-3 py-2 text-xs text-on-surface-variant/60">No matching commands found</div>`;
-      return;
-    }
-
-    container.innerHTML = matches.map((cmd, idx) => `
-      <div
-        class="flex items-center gap-2.5 px-3 py-2 text-xs transition-colors cursor-pointer rounded-xl ${idx === this.aiState.activeSuggestion ? 'bg-secondary/15 text-secondary font-bold' : 'text-on-surface hover:bg-surface-container'}"
-        onclick="LandingView.selectCommand('${cmd.prefix}')"
-      >
-        <div class="w-6 h-6 rounded-lg bg-surface-container flex items-center justify-center text-secondary shrink-0">
-          <span class="material-symbols-outlined text-[15px]">${cmd.icon}</span>
-        </div>
-        <div class="font-semibold text-on-surface">${cmd.label}</div>
-        <div class="text-secondary text-[11px] font-mono font-bold">${cmd.prefix}</div>
-        <div class="text-on-surface-variant/70 text-[11px] ml-auto hidden sm:block">${cmd.desc}</div>
-      </div>
-    `).join('');
-  },
-
-  handleAIChatKeyDown(e) {
-    const palette = document.getElementById('ai-cmd-palette');
-    const isPaletteOpen = palette && !palette.classList.contains('hidden');
-
-    if (isPaletteOpen) {
-      const count = this.aiState.commands.length;
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        this.aiState.activeSuggestion = (this.aiState.activeSuggestion + 1) % count;
-        this.renderCommandPalette();
-        return;
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        this.aiState.activeSuggestion = (this.aiState.activeSuggestion - 1 + count) % count;
-        this.renderCommandPalette();
-        return;
-      }
-      if (e.key === 'Enter' || e.key === 'Tab') {
-        if (this.aiState.activeSuggestion >= 0 && this.aiState.activeSuggestion < count) {
-          e.preventDefault();
-          const chosen = this.aiState.commands[this.aiState.activeSuggestion];
-          this.selectCommand(chosen.prefix);
-          return;
-        }
-      }
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        this.toggleCommandPalette(false);
-        return;
-      }
-    }
-
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      this.handleSendAIChat();
-    }
-  },
-
-  selectCommand(prefix) {
-    const textarea = document.getElementById('ai-chat-input');
-    if (textarea) {
-      textarea.value = prefix + ' ';
-      textarea.focus();
-      textarea.style.height = '60px';
-      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
-    }
-    this.toggleCommandPalette(false);
-  },
-
-  applyCommandPill(promptText) {
-    const textarea = document.getElementById('ai-chat-input');
-    if (textarea) {
-      textarea.value = promptText;
-      textarea.style.height = '60px';
-      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
-      this.handleSendAIChat();
-    }
-  },
-
-  startVoiceSearch() {
-    const micBtn = document.getElementById('ai-mic-btn');
-    const textarea = document.getElementById('ai-chat-input');
-
-    if (!window.aiConcierge) {
-      if (window.Toast) window.Toast.info('AI Concierge', 'Initializing AI engine, please wait...');
-      return;
-    }
-
-    if (window.aiConcierge.isListening) {
-      window.aiConcierge.stopListening();
-      if (micBtn) {
-        micBtn.classList.remove('bg-red-600', 'text-white', 'animate-pulse');
-        micBtn.innerHTML = '<span class="material-symbols-outlined text-[19px]">mic</span>';
-      }
-      return;
-    }
-
-    if (micBtn) {
-      micBtn.classList.add('bg-red-600', 'text-white', 'animate-pulse');
-      micBtn.innerHTML = '<span class="material-symbols-outlined text-[19px]">stop_circle</span>';
-      micBtn.title = 'Click to finish recording';
-    }
-
-    if (textarea) {
-      textarea.placeholder = '🎙️ Listening to your voice... Speak your venue, location, guests, and budget.';
-    }
-
-    if (window.Toast) {
-      const config = window.aiConcierge.getSettings();
-      const engineName = config.sttEngine === 'elevenlabs_scribe' ? 'ElevenLabs Scribe AI' : 'Browser Web Speech';
-      window.Toast.info(`🎙️ ${engineName}`, 'Speak now! Click the red button when done speaking.');
-    }
-
-    window.aiConcierge.startListening({
-      onListening: (msg) => {
-        if (textarea && !textarea.value) {
-          textarea.placeholder = msg || '🎙️ Speak now: e.g. "AC wedding hall in Karkala for 800 guests"...';
-        }
-      },
-      onInterim: (text) => {
-        if (textarea) {
-          textarea.value = text;
-          textarea.style.height = '60px';
-          textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
-        }
-      },
-      onFinal: (finalText) => {
-        if (micBtn) {
-          micBtn.classList.remove('bg-red-600', 'text-white', 'animate-pulse');
-          micBtn.innerHTML = '<span class="material-symbols-outlined text-[19px]">mic</span>';
-          micBtn.title = 'Voice Command';
-        }
-        if (textarea) {
-          textarea.value = finalText;
-          textarea.style.height = '60px';
-          textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
-        }
-        this.handleSendAIChat();
-      },
-      onError: (err) => {
-        if (micBtn) {
-          micBtn.classList.remove('bg-red-600', 'text-white', 'animate-pulse');
-          micBtn.innerHTML = '<span class="material-symbols-outlined text-[19px]">mic</span>';
-          micBtn.title = 'Voice Command';
-        }
-        if (textarea && !textarea.value) {
-          textarea.placeholder = "Ask VenueLuxe AI Concierge about hall pricing, guest capacities, AC options, or say 'AC hall in Karkala for 800 guests'...";
-        }
-        if (window.Toast) window.Toast.warning('Voice Input Note', err);
-      },
-      onEnd: () => {
-        if (micBtn) {
-          micBtn.classList.remove('bg-red-600', 'text-white', 'animate-pulse');
-          micBtn.innerHTML = '<span class="material-symbols-outlined text-[19px]">mic</span>';
-          micBtn.title = 'Voice Command';
-        }
-        if (textarea && !textarea.value) {
-          textarea.placeholder = "Ask VenueLuxe AI Concierge about hall pricing, guest capacities, AC options, or say 'AC hall in Karkala for 800 guests'...";
-        }
-      }
-    });
-  },
-
-  handleSendAIChat() {
-    const textarea = document.getElementById('ai-chat-input');
-    const query = textarea ? textarea.value.trim() : '';
-    if (!query) return;
-
-    const sendBtn = document.getElementById('ai-send-btn');
-    const sendSpinner = document.getElementById('ai-send-spinner');
-    const sendIcon = document.getElementById('ai-send-icon');
-    const thinkingPill = document.getElementById('ai-thinking-pill');
-    const resultsBox = document.getElementById('ai-recommendations-box');
-
-    // UI Loading State
-    if (sendBtn) sendBtn.disabled = true;
-    if (sendSpinner) sendSpinner.classList.remove('hidden');
-    if (sendIcon) sendIcon.classList.add('hidden');
-    if (thinkingPill) thinkingPill.classList.remove('hidden');
-    if (resultsBox) resultsBox.classList.add('hidden');
-
-    setTimeout(() => {
-      if (sendBtn) sendBtn.disabled = false;
-      if (sendSpinner) sendSpinner.classList.add('hidden');
-      if (sendIcon) sendIcon.classList.remove('hidden');
-      if (thinkingPill) thinkingPill.classList.add('hidden');
-
-      // Process query with NLP engine
-      this.processAndShowRecommendations(query);
-    }, 500);
-  },
-
-  async processAndShowRecommendations(queryText) {
-    const resultsBox = document.getElementById('ai-recommendations-box');
-    if (!resultsBox) return;
-
-    let parsed = { location: null, occasion: null, guests: null, maxBudget: null, acOnly: false };
-    let aiConciergeReply = null;
-
-    if (window.aiConcierge) {
-      parsed = await window.aiConcierge.parseQueryAsync(queryText);
-    }
-
-    // Try fetching conversational note from OpenRouter if available
-    if (window.openrouterService && window.openrouterService.hasApiKey()) {
-      try {
-        const chatRes = await window.openrouterService.chatWithConcierge(queryText);
-        if (chatRes && chatRes.reply) {
-          aiConciergeReply = {
-            text: chatRes.reply,
-            model: chatRes.modelUsed || 'NVIDIA Nemotron 3.5 Lightning (Free)'
-          };
-        }
-      } catch (e) {
-        console.warn('OpenRouter concierge commentary notice:', e);
-      }
-    }
-
-    // Only approved & live halls from public registry
-    const allHalls = window.appStore.getPublicHalls();
-    
-    // Sort and rank listings using our AI multi-factor compatibility & ranking engine
-    const sortMode = parsed.sortBy || 'ai_recommended';
-    const rankedHalls = window.aiConcierge 
-      ? window.aiConcierge.rankHallsWithAI(allHalls, parsed, sortMode)
-      : allHalls;
-
-    const matched = rankedHalls.filter(h => (h.compatibilityPercent || 50) >= 35).slice(0, 3);
-    const displayHalls = matched.length > 0 ? matched : rankedHalls.slice(0, 3);
-
-    // Prepare Spoken Audio Response
-    let speechReplyText = '';
-    if (aiConciergeReply && aiConciergeReply.text) {
-      speechReplyText = aiConciergeReply.text;
-    } else if (displayHalls.length > 0) {
-      const topHall = displayHalls[0];
-      const cityText = parsed.city ? ` in ${parsed.city}` : '';
-      const sortLabel = parsed.sortBy === 'price_asc' ? ', sorted by lowest price' : (parsed.sortBy === 'rating' ? ', sorted by top customer rating' : (parsed.sortBy === 'capacity' ? ', sorted by highest capacity' : ''));
-      speechReplyText = `I found ${displayHalls.length} verified venues${cityText}${sortLabel}. Top recommendation is ${topHall.name} with ${topHall.compatibilityPercent || 96}% compatibility.`;
-    } else {
-      speechReplyText = `I have searched the registry for your requirements. Here are the closest available verified venues.`;
-    }
-
-    // Vocalize Speech Response immediately
-    if (window.aiConcierge && !window.aiConcierge.voiceMuted) {
-      window.aiConcierge.speak(speechReplyText);
-    }
-
-    resultsBox.classList.remove('hidden');
-    resultsBox.innerHTML = `
-      <div class="bg-surface-container-lowest border border-secondary/20 rounded-2xl p-4 sm:p-6 space-y-4 shadow-sm">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-outline pb-3">
-          <div class="flex items-center gap-2 text-xs font-bold text-on-surface">
-            <span class="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse"></span>
-            <span>Concierge Recommendations (${displayHalls.length} Curated Venues)</span>
-          </div>
-          <div class="flex items-center gap-1.5 flex-wrap text-[11px]">
-            ${parsed.city ? `<span class="px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface font-semibold">📍 ${parsed.city}</span>` : ''}
-            ${parsed.capacityMin ? `<span class="px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface font-semibold">👥 ${parsed.capacityMin}+ Guests</span>` : ''}
-            ${parsed.maxPrice ? `<span class="px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface font-semibold">💰 ≤ ₹${parsed.maxPrice.toLocaleString('en-IN')}</span>` : ''}
-            ${parsed.acType ? `<span class="px-2.5 py-0.5 rounded-full bg-secondary/15 text-secondary font-bold">❄️ ${parsed.acType}</span>` : ''}
-          </div>
-        </div>
-
-        <!-- Luxury Concierge Advisory Note with Voice Playback Controls -->
-        <div class="p-3.5 bg-gradient-to-r from-secondary/10 via-amber-500/5 to-transparent border border-secondary/25 rounded-xl flex items-start justify-between gap-3">
-          <div class="flex items-start gap-3">
-            <div class="w-8 h-8 rounded-full bg-secondary/20 text-secondary flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
-              <span class="material-symbols-outlined text-[18px]">auto_awesome</span>
-            </div>
-            <div class="space-y-1 text-xs">
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-on-surface font-serif">Concierge Voice Note</span>
-                <span class="text-[10px] text-secondary font-mono font-bold bg-white/80 px-2 py-0.2 rounded-full border border-secondary/20">AI Audio Active</span>
-              </div>
-              <p class="text-on-surface-variant leading-relaxed font-medium">${speechReplyText}</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-1 shrink-0">
-            <button type="button" title="Replay voice audio" onclick="if(window.aiConcierge) window.aiConcierge.speak('${speechReplyText.replace(/'/g, "\\'")}');" class="p-1.5 rounded-lg text-secondary hover:bg-secondary/10 cursor-pointer">
-              <span class="material-symbols-outlined text-[18px]">volume_up</span>
-            </button>
-            <button type="button" title="Mute/Unmute speech" onclick="if(window.aiConcierge) { const m = window.aiConcierge.toggleVoiceMute(); this.querySelector('span').innerText = m ? 'volume_off' : 'volume_up'; if(window.Toast) window.Toast.info('Voice Audio', m ? 'AI voice muted' : 'AI voice unmuted'); }" class="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface cursor-pointer">
-              <span class="material-symbols-outlined text-[18px]">volume_up</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Ranked Listing Cards (Sorted by AI Compatibility) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-          ${displayHalls.map(h => {
-            const coverUrl = h.cover_image || (h.images && (h.images.main || Object.values(h.images)[0])) || window.appStore.getPlaceholderImage(h.name);
-            const price = h.pricing ? (h.pricing.evening || h.pricing.morning) : 75000;
-            const matchScore = h.compatibilityPercent || 95;
-            return `
-              <div class="bg-surface-container-low/40 border border-outline rounded-xl overflow-hidden hover:border-secondary hover:shadow-md transition-all flex flex-col justify-between group">
-                <div class="relative h-36 w-full overflow-hidden bg-surface-container cursor-pointer" onclick="window.location.hash='#/hall/${h.id}'">
-                  <img src="${coverUrl}" alt="${h.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.onerror=null;this.src='${window.appStore.getPlaceholderImage(h.name)}'">
-                  <div class="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-surface/95 backdrop-blur-md text-[10px] font-bold text-secondary shadow-xs border border-secondary/20 flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[12px]">auto_awesome</span>
-                    <span>${matchScore}% Match</span>
-                  </div>
-                  <div class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-surface/90 backdrop-blur-md text-[10px] font-bold text-secondary shadow-xs flex items-center gap-0.5">
-                    <span class="material-symbols-outlined text-[12px]">star</span>
-                    <span>${h.rating || '4.9'}</span>
-                  </div>
-                </div>
-                <div class="p-3.5 space-y-2.5">
-                  <div>
-                    <h4 class="font-bold text-sm text-on-surface line-clamp-1 font-serif cursor-pointer hover:text-secondary" onclick="window.location.hash='#/hall/${h.id}'">${h.name}</h4>
-                    <p class="text-xs text-on-surface-variant flex items-center gap-1 mt-0.5">
-                      <span class="material-symbols-outlined text-[13px] text-secondary">location_on</span>
-                      <span>${h.city || 'Karnataka'} • ${h.ac_status || 'Central AC'}</span>
-                    </p>
-                  </div>
-                  <div class="flex items-center justify-between text-xs text-on-surface-variant pt-2 border-t border-outline">
-                    <span>Seats ${h.seating_capacity || 400} • Max ${h.maximum_capacity || 800}</span>
-                    <span class="font-bold text-secondary text-sm">₹${price.toLocaleString('en-IN')}</span>
-                  </div>
-                  <a href="#/hall/${h.id}" class="block w-full py-2 text-center bg-primary hover:bg-secondary text-white font-bold rounded-lg text-xs transition-colors shadow-2xs">
-                    View Hall Details
-                  </a>
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-
-        <div class="flex items-center justify-between pt-1 text-xs">
-          <span class="text-on-surface-variant text-[11px]">Query: "${queryText}"</span>
-          <button type="button" onclick="window.aiConcierge.applyFiltersToSearch(window.aiConcierge.parseQuery('${queryText.replace(/'/g, "\\'")}'))" class="text-secondary hover:underline font-bold flex items-center gap-1 cursor-pointer">
-            <span>Explore all filtered venues in search</span>
-            <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
-          </button>
-        </div>
-      </div>
-    `;
-
-    resultsBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 };
 

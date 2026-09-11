@@ -21,10 +21,6 @@ function bootVenueLuxeApp() {
       window.Router.init();
     }
 
-    // Initialize Global AI Concierge Floating Widget
-    if (window.AIChatWidget) {
-      window.AIChatWidget.init();
-    }
 
     console.log('VenueLuxe Marketplace Platform initialized successfully.');
   } catch (err) {
