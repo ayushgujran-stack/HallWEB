@@ -393,18 +393,26 @@ const DetailsView = {
     const currentUser = window.Auth && window.Auth.isLoggedIn() ? window.Auth.getCurrentUser() : null;
     const minPrice = hall.pricing ? Math.min(...Object.values(hall.pricing)) : 60000;
 
-    const amenitiesWithIcons = [
-      { name: hall.ac_status || 'Central AC', icon: 'mode_fan' },
-      { name: `${hall.dining_seats || 400} Seat Dining Pavilion`, icon: 'restaurant' },
-      { name: 'Commercial Catering Kitchen', icon: 'kitchen' },
-      { name: `${hall.parking_cars || 200}+ Cars & Valet`, icon: 'local_parking' },
-      { name: hall.stage_dimensions || 'Elevated Teak Stage', icon: 'theater_comedy' },
-      { name: `${hall.green_rooms || 3} Deluxe AC Green Suites`, icon: 'meeting_room' },
-      { name: `${hall.generator_kva || '100 kVA'} Generator Backup`, icon: 'bolt' },
-      { name: 'Wheelchair Ramp Access', icon: 'accessible' },
-      { name: 'CCTV Security & Surveillance', icon: 'security' },
-      { name: 'High-Speed Guest Wi-Fi', icon: 'wifi' }
-    ];
+    const getFacilityIcon = (name) => {
+      const lower = (name || '').toLowerCase();
+      if (lower.includes('ac') || lower.includes('climate') || lower.includes('air') || lower.includes('hvac')) return 'mode_fan';
+      if (lower.includes('dining') || lower.includes('food') || lower.includes('cater') || lower.includes('kitchen') || lower.includes('buffet')) return 'restaurant';
+      if (lower.includes('park') || lower.includes('valet') || lower.includes('car') || lower.includes('vehicle')) return 'local_parking';
+      if (lower.includes('stage') || lower.includes('theatre') || lower.includes('audio') || lower.includes('sound') || lower.includes('speaker') || lower.includes('screen') || lower.includes('led') || lower.includes('av') || lower.includes('acoustic')) return 'theater_comedy';
+      if (lower.includes('green') || lower.includes('suite') || lower.includes('room') || lower.includes('bridal') || lower.includes('dressing')) return 'meeting_room';
+      if (lower.includes('generator') || lower.includes('dg') || lower.includes('backup') || lower.includes('power') || lower.includes('genset') || lower.includes('kva')) return 'bolt';
+      if (lower.includes('wheelchair') || lower.includes('ramp') || lower.includes('access') || lower.includes('handicap')) return 'accessible';
+      if (lower.includes('cctv') || lower.includes('security') || lower.includes('guard') || lower.includes('surveillance')) return 'security';
+      if (lower.includes('wi-fi') || lower.includes('wifi') || lower.includes('internet') || lower.includes('broadband')) return 'wifi';
+      if (lower.includes('elevator') || lower.includes('lift')) return 'elevator';
+      if (lower.includes('pooja') || lower.includes('mandap') || lower.includes('temple') || lower.includes('ritual') || lower.includes('havan')) return 'temple_hindu';
+      if (lower.includes('decor') || lower.includes('florist') || lower.includes('flower')) return 'local_florist';
+      if (lower.includes('lawn') || lower.includes('garden') || lower.includes('outdoor')) return 'yard';
+      if (lower.includes('beach') || lower.includes('water') || lower.includes('lake') || lower.includes('pool')) return 'water';
+      return 'check_circle';
+    };
+
+    const ownerFacilities = Array.isArray(hall.facilities) ? hall.facilities.filter(Boolean) : [];
 
     const hasCustomImages = (Array.isArray(hall.images) && hall.images.length > 0) || (hall.images && typeof hall.images === 'object' && Object.keys(hall.images).length > 0);
     const isBasic = !hasCustomImages && (hall.listing_tier === 'BASIC' && !hall.listing_fee_paid);
@@ -907,44 +915,34 @@ const DetailsView = {
             <!-- Left 7 Columns -->
             <div class="lg:col-span-7 space-y-6 md:space-y-8">
               
-              <!-- 1. Description & Architecture -->
+              ${hall.description && hall.description.trim() ? `
+              <!-- Venue Description -->
               <div class="bg-surface-container-lowest p-5 md:p-6 rounded-xl border border-outline shadow-sm space-y-3">
-                <div class="flex items-center justify-between pb-2 border-b border-outline">
-                  <h2 class="font-headline-sm text-lg md:text-xl font-bold text-on-surface font-serif">Hall Overview & Sightlines</h2>
-                  <span class="text-[11px] font-bold text-secondary bg-surface-container px-2.5 py-1 rounded-md">
-                    Pillarless Sightlines
-                  </span>
-                </div>
-                <p class="font-body-md text-xs md:text-sm text-on-surface-variant leading-relaxed">
+                <h2 class="font-headline-sm text-lg md:text-xl font-bold text-on-surface font-serif pb-2 border-b border-outline">About this Venue</h2>
+                <p class="font-body-md text-xs md:text-sm text-on-surface-variant leading-relaxed whitespace-pre-line">
                   ${hall.description}
                 </p>
-                <div class="grid grid-cols-3 gap-3 pt-2">
-                  <div class="p-3 bg-surface-container-low rounded-lg text-center border border-outline">
-                    <span class="font-title-md text-sm font-bold text-on-surface block">${hall.ceiling_height_ft || 24} ft</span>
-                    <span class="text-[10px] text-on-surface-variant uppercase tracking-wider">Ceiling Height</span>
-                  </div>
-                  <div class="p-3 bg-surface-container-low rounded-lg text-center border border-outline">
-                    <span class="font-title-md text-sm font-bold text-on-surface block">Zero</span>
-                    <span class="text-[10px] text-on-surface-variant uppercase tracking-wider">Pillars</span>
-                  </div>
-                  <div class="p-3 bg-surface-container-low rounded-lg text-center border border-outline">
-                    <span class="font-title-md text-sm font-bold text-on-surface block">${hall.generator_kva || '100 kVA'}</span>
-                    <span class="text-[10px] text-on-surface-variant uppercase tracking-wider">Power Backup</span>
-                  </div>
-                </div>
               </div>
+              ` : ''}
 
-              <!-- 2. Clean Amenities Grid -->
+              <!-- Facilities & Amenities -->
               <div class="bg-surface-container-lowest p-5 md:p-6 rounded-xl border border-outline shadow-sm space-y-4">
-                <h2 class="font-headline-sm text-lg md:text-xl font-bold text-on-surface font-serif pb-2 border-b border-outline">Facilities & Amenities</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  ${amenitiesWithIcons.map(a => `
-                    <div class="flex items-center gap-2.5 p-2.5 rounded-lg bg-surface-container-low border border-outline text-xs text-on-surface font-semibold">
-                      <span class="material-symbols-outlined text-secondary text-[18px] shrink-0">${a.icon}</span>
-                      <span>${a.name}</span>
-                    </div>
-                  `).join('')}
+                <div class="flex items-center justify-between pb-2 border-b border-outline">
+                  <h2 class="font-headline-sm text-lg md:text-xl font-bold text-on-surface font-serif">Facilities & Amenities</h2>
+                  ${ownerFacilities.length > 0 ? `<span class="text-xs text-on-surface-variant font-medium">${ownerFacilities.length} Provided</span>` : ''}
                 </div>
+                ${ownerFacilities.length > 0 ? `
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    ${ownerFacilities.map(f => `
+                      <div class="flex items-center gap-2.5 p-2.5 rounded-lg bg-surface-container-low border border-outline text-xs text-on-surface font-semibold">
+                        <span class="material-symbols-outlined text-secondary text-[18px] shrink-0">${getFacilityIcon(f)}</span>
+                        <span>${f}</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : `
+                  <p class="text-xs text-on-surface-variant italic py-1">No additional facilities specified by the venue host.</p>
+                `}
               </div>
 
               <!-- 3. ACCESSIBLE AVAILABILITY CALENDAR -->
