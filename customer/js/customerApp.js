@@ -32,6 +32,16 @@ function bootCustomerApp() {
       window.CustomerRouter.init();
     }
 
+    // Reactive update on hallsUpdated
+    window.addEventListener('hallsUpdated', () => {
+      const hash = window.location.hash || '#/';
+      if (hash === '#/' || hash.startsWith('#/search')) {
+        if (window.CustomerRouter && typeof window.CustomerRouter.handleRoute === 'function') {
+          window.CustomerRouter.handleRoute();
+        }
+      }
+    });
+
     console.log('VenueLuxe Customer Portal initialized.');
   } catch (err) {
     console.error('Error bootstrapping Customer Portal:', err);

@@ -177,10 +177,40 @@ function bootOwnerApp() {
       window.OwnerRouter.init();
     }
 
+    // Setup reactive cloud sync listeners
+    setupOwnerRealTimeListeners();
+
     console.log('VenueLuxe Owner Portal initialized.');
   } catch (err) {
     console.error('Error bootstrapping Owner Portal:', err);
   }
+}
+
+// Reactive UI Synchronization for Owner Portal
+function setupOwnerRealTimeListeners() {
+  if (window.__ownerListenersAttached) return;
+  window.__ownerListenersAttached = true;
+
+  window.addEventListener('hallsUpdated', (e) => {
+    console.log('[Owner] Real-time halls updated. Refreshing owner workspace.');
+    if (!window.__appBooted) return;
+    if (window.OwnerRouter && typeof window.OwnerRouter.handleRoute === 'function') {
+      window.OwnerRouter.handleRoute();
+    }
+  });
+
+  window.addEventListener('bookingsUpdated', () => {
+    if (!window.__appBooted) return;
+    if (window.OwnerRouter && typeof window.OwnerRouter.handleRoute === 'function') {
+      window.OwnerRouter.handleRoute();
+    }
+  });
+
+  window.addEventListener('notificationsUpdated', () => {
+    if (window.OwnerHeaderComponent && typeof window.OwnerHeaderComponent.update === 'function') {
+      OwnerHeaderComponent.update();
+    }
+  });
 }
 
 if (document.readyState === 'loading') {

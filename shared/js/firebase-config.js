@@ -16,18 +16,44 @@ let fbApp = null;
 let fbAuth = null;
 let fbDb = null;
 
-try {
-  if (typeof firebase !== 'undefined' && firebase.initializeApp) {
-    // Avoid double initialization
-    fbApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
-    fbAuth = firebase.auth();
-    fbDb = firebase.firestore();
-    console.log('[Firebase] Successfully connected to project:', firebaseConfig.projectId);
-  } else {
-    console.warn('[Firebase] SDK not loaded globally yet; waiting for script load.');
+function initFirebaseApp() {
+  try {
+    if (typeof firebase !== 'undefined' && firebase.initializeApp) {
+      if (!fbApp) {
+        fbApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+        fbAuth = firebase.auth();
+        fbDb = firebase.firestore();
+        console.log('[Firebase] Successfully connected to project:', firebaseConfig.projectId);
+        
+        window.fbApp = fbApp;
+        window.fbAuth = fbAuth;
+        window.fbDb = fbDb;
+
+        // Auto-trigger Firestore sync if store is loaded
+        if (window.appStore && typeof window.appStore.initFirestoreSync === 'function') {
+          window.appStore.initFirestoreSync();
+        }
+      }
+      return true;
+    }
+  } catch (err) {
+    console.error('[Firebase] Initialization error:', err);
   }
-} catch (err) {
-  console.error('[Firebase] Initialization error:', err);
+  return false;
+}
+
+// Immediate attempt
+initFirebaseApp();
+
+// If not loaded yet, retry every 300ms until scripts load (up to 12s)
+if (!fbDb && typeof window !== 'undefined') {
+  window.addEventListener('load', () => initFirebaseApp());
+  const retryInterval = setInterval(() => {
+    if (initFirebaseApp()) {
+      clearInterval(retryInterval);
+    }
+  }, 300);
+  setTimeout(() => clearInterval(retryInterval), 12000);
 }
 
 // Attach to window for platform-wide access
@@ -35,3 +61,4 @@ window.fbConfig = firebaseConfig;
 window.fbApp = fbApp;
 window.fbAuth = fbAuth;
 window.fbDb = fbDb;
+window.initFirebaseApp = initFirebaseApp;

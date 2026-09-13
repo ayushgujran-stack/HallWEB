@@ -891,7 +891,7 @@ class Store {
     const halls = this.getHalls();
     const newHall = {
       ...hallData,
-      id: 'hall-' + Date.now(),
+      id: hallData.id || ('hall-' + Date.now()),
       slug: (hallData.name || 'venue').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString().slice(-4),
       status: 'PENDING_APPROVAL', // Requirement #13: When hall owner adds a hall, it MUST be PENDING APPROVAL!
       physical_verification: {
@@ -914,11 +914,25 @@ class Store {
     halls.unshift(newHall);
     this.saveHalls(halls);
 
+    // Sync new hall to Firestore immediately
+    if (window.fbDb) {
+      try {
+        const cleanHall = JSON.parse(JSON.stringify(newHall));
+        window.fbDb.collection('halls').doc(newHall.id).set(cleanHall).then(() => {
+          console.log('[Firestore] New hall synced to cloud:', newHall.id);
+        }).catch(err => {
+          console.warn('[Firestore] Note saving hall to cloud:', err.message);
+        });
+      } catch (e) {
+        console.warn('[Firestore] Error serializing hall:', e);
+      }
+    }
+
     // Add Audit Log
     this.addAuditLog('New Listing Submitted', newHall.name, `Submitted by owner ${newHall.contact?.owner_name || 'Host'} for verification.`);
 
     // Add in-app notification for admin
-    this.addNotification('New Venue Submission', `"${newHall.name}" was submitted for verification and requires approval.`, '#/admin');
+    this.addNotification('New Venue Submission', `"${newHall.name}" was submitted for verification and requires approval.`, '#/');
 
     return newHall;
   }
@@ -930,6 +944,21 @@ class Store {
       halls[index] = { ...halls[index], ...updatedData, updated_at: new Date().toISOString() };
       this.saveHalls(halls);
       this.addAuditLog('Venue Updated', halls[index].name, 'Hall parameters and details updated.');
+
+      // Sync updated hall to Firestore immediately
+      if (window.fbDb) {
+        try {
+          const cleanHall = JSON.parse(JSON.stringify(halls[index]));
+          window.fbDb.collection('halls').doc(id).set(cleanHall, { merge: true }).then(() => {
+            console.log('[Firestore] Hall updated in cloud:', id);
+          }).catch(err => {
+            console.warn('[Firestore] Note updating hall in cloud:', err.message);
+          });
+        } catch (e) {
+          console.warn('[Firestore] Error serializing updated hall:', e);
+        }
+      }
+
       return halls[index];
     }
     return null;
@@ -942,6 +971,12 @@ class Store {
     this.saveHalls(halls);
     if (target) {
       this.addAuditLog('Venue Deleted', target.name, 'Hall permanently deleted by administrator.');
+    }
+    // Delete from Firestore
+    if (window.fbDb) {
+      window.fbDb.collection('halls').doc(id).delete().catch(err => {
+        console.warn('[Firestore] Note deleting hall from cloud:', err.message);
+      });
     }
   }
 
@@ -1060,16 +1095,21 @@ class Store {
   // --- Bookings State & Cloud Firestore Real-time Sync ---
   initFirestoreSync(attempts = 0) {
     if (typeof window === 'undefined') return;
+
+    if (!window.fbDb && typeof window.initFirebaseApp === 'function') {
+      window.initFirebaseApp();
+    }
+
     if (!window.fbDb) {
-      if (attempts < 5) {
-        setTimeout(() => this.initFirestoreSync(attempts + 1), 1000);
+      if (attempts < 20) {
+        setTimeout(() => this.initFirestoreSync(attempts + 1), 500);
       }
       return;
     }
 
     if (this._firestoreSyncActive) return;
     this._firestoreSyncActive = true;
-    console.log('[Firestore] Listening to live collections (bookings, halls, reviews)...');
+    console.log('[Firestore] Listening to live collections (bookings, halls, reviews, notifications, audit_logs, reports)...');
 
     try {
       // 1. Live Bookings Collection Sync
@@ -1100,7 +1140,7 @@ class Store {
         console.warn('[Firestore Real-Time Sync Notice - bookings]:', err.message);
       });
 
-      // 2. Live Halls Collection Sync (and cloud seeding)
+      // 2. Live Halls Collection Sync (with cloud seeding & auto-recovery of local pending submissions)
       window.fbDb.collection('halls').onSnapshot((snapshot) => {
         const cloudHalls = [];
         snapshot.forEach(doc => {
@@ -1110,19 +1150,37 @@ class Store {
 
         if (cloudHalls.length > 0) {
           const localHalls = this.getHalls();
-          const merged = [...localHalls];
-          cloudHalls.forEach(ch => {
-            const idx = merged.findIndex(m => m.id === ch.id);
-            if (idx >= 0) merged[idx] = { ...merged[idx], ...ch };
-            else merged.push(ch);
+          const merged = [...cloudHalls];
+
+          // Auto-recovery: If local storage has a pending hall that wasn't in Firestore yet (e.g. submitted offline or prior to fix),
+          // rescue it and upload it to Firestore now!
+          localHalls.forEach(lh => {
+            const existsInCloud = merged.some(ch => ch.id === lh.id);
+            if (!existsInCloud) {
+              merged.unshift(lh);
+              if (window.fbDb) {
+                try {
+                  const clean = JSON.parse(JSON.stringify(lh));
+                  window.fbDb.collection('halls').doc(lh.id).set(clean).then(() => {
+                    console.log('[Firestore Auto-Recovery] Synced local hall to cloud:', lh.name);
+                  }).catch(err => {
+                    console.warn('[Firestore Auto-Recovery Error]:', err.message);
+                  });
+                } catch (e) {}
+              }
+            }
           });
+
           localStorage.setItem(STORAGE_KEYS.HALLS, JSON.stringify(merged));
           window.dispatchEvent(new CustomEvent('hallsUpdated', { detail: merged }));
         } else {
           // Cloud collection is fresh; auto-seed the curated halls to Firestore
           const localHalls = this.getHalls();
           localHalls.forEach(h => {
-            window.fbDb.collection('halls').doc(h.id).set(h).catch(() => {});
+            try {
+              const clean = JSON.parse(JSON.stringify(h));
+              window.fbDb.collection('halls').doc(h.id).set(clean).catch(() => {});
+            } catch (e) {}
           });
         }
       }, (err) => {
@@ -1150,6 +1208,77 @@ class Store {
         }
       }, (err) => {
         console.warn('[Firestore Real-Time Sync Notice - reviews]:', err.message);
+      });
+
+      // 4. Live Notifications Collection Sync
+      window.fbDb.collection('notifications').onSnapshot((snapshot) => {
+        const cloudNotifs = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data && data.id) cloudNotifs.push(data);
+        });
+
+        if (cloudNotifs.length > 0) {
+          const localNotifs = this.getNotifications();
+          const merged = [...cloudNotifs];
+          localNotifs.forEach(ln => {
+            if (!merged.some(cn => cn.id === ln.id)) {
+              merged.push(ln);
+            }
+          });
+          merged.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+          localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(merged));
+          window.dispatchEvent(new CustomEvent('notificationsUpdated', { detail: merged }));
+        }
+      }, (err) => {
+        console.warn('[Firestore Real-Time Sync Notice - notifications]:', err.message);
+      });
+
+      // 5. Live Audit Logs Collection Sync
+      window.fbDb.collection('audit_logs').onSnapshot((snapshot) => {
+        const cloudLogs = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data && data.id) cloudLogs.push(data);
+        });
+
+        if (cloudLogs.length > 0) {
+          const localLogs = this.getAuditLogs();
+          const merged = [...cloudLogs];
+          localLogs.forEach(ll => {
+            if (!merged.some(cl => cl.id === ll.id)) {
+              merged.push(ll);
+            }
+          });
+          merged.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+          localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(merged));
+          window.dispatchEvent(new CustomEvent('auditLogsUpdated', { detail: merged }));
+        }
+      }, (err) => {
+        console.warn('[Firestore Real-Time Sync Notice - audit_logs]:', err.message);
+      });
+
+      // 6. Live Reports Collection Sync
+      window.fbDb.collection('reports').onSnapshot((snapshot) => {
+        const cloudReports = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data && data.id) cloudReports.push(data);
+        });
+
+        if (cloudReports.length > 0) {
+          const localReports = this.getReports();
+          const merged = [...cloudReports];
+          localReports.forEach(lr => {
+            if (!merged.some(cr => cr.id === lr.id)) {
+              merged.push(lr);
+            }
+          });
+          localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(merged));
+          window.dispatchEvent(new CustomEvent('reportsUpdated', { detail: merged }));
+        }
+      }, (err) => {
+        console.warn('[Firestore Real-Time Sync Notice - reports]:', err.message);
       });
 
     } catch (err) {
@@ -1612,16 +1741,27 @@ class Store {
 
   addNotification(title, message, link = '#') {
     const notifs = this.getNotifications();
-    notifs.unshift({
+    const newNotif = {
       id: 'notif-' + Date.now(),
       title,
       message,
       date: 'Just now',
       unread: true,
-      link
-    });
+      link,
+      timestamp: Date.now()
+    };
+    notifs.unshift(newNotif);
     localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notifs));
     window.dispatchEvent(new CustomEvent('notificationsUpdated', { detail: notifs }));
+
+    if (window.fbDb) {
+      try {
+        const cleanNotif = JSON.parse(JSON.stringify(newNotif));
+        window.fbDb.collection('notifications').doc(newNotif.id).set(cleanNotif).catch(err => {
+          console.warn('[Firestore] Note saving notification to cloud:', err.message);
+        });
+      } catch (e) {}
+    }
   }
 
   markNotificationsRead() {
@@ -1640,15 +1780,27 @@ class Store {
     const logs = this.getAuditLogs();
     const now = new Date();
     const timeStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    logs.unshift({
+    const newLog = {
       id: 'log-' + Date.now(),
       admin_name: 'Super Admin Authority',
       action,
       affected_record: affectedRecord,
       date: timeStr,
-      details
-    });
+      details,
+      timestamp: Date.now()
+    };
+    logs.unshift(newLog);
     localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(logs));
+    window.dispatchEvent(new CustomEvent('auditLogsUpdated', { detail: logs }));
+
+    if (window.fbDb) {
+      try {
+        const cleanLog = JSON.parse(JSON.stringify(newLog));
+        window.fbDb.collection('audit_logs').doc(newLog.id).set(cleanLog).catch(err => {
+          console.warn('[Firestore] Note saving audit log to cloud:', err.message);
+        });
+      } catch (e) {}
+    }
   }
 
   // --- Reports State ---
@@ -1663,12 +1815,23 @@ class Store {
       ...reportData,
       id: 'rep-' + Date.now(),
       date: new Date().toISOString().split('T')[0],
-      status: 'PENDING'
+      status: 'PENDING',
+      timestamp: Date.now()
     };
     reports.unshift(newReport);
     localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(reports));
+    window.dispatchEvent(new CustomEvent('reportsUpdated', { detail: reports }));
     this.addAuditLog('Report Filed', reportData.hall_name, `Reason: ${reportData.reason}`);
-    this.addNotification('New Listing Flagged', `A user reported "${reportData.hall_name}": ${reportData.reason}`, '#/admin');
+    this.addNotification('New Listing Flagged', `A user reported "${reportData.hall_name}": ${reportData.reason}`, '#/');
+
+    if (window.fbDb) {
+      try {
+        const cleanReport = JSON.parse(JSON.stringify(newReport));
+        window.fbDb.collection('reports').doc(newReport.id).set(cleanReport).catch(err => {
+          console.warn('[Firestore] Note saving report to cloud:', err.message);
+        });
+      } catch (e) {}
+    }
     return newReport;
   }
 
@@ -1679,7 +1842,16 @@ class Store {
       rep.status = 'RESOLVED';
       rep.resolution = actionTaken;
       localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(reports));
+      window.dispatchEvent(new CustomEvent('reportsUpdated', { detail: reports }));
       this.addAuditLog('Report Resolved', rep.hall_name, actionTaken);
+
+      if (window.fbDb) {
+        try {
+          window.fbDb.collection('reports').doc(id).set(JSON.parse(JSON.stringify(rep)), { merge: true }).catch(err => {
+            console.warn('[Firestore] Note updating resolved report in cloud:', err.message);
+          });
+        } catch (e) {}
+      }
     }
   }
 }

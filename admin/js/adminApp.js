@@ -213,10 +213,58 @@ function bootAdminApp() {
       window.AdminRouter.init();
     }
 
+    // Setup reactive cloud sync listeners
+    setupAdminRealTimeListeners();
+
     console.log('VenueLuxe Admin Panel initialized.');
   } catch (err) {
     console.error('Error bootstrapping Admin Panel:', err);
   }
+}
+
+// Reactive UI Synchronization: Automatically update Admin Dashboard and Header when cloud data updates
+function setupAdminRealTimeListeners() {
+  if (window.__adminListenersAttached) return;
+  window.__adminListenersAttached = true;
+
+  const refreshAdminView = () => {
+    if (!window.__appBooted) return;
+    const appContent = document.getElementById('app-content');
+    if (appContent && window.AdminDashboardView) {
+      appContent.innerHTML = AdminDashboardView.render();
+      if (AdminDashboardView.postRender) AdminDashboardView.postRender();
+    }
+    if (window.AdminHeaderComponent && typeof window.AdminHeaderComponent.update === 'function') {
+      AdminHeaderComponent.update();
+    }
+  };
+
+  window.addEventListener('hallsUpdated', (e) => {
+    console.log('[Admin] Real-time halls updated. Refreshing verification center.');
+    refreshAdminView();
+  });
+
+  window.addEventListener('notificationsUpdated', () => {
+    if (window.AdminHeaderComponent && typeof window.AdminHeaderComponent.update === 'function') {
+      AdminHeaderComponent.update();
+    }
+  });
+
+  window.addEventListener('auditLogsUpdated', () => {
+    if (window.AdminDashboardView && window.AdminDashboardView.currentTab === 'audit') {
+      refreshAdminView();
+    }
+  });
+
+  window.addEventListener('reportsUpdated', () => {
+    refreshAdminView();
+  });
+
+  window.addEventListener('bookingsUpdated', () => {
+    if (window.AdminDashboardView && window.AdminDashboardView.currentTab === 'bookings') {
+      refreshAdminView();
+    }
+  });
 }
 
 if (document.readyState === 'loading') {

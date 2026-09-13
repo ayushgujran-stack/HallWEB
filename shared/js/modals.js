@@ -712,14 +712,43 @@ const Modals = {
     }
 
     const filesToUpload = Array.from(input.files).slice(0, remainingSlots);
+
+    const compressImage = (dataUrl, maxDimension = 960, quality = 0.72) => {
+      return new Promise((res) => {
+        const img = new Image();
+        img.onload = () => {
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDimension || h > maxDimension) {
+            if (w > h) {
+              h = Math.round((h * maxDimension) / w);
+              w = maxDimension;
+            } else {
+              w = Math.round((w * maxDimension) / h);
+              h = maxDimension;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          res(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => res(dataUrl);
+        img.src = dataUrl;
+      });
+    };
+
     const readers = filesToUpload.map(file => {
       return new Promise((resolve) => {
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
           const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]+/g, ' ').trim();
           const tag = cleanName ? (cleanName.charAt(0).toUpperCase() + cleanName.slice(1)) : '';
+          const compressedUrl = await compressImage(e.target.result);
           resolve({
-            url: e.target.result,
+            url: compressedUrl,
             tag: tag
           });
         };
