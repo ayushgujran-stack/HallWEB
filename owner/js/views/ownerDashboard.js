@@ -208,15 +208,15 @@ const OwnerDashboardView = {
               </div>
             </div>
 
-            <!-- Confirmed Gross Revenue -->
-            <div class="bg-surface-container-lowest p-4 md:p-5 rounded-xl border border-outline shadow-sm flex flex-col justify-between">
+            <!-- Confirmed Gross Revenue (Direct Offline Settlement) -->
+            <div class="bg-surface-container-lowest p-4 md:p-5 rounded-xl border border-outline shadow-sm flex flex-col justify-between" title="Direct offline value settled between you and customers. VenueLuxe collects zero transaction commissions.">
               <div class="flex items-center justify-between text-on-surface-variant mb-2">
-                <span class="font-label-sm text-[11px] uppercase tracking-wider font-bold">Confirmed Gross</span>
+                <span class="font-label-sm text-[11px] uppercase tracking-wider font-bold">Estimated Offline Value</span>
                 <span class="material-symbols-outlined text-[20px] text-secondary">trending_up</span>
               </div>
               <div>
                 <div class="font-display-lg text-2xl md:text-3xl font-bold text-on-surface">₹${Math.round(totalGross / 1000)}k</div>
-                <p class="font-body-sm text-xs text-on-surface-variant mt-0.5">${approvedBookings.length} Approved holds</p>
+                <p class="font-body-sm text-[10px] text-on-surface-variant mt-0.5">${approvedBookings.length} Holds • Settled directly offline</p>
               </div>
             </div>
 
@@ -238,6 +238,99 @@ const OwnerDashboardView = {
               </div>
             </div>
 
+          </div>
+
+          <!-- Listing Verification & Fraud Prevention Status Card -->
+          <div class="p-5 rounded-2xl border ${currentHall.status === 'PENDING_APPROVAL' ? 'bg-amber-500/5 border-amber-500/30' : (currentHall.listing_tier === 'BASIC' ? 'bg-primary/5 border-primary/20' : 'bg-emerald-500/5 border-emerald-500/20')} shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-outline">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl ${currentHall.status === 'PENDING_APPROVAL' ? 'bg-amber-500/20 text-amber-700' : 'bg-primary/10 text-primary'} flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[22px]">verified_user</span>
+                </div>
+                <div>
+                  <h3 class="font-title-md text-sm font-bold text-on-surface flex items-center gap-2">
+                    <span>Listing Verification: ${currentHall.name}</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold ${currentHall.status === 'LIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                      ${currentHall.status === 'LIVE' ? 'Live on Marketplace' : 'Under Verification'}
+                    </span>
+                  </h3>
+                  <p class="text-xs text-on-surface-variant">
+                    Security protocol requires physical site inspection and registered official website prior to customer showcase.
+                  </p>
+                </div>
+              </div>
+
+              ${currentHall.status === 'LIVE' ? `
+                <a href="/customer/#/hall/${currentHall.id}" target="_blank" class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-primary border border-outline rounded-lg text-xs font-bold flex items-center gap-1">
+                  <span>View Customer Listing</span>
+                  <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+                </a>
+              ` : ''}
+            </div>
+
+            <!-- 3-Step Verification Pipeline Tracker -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              
+              <!-- Step 1: Physical Inspection -->
+              <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-outline space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">1. Physical Inspection</span>
+                  <span class="inline-flex items-center gap-1 text-[11px] font-bold ${currentHall.physical_inspection_status === 'VERIFIED' ? 'text-emerald-700' : 'text-amber-700'}">
+                    <span class="material-symbols-outlined text-[15px]">${currentHall.physical_inspection_status === 'VERIFIED' ? 'check_circle' : 'pending'}</span>
+                    ${currentHall.physical_inspection_status === 'VERIFIED' ? 'Verified' : 'Agent Scheduled'}
+                  </span>
+                </div>
+                <p class="text-xs text-on-surface-variant leading-tight">
+                  ${currentHall.physical_inspection_status === 'VERIFIED' 
+                    ? `Site audited by ${currentHall.inspected_by || 'Field Team'}.`
+                    : 'A field representative from our side will visit your hall location to check premises and amenities.'}
+                </p>
+              </div>
+
+              <!-- Step 2: Compulsory Official Website -->
+              <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-outline space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">2. Official Website</span>
+                  <span class="inline-flex items-center gap-1 text-[11px] font-bold ${currentHall.website_verified ? 'text-emerald-700' : 'text-amber-700'}">
+                    <span class="material-symbols-outlined text-[15px]">${currentHall.website_verified ? 'verified' : 'domain_verification'}</span>
+                    ${currentHall.website_verified ? 'Domain Verified' : (currentHall.website ? 'Pending Audit' : 'Compulsory')}
+                  </span>
+                </div>
+                ${currentHall.website ? `
+                  <div class="text-xs text-on-surface font-semibold truncate flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px] text-primary">language</span>
+                    <a href="${currentHall.website}" target="_blank" class="hover:underline text-primary truncate">${currentHall.website}</a>
+                  </div>
+                ` : `
+                  <div class="space-y-1">
+                    <p class="text-[11px] text-amber-800 dark:text-amber-300 font-medium">Website is compulsory to publish on customer page.</p>
+                    <div class="flex items-center gap-1.5 pt-1">
+                      <input type="url" id="owner-website-input-${currentHall.id}" placeholder="https://yourvenue.com" class="flex-1 px-2.5 py-1 text-xs rounded border border-outline bg-surface-container">
+                      <button onclick="OwnerDashboardView.saveWebsite('${currentHall.id}')" class="px-2.5 py-1 bg-primary text-white rounded text-xs font-bold shrink-0">
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                `}
+              </div>
+
+              <!-- Step 3: Customer Showcase Tier -->
+              <div class="p-3.5 rounded-xl bg-surface-container-lowest border border-outline space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">3. Customer Showcase</span>
+                  <span class="inline-flex items-center gap-1 text-[11px] font-bold ${currentHall.listing_fee_paid ? 'text-emerald-700' : 'text-slate-600'}">
+                    <span class="material-symbols-outlined text-[15px]">${currentHall.listing_fee_paid ? 'star' : 'article'}</span>
+                    ${currentHall.listing_fee_paid ? 'Full Showcase' : 'Directory Tier'}
+                  </span>
+                </div>
+                <p class="text-xs text-on-surface-variant leading-tight">
+                  ${currentHall.listing_fee_paid 
+                    ? 'All high-res photos, 3D tour, amenities, and shift calendar are live for customers.'
+                    : 'Listing active in basic directory format (name & location). Complete annual listing fee with visiting field executive for full photo showcase.'}
+                </p>
+              </div>
+
+            </div>
           </div>
 
           <!-- SECTION 2: INTERACTIVE AVAILABILITY CALENDAR & TARIFF CONTROLS -->
@@ -759,6 +852,19 @@ const OwnerDashboardView = {
       const hall = window.appStore.getHallById(targetId);
       Toast.info('Visibility Updated', `Public calendar for "${hall?.name || 'Venue'}" is now ${isPublic ? 'PUBLIC' : 'PRIVATE'}.`);
     }
+  },
+
+  saveWebsite(hallId) {
+    const input = document.getElementById(`owner-website-input-${hallId}`);
+    if (!input || !input.value.trim()) {
+      Toast.error('Required', 'Please enter your official website URL (e.g. https://myvenue.com)');
+      return;
+    }
+    const url = input.value.trim();
+    window.appStore.updateHallWebsite(hallId, url);
+    Toast.success('Website Registered', 'Official domain registered. Our audit team will verify domain ownership.');
+    const container = document.getElementById('app-content');
+    if (container) container.innerHTML = this.render();
   }
 };
 

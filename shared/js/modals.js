@@ -74,14 +74,6 @@ const Modals = {
             </div>
           </div>
 
-          <!-- Quick Super Admin Jump -->
-          <div class="pt-3 border-t border-surface-container flex items-center justify-between text-xs text-on-surface-variant">
-            <span>Website Administrator?</span>
-            <button class="font-bold text-on-surface hover:text-secondary flex items-center gap-1" onclick="Modals.switchPortal('admin'); Modals.close();">
-              <span>Super Admin Portal</span>
-              <span class="material-symbols-outlined text-[14px]">launch</span>
-            </button>
-          </div>
         </div>
       </div>
     `;
@@ -100,33 +92,39 @@ const Modals = {
   // --- 2. Nine-Step Add Hall Wizard (Requirement #12 & #13) ---
   openAddHallWizard() {
     this.currentWizardStep = 1;
+
+    // Pre-fill contact from the currently signed-in user so the wizard starts with real data
+    const authUser = window.Auth && window.Auth.getCurrentUser();
+
     this.wizardData = {
       name: '',
       hall_type: 'Wedding Palace & Convention',
       description: '',
       area: '',
-      city: 'Karkala',
+      city: '',
       state: 'Karnataka',
-      pincode: '574104',
+      pincode: '',
       address: '',
-      size_sqft: 12000,
-      length_ft: 130,
-      width_ft: 90,
-      seating_capacity: 600,
-      maximum_capacity: 1200,
+      size_sqft: 10000,
+      length_ft: 120,
+      width_ft: 80,
+      seating_capacity: 500,
+      maximum_capacity: 1000,
       ac_status: 'Central AC (VRF)',
       indoor_outdoor: 'Indoor Auditorium',
-      facilities: ['Central AC (VRF)', 'Separate AC Dining Hall', 'Industrial Kitchen', 'Car Parking', 'Stage & Sound System', 'Generator Backup', 'Wi-Fi'],
-      pricing: { morning: 65000, afternoon: 45000, evening: 85000, night: 70000, full_day: 180000 },
-      cover_image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80',
+      facilities: [],
+      pricing: { morning: 0, afternoon: 0, evening: 0, night: 0, full_day: 0 },
+      cover_image: '',
+      images: [],   // Array of base64 data URLs (up to 6)
+      website: '',  // Official website URL (optional)
       latitude: 13.2185,
       longitude: 74.9983,
       contact: {
-        owner_name: 'Vikram Hegde',
-        phone: '+91 82582 29988',
-        whatsapp: '+91 82582 29988',
-        email: 'vikram.hegde@monarchpalace.com',
-        alternate_phone: '+91 82582 29989'
+        owner_name: authUser ? authUser.name : '',
+        phone: authUser ? (authUser.phone || '') : '',
+        whatsapp: authUser ? (authUser.phone || '') : '',
+        email: authUser ? authUser.email : '',
+        alternate_phone: ''
       },
       public_availability: true,
       privacy_settings: {
@@ -216,7 +214,7 @@ const Modals = {
           <div class="space-y-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Hall / Venue Name *</label>
-              <input type="text" id="wz-name" class="w-full p-3 rounded-lg bg-surface-container-low border border-surface-container text-on-surface font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary" value="${d.name || 'Gilded Magnolia Grand Hall'}" placeholder="e.g. Royal Emerald Ballroom">
+              <input type="text" id="wz-name" class="w-full p-3 rounded-lg bg-surface-container-low border border-surface-container text-on-surface font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary" value="${d.name || ''}" placeholder="e.g. Royal Emerald Ballroom">
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -230,24 +228,40 @@ const Modals = {
                 </select>
               </div>
               <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">City / Town</label>
-                <input type="text" id="wz-city" class="w-full p-3 rounded-lg bg-surface-container-low border border-surface-container text-on-surface text-sm" value="${d.city || 'Karkala'}">
+                <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">City / Town *</label>
+                <input type="text" id="wz-city" class="w-full p-3 rounded-lg bg-surface-container-low border border-surface-container text-on-surface text-sm" value="${d.city || ''}" placeholder="e.g. Karkala, Udupi, Mangalore">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">State</label>
+                <input type="text" id="wz-state" class="w-full p-3 rounded-lg bg-surface-container-low border border-surface-container text-on-surface text-sm" value="${d.state || 'Karnataka'}" placeholder="e.g. Karnataka">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Pincode</label>
+                <input type="text" id="wz-pincode" class="w-full p-3 rounded-lg bg-surface-container-low border border-surface-container text-on-surface text-sm" value="${d.pincode || ''}" placeholder="e.g. 574104">
               </div>
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Neighborhood / Area</label>
-              <input type="text" id="wz-area" class="w-full p-3 rounded-lg bg-surface-container-low border border-surface-container text-on-surface text-sm" value="${d.area || 'Highway Junction, Bypass Road'}" placeholder="e.g. Near Venkataramana Temple">
+              <input type="text" id="wz-area" class="w-full p-3 rounded-lg bg-surface-container-low border border-surface-container text-on-surface text-sm" value="${d.area || ''}" placeholder="e.g. Near Venkataramana Temple, Bypass Road">
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Full Postal Address</label>
-              <textarea id="wz-address" rows="2" class="w-full p-3 rounded-lg bg-surface-container-low border border-surface-container text-on-surface text-sm">${d.address || 'Opposite Royal Orchid Estate, Bypass Highway, Karkala 574104'}</textarea>
+              <textarea id="wz-address" rows="2" class="w-full p-3 rounded-lg bg-surface-container-low border border-surface-container text-on-surface text-sm" placeholder="Full address including landmark...">${d.address || ''}</textarea>
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Description & Architecture</label>
-              <textarea id="wz-desc" rows="3" class="w-full p-3 rounded-lg bg-surface-container-low border border-surface-container text-on-surface text-sm" placeholder="Detail high ceilings, pillarless sightlines, and decor features...">${d.description || 'Stunning architectural hall featuring high 22-foot clearance, Italian marble flooring, and dedicated dining pavilion.'}</textarea>
+              <textarea id="wz-desc" rows="3" class="w-full p-3 rounded-lg bg-surface-container-low border border-surface-container text-on-surface text-sm" placeholder="Describe the hall: high ceilings, pillarless sightlines, décor features, seating style...">${d.description || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Official Hall Website <span class="text-on-surface-variant font-normal normal-case">(Optional)</span></label>
+              <input type="url" id="wz-website-step1" class="w-full p-3 rounded-lg bg-surface-container-low border border-surface-container text-on-surface text-sm" value="${d.website || ''}" placeholder="https://www.yourhallname.com">
+              <p class="text-[11px] text-on-surface-variant mt-1">If your hall has an official website, it will be prominently showcased at the top of the photo gallery and with the pictures.</p>
             </div>
           </div>
         `;
+
 
       case 2:
         return `
@@ -355,34 +369,73 @@ const Modals = {
           </div>
         `;
 
-      case 5:
+      case 5: {
+        const imgs = d.images || [];
+        const maxImages = 6;
+        const remaining = maxImages - imgs.length;
         return `
-          <div class="space-y-4">
-            <p class="text-xs text-on-surface-variant">Provide high-resolution imagery for your hall. Cover image will be prominently featured on search cards.</p>
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Main Cover Photo URL *</label>
-              <input type="text" id="wz-cover-img" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface" value="${d.cover_image}">
+          <div class="space-y-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-bold text-on-surface">Upload Hall Photos</p>
+                <p class="text-xs text-on-surface-variant mt-0.5">Upload up to 6 images from your device. Specify your own custom name/tag for each photo below.</p>
+              </div>
+              <span class="px-3 py-1 rounded-full text-xs font-bold ${imgs.length >= maxImages ? 'bg-error-container text-error' : 'bg-surface-container text-on-surface-variant'} border border-outline">
+                ${imgs.length} / ${maxImages}
+              </span>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div class="aspect-video bg-surface-container rounded-lg overflow-hidden relative border border-surface-container">
-                <img src="${d.cover_image}" class="w-full h-full object-cover">
-                <span class="absolute bottom-1 left-1 bg-black/70 text-white text-[9px] px-1 rounded">Cover</span>
+
+            ${imgs.length < maxImages ? `
+              <label for="wz-img-upload" class="flex flex-col items-center justify-center w-full py-7 border-2 border-dashed border-secondary/40 rounded-xl bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors group">
+                <span class="material-symbols-outlined text-[40px] text-secondary group-hover:scale-110 transition-transform">add_photo_alternate</span>
+                <p class="mt-2 text-sm font-bold text-on-surface">Click to select photos from device</p>
+                <p class="text-xs text-on-surface-variant mt-0.5">JPG, PNG, WEBP • ${remaining} slot${remaining !== 1 ? 's' : ''} remaining</p>
+                <input type="file" id="wz-img-upload" accept="image/*" multiple class="hidden" onchange="Modals.handleImageUpload(event)">
+              </label>
+            ` : `
+              <div class="p-3 rounded-xl bg-surface-container text-center text-xs text-on-surface-variant">
+                Maximum 6 images reached. Remove a photo to add a new one.
               </div>
-              <div class="aspect-video bg-surface-container rounded-lg flex flex-col items-center justify-center p-2 text-center text-xs text-on-surface-variant border border-dashed border-outline-variant">
-                <span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
-                <span class="text-[10px] mt-1">Interior Ballroom</span>
+            `}
+
+            ${imgs.length > 0 ? `
+              <div>
+                <div class="flex items-center justify-between mb-2.5">
+                  <p class="text-xs font-bold uppercase tracking-wider text-on-surface">
+                    Uploaded Photos <span class="text-on-surface-variant font-normal">(Name / tag each photo yourself)</span>
+                  </p>
+                  <span class="text-[11px] text-secondary font-semibold">First photo will be your Main Cover</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5" id="wz-img-preview-grid">
+                  ${imgs.map((item, idx) => {
+                    const src = typeof item === 'object' ? item.url : item;
+                    const tag = (typeof item === 'object' && item.tag) ? item.tag : '';
+                    return `
+                      <div class="p-2.5 bg-surface-container-low rounded-xl border-2 ${idx === 0 ? 'border-secondary' : 'border-surface-container'} flex flex-col gap-2 relative">
+                        <div class="relative aspect-video rounded-lg overflow-hidden bg-surface-container group">
+                          <img src="${src}" class="w-full h-full object-cover" alt="Photo ${idx + 1}">
+                          ${idx === 0 ? '<span class="absolute top-1.5 left-1.5 bg-secondary text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow">COVER PHOTO</span>' : ''}
+                          <button type="button" onclick="Modals.removeWizardImage(${idx})" class="absolute top-1.5 right-1.5 w-6 h-6 bg-black/70 hover:bg-error text-white rounded-full flex items-center justify-center transition-colors shadow" title="Remove photo">
+                            <span class="material-symbols-outlined text-[14px]">close</span>
+                          </button>
+                        </div>
+                        <div class="space-y-1">
+                          <div class="flex items-center justify-between">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-secondary">Picture Tag / Name *</label>
+                            <span class="text-[10px] text-on-surface-variant">${idx === 0 ? 'Cover' : '#' + (idx + 1)}</span>
+                          </div>
+                          <input type="text" class="wz-img-tag-input w-full p-2 text-xs font-semibold rounded-lg bg-surface-container-lowest border border-surface-container text-on-surface focus:outline-none focus:ring-1 focus:ring-secondary" placeholder="e.g. Grand Ballroom, Dining Pavilion, Lawn" value="${tag}" data-idx="${idx}" oninput="Modals.updateWizardImageTag(${idx}, this.value)">
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
               </div>
-              <div class="aspect-video bg-surface-container rounded-lg flex flex-col items-center justify-center p-2 text-center text-xs text-on-surface-variant border border-dashed border-outline-variant">
-                <span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
-                <span class="text-[10px] mt-1">Dining Hall</span>
-              </div>
-              <div class="aspect-video bg-surface-container rounded-lg flex flex-col items-center justify-center p-2 text-center text-xs text-on-surface-variant border border-dashed border-outline-variant">
-                <span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
-                <span class="text-[10px] mt-1">Lawn & Stage</span>
-              </div>
-            </div>
+            ` : ''}
           </div>
         `;
+      }
+
 
       case 6:
         return `
@@ -416,25 +469,31 @@ const Modals = {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Host / Proprietor Name *</label>
-                <input type="text" id="wz-owner-name" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-semibold" value="${d.contact.owner_name}">
+                <input type="text" id="wz-owner-name" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-semibold" value="${d.contact.owner_name}" placeholder="Your full name">
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Official Desk Phone *</label>
-                <input type="text" id="wz-owner-phone" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-semibold" value="${d.contact.phone}">
+                <input type="text" id="wz-owner-phone" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-semibold" value="${d.contact.phone}" placeholder="+91 XXXXX XXXXX">
               </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Direct WhatsApp Number</label>
-                <input type="text" id="wz-owner-wa" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface" value="${d.contact.whatsapp}">
+                <input type="text" id="wz-owner-wa" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface" value="${d.contact.whatsapp}" placeholder="+91 XXXXX XXXXX">
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Reservations Email</label>
-                <input type="email" id="wz-owner-email" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface" value="${d.contact.email}">
+                <input type="email" id="wz-owner-email" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface" value="${d.contact.email}" placeholder="hall@example.com">
               </div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Official Website URL <span class="text-on-surface-variant font-normal normal-case">(Optional — for Premium members)</span></label>
+              <input type="url" id="wz-website" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface" value="${d.website || ''}" placeholder="https://www.yourhallname.com">
+              <p class="text-[11px] text-on-surface-variant mt-1">If you have your own website, it will appear on your hall's detail page for Premium-tier listings.</p>
             </div>
           </div>
         `;
+
 
       case 8:
         return `
@@ -521,15 +580,21 @@ const Modals = {
       const name = document.getElementById('wz-name');
       const type = document.getElementById('wz-hall-type');
       const city = document.getElementById('wz-city');
+      const state = document.getElementById('wz-state');
+      const pincode = document.getElementById('wz-pincode');
       const area = document.getElementById('wz-area');
       const address = document.getElementById('wz-address');
       const desc = document.getElementById('wz-desc');
+      const web1 = document.getElementById('wz-website-step1');
       if (name) this.wizardData.name = name.value;
       if (type) this.wizardData.hall_type = type.value;
       if (city) this.wizardData.city = city.value;
+      if (state) this.wizardData.state = state.value;
+      if (pincode) this.wizardData.pincode = pincode.value;
       if (area) this.wizardData.area = area.value;
       if (address) this.wizardData.address = address.value;
       if (desc) this.wizardData.description = desc.value;
+      if (web1 && web1.value.trim()) this.wizardData.website = web1.value.trim();
     } else if (step === 2) {
       const size = document.getElementById('wz-size');
       const length = document.getElementById('wz-length');
@@ -558,17 +623,30 @@ const Modals = {
       const night = document.getElementById('wz-price-night');
       const full = document.getElementById('wz-price-full');
       this.wizardData.pricing = {
-        morning: morn ? Number(morn.value) : 65000,
-        afternoon: aft ? Number(aft.value) : 45000,
-        evening: eve ? Number(eve.value) : 85000,
-        night: night ? Number(night.value) : 70000,
-        full_day: full ? Number(full.value) : 180000
+        morning: morn ? Number(morn.value) : 0,
+        afternoon: aft ? Number(aft.value) : 0,
+        evening: eve ? Number(eve.value) : 0,
+        night: night ? Number(night.value) : 0,
+        full_day: full ? Number(full.value) : 0
       };
     } else if (step === 5) {
-      const img = document.getElementById('wz-cover-img');
-      if (img && img.value) {
-        this.wizardData.cover_image = img.value;
-        this.wizardData.images = { main: img.value };
+      // Save custom user-defined image tags from input fields
+      const tagInputs = document.querySelectorAll('.wz-img-tag-input');
+      tagInputs.forEach(input => {
+        const idx = parseInt(input.dataset.idx, 10);
+        if (this.wizardData.images && this.wizardData.images[idx]) {
+          const val = input.value.trim();
+          if (typeof this.wizardData.images[idx] === 'string') {
+            this.wizardData.images[idx] = { url: this.wizardData.images[idx], tag: val };
+          } else {
+            this.wizardData.images[idx].tag = val;
+          }
+        }
+      });
+      // Sync cover_image from first image in the array
+      if (this.wizardData.images && this.wizardData.images.length > 0) {
+        const first = this.wizardData.images[0];
+        this.wizardData.cover_image = typeof first === 'object' ? first.url : first;
       }
     } else if (step === 6) {
       const lat = document.getElementById('wz-lat');
@@ -580,12 +658,14 @@ const Modals = {
       const phone = document.getElementById('wz-owner-phone');
       const wa = document.getElementById('wz-owner-wa');
       const email = document.getElementById('wz-owner-email');
+      const website = document.getElementById('wz-website');
       this.wizardData.contact = {
-        owner_name: owner ? owner.value : 'Host',
-        phone: phone ? phone.value : '+91 82582 29988',
-        whatsapp: wa ? wa.value : '+91 82582 29988',
-        email: email ? email.value : 'owner@venueluxe.com'
+        owner_name: owner ? owner.value : '',
+        phone: phone ? phone.value : '',
+        whatsapp: wa ? wa.value : '',
+        email: email ? email.value : ''
       };
+      if (website) this.wizardData.website = website.value.trim();
     } else if (step === 8) {
       const avail = document.getElementById('wz-toggle-avail');
       const phone = document.getElementById('wz-toggle-phone');
@@ -613,6 +693,79 @@ const Modals = {
     if (this.currentWizardStep > 1) {
       this.currentWizardStep--;
       this.renderWizard();
+    }
+  },
+
+  handleImageUpload(event) {
+    const input = event.target;
+    if (!input || !input.files || input.files.length === 0) return;
+
+    if (!Array.isArray(this.wizardData.images)) {
+      this.wizardData.images = [];
+    }
+
+    const maxImages = 6;
+    const remainingSlots = maxImages - this.wizardData.images.length;
+    if (remainingSlots <= 0) {
+      if (window.Toast) window.Toast.error('Limit Reached', 'Maximum 6 photos allowed.');
+      return;
+    }
+
+    const filesToUpload = Array.from(input.files).slice(0, remainingSlots);
+    const readers = filesToUpload.map(file => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]+/g, ' ').trim();
+          const tag = cleanName ? (cleanName.charAt(0).toUpperCase() + cleanName.slice(1)) : '';
+          resolve({
+            url: e.target.result,
+            tag: tag
+          });
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(readers).then(results => {
+      const validImages = results.filter(Boolean);
+      this.wizardData.images.push(...validImages);
+      if (this.wizardData.images.length > 0) {
+        const first = this.wizardData.images[0];
+        this.wizardData.cover_image = typeof first === 'object' ? first.url : first;
+      }
+      const stepBody = document.getElementById('wizard-step-body');
+      if (stepBody) {
+        stepBody.innerHTML = this.getWizardStepHTML(5);
+      }
+    });
+  },
+
+  updateWizardImageTag(idx, tag) {
+    if (this.wizardData && Array.isArray(this.wizardData.images) && this.wizardData.images[idx]) {
+      if (typeof this.wizardData.images[idx] === 'string') {
+        this.wizardData.images[idx] = { url: this.wizardData.images[idx], tag: tag };
+      } else {
+        this.wizardData.images[idx].tag = tag;
+      }
+    }
+  },
+
+  removeWizardImage(idx) {
+    this.saveCurrentStepInputs();
+    if (this.wizardData && Array.isArray(this.wizardData.images)) {
+      this.wizardData.images.splice(idx, 1);
+      if (this.wizardData.images.length > 0) {
+        const first = this.wizardData.images[0];
+        this.wizardData.cover_image = typeof first === 'object' ? first.url : first;
+      } else {
+        this.wizardData.cover_image = '';
+      }
+    }
+    const stepBody = document.getElementById('wizard-step-body');
+    if (stepBody) {
+      stepBody.innerHTML = this.getWizardStepHTML(5);
     }
   },
 
@@ -1206,12 +1359,31 @@ const Modals = {
                 ` : ''}
               </div>
               <p class="text-[11px] text-on-surface-variant mt-3 leading-relaxed">
-                The owner will call you at <strong>${booking.customer_phone}</strong> or email <strong>${booking.customer_email}</strong> to confirm and discuss final pricing.
+                The owner will call you at <strong>${booking.customer_phone}</strong> or email <strong>${booking.customer_email}</strong> to coordinate offline advance payment and finalize scheduling.
               </p>
             </div>
 
+            <!-- Direct Offline Settlement Policy Card -->
+            <div class="p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl text-left space-y-1">
+              <div class="flex items-center gap-1.5 font-bold text-xs text-secondary">
+                <span class="material-symbols-outlined text-[15px]">payments</span>
+                <span>Direct Offline Settlement</span>
+              </div>
+              <p class="text-[11px] text-on-surface-variant leading-tight">
+                No money is collected on this platform. Advance tokens, contracts, and catering packages are settled directly between you and the hall proprietor offline.
+              </p>
+            </div>
+
+            <!-- Direct WhatsApp Coordinate Action -->
+            ${contact.whatsapp ? `
+              <a href="https://wa.me/${contact.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello, I submitted a hold for ${hall.name} on ${booking.date} (${booking.slot}) on VenueLuxe (Ref: ${booking.id}). I'd like to discuss advance payment and event arrangements.`)}" target="_blank" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all">
+                <span class="material-symbols-outlined text-[18px]">chat</span>
+                <span>Chat with Owner on WhatsApp</span>
+              </a>
+            ` : ''}
+
             <!-- CTAs -->
-            <div class="flex gap-3">
+            <div class="flex gap-2.5">
               <button onclick="Modals.close(); window.location.hash='#/customer';" class="flex-1 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-inverse-surface transition-all">
                 View My Bookings
               </button>
@@ -1369,18 +1541,217 @@ const Modals = {
     `;
   },
 
-  // --- 6. Photo Lightbox ---
-  openLightbox(imageUrl, caption = '') {
+  // --- 6. Photo Lightbox & Interactive Gallery Modal ---
+  _currentGallery: null,
+
+  openGalleryModal(hallId, startIndex = 0) {
     this.init();
+    const hall = (typeof hallId === 'object' && hallId !== null) ? hallId : window.appStore.getHallById(hallId);
+    if (!hall) return;
+
+    // Normalize gallery items preserving custom tags given by the user
+    const items = [];
+    if (Array.isArray(hall.images) && hall.images.length > 0) {
+      hall.images.forEach((img, idx) => {
+        if (typeof img === 'string') {
+          items.push({ url: img, tag: idx === 0 ? 'Cover Photo' : `Photo ${idx + 1}` });
+        } else if (img && typeof img === 'object') {
+          items.push({
+            url: img.url || hall.cover_image,
+            tag: img.tag || (idx === 0 ? 'Cover Photo' : `Photo ${idx + 1}`)
+          });
+        }
+      });
+    } else if (hall.images && typeof hall.images === 'object') {
+      const defaultTags = {
+        main: 'Main Ballroom',
+        dining: 'Dining Pavilion',
+        courtyard: 'Courtyard Garden Lawn',
+        suite: 'VIP Bridal Suite',
+        exterior: 'Campus Facade'
+      };
+      Object.entries(hall.images).forEach(([k, v]) => {
+        if (typeof v === 'string' && v) {
+          items.push({ url: v, tag: defaultTags[k] || k });
+        } else if (v && typeof v === 'object' && v.url) {
+          items.push({ url: v.url, tag: v.tag || defaultTags[k] || k });
+        }
+      });
+    }
+
+    if (items.length === 0 && hall.cover_image) {
+      items.push({ url: hall.cover_image, tag: 'Cover Photo' });
+    }
+
+    this._currentGallery = {
+      hall,
+      items,
+      currentIndex: Math.max(0, Math.min(startIndex, items.length - 1))
+    };
+
+    this.renderGalleryModal();
+  },
+
+  renderGalleryModal() {
+    if (!this._currentGallery || !this._currentGallery.hall || !this._currentGallery.items.length) return;
+    const { hall, items, currentIndex } = this._currentGallery;
+    const currentItem = items[currentIndex] || items[0];
+
+    const rawWebsite = (hall.website || '').trim();
+    const websiteUrl = rawWebsite ? (rawWebsite.startsWith('http') ? rawWebsite : 'https://' + rawWebsite) : '';
+    const cleanDisplayWebsite = rawWebsite ? rawWebsite.replace(/^https?:\/\//, '').replace(/\/$/, '') : '';
+
     const container = document.getElementById('modal-container');
     container.innerHTML = `
-      <div class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md modal-backdrop" onclick="Modals.close()">
-        <div class="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center" onclick="event.stopPropagation()">
-          <button onclick="Modals.close()" class="absolute -top-12 right-0 text-white hover:opacity-80 p-2">
-            <span class="material-symbols-outlined text-[32px]">close</span>
-          </button>
-          <img src="${imageUrl}" class="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl">
-          ${caption ? `<p class="text-white/80 text-sm mt-3 font-body-sm text-center">${caption}</p>` : ''}
+      <div class="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-md modal-backdrop" onclick="Modals.close()">
+        <div class="relative max-w-5xl w-full flex flex-col max-h-[96vh] rounded-2xl overflow-hidden bg-neutral-950 border border-white/10 shadow-2xl" onclick="event.stopPropagation()">
+          
+          <!-- Top Bar: Hall Website Just Before The Pictures -->
+          <div class="p-3 sm:p-4 bg-neutral-900 border-b border-white/10 flex flex-wrap items-center justify-between gap-3 shrink-0">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-secondary/20 text-secondary flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[20px]">photo_library</span>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-white tracking-tight">${hall.name}</h3>
+                <p class="text-[11px] text-white/60">${hall.area || ''}, ${hall.city || ''}</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+              ${websiteUrl ? `
+                <a href="${websiteUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-secondary hover:bg-secondary-container text-white rounded-lg text-xs font-bold transition-all shadow-sm">
+                  <span class="material-symbols-outlined text-[15px]">language</span>
+                  <span>Visit Hall Website</span>
+                  <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                </a>
+              ` : ''}
+              <button onclick="Modals.close()" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors" title="Close">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Picture Display Area -->
+          <div class="relative flex-1 min-h-[320px] max-h-[62vh] sm:max-h-[68vh] flex items-center justify-center p-2 sm:p-4 bg-black overflow-hidden">
+            <img src="${currentItem.url}" alt="${currentItem.tag}" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl transition-all duration-300">
+            
+            ${items.length > 1 ? `
+              <!-- Navigation Controls -->
+              <button onclick="Modals.galleryPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/20 transition-all shadow-lg" title="Previous photo">
+                <span class="material-symbols-outlined text-[24px]">chevron_left</span>
+              </button>
+              <button onclick="Modals.galleryNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/20 transition-all shadow-lg" title="Next photo">
+                <span class="material-symbols-outlined text-[24px]">chevron_right</span>
+              </button>
+            ` : ''}
+          </div>
+
+          <!-- Bottom Footer Bar: Custom Picture Tag Given by User & Website Link with Picture -->
+          <div class="p-3 sm:p-4 bg-neutral-900 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 shrink-0">
+            <div class="flex items-center gap-2.5">
+              <span class="px-2.5 py-1 bg-secondary text-white rounded-md text-xs font-bold uppercase tracking-wider shadow-sm">
+                ${currentItem.tag}
+              </span>
+              <span class="text-xs text-white/60 font-medium">
+                ${currentIndex + 1} of ${items.length}
+              </span>
+            </div>
+
+            ${websiteUrl ? `
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] text-white/60 hidden sm:inline">Official Hall Website:</span>
+                <a href="${websiteUrl}" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-secondary hover:text-white underline flex items-center gap-1">
+                  <span>${cleanDisplayWebsite}</span>
+                  <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                </a>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Thumbnail Strip -->
+          ${items.length > 1 ? `
+            <div class="px-3 py-2 bg-black/80 border-t border-white/5 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-thin">
+              ${items.map((item, idx) => `
+                <button onclick="Modals.galleryGoTo(${idx})" class="relative w-16 h-12 rounded-md overflow-hidden shrink-0 border-2 transition-all ${idx === currentIndex ? 'border-secondary scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}" title="${item.tag}">
+                  <img src="${item.url}" class="w-full h-full object-cover">
+                </button>
+              `).join('')}
+            </div>
+          ` : ''}
+
+        </div>
+      </div>
+    `;
+  },
+
+  galleryPrev() {
+    if (!this._currentGallery || !this._currentGallery.items) return;
+    const len = this._currentGallery.items.length;
+    this._currentGallery.currentIndex = (this._currentGallery.currentIndex - 1 + len) % len;
+    this.renderGalleryModal();
+  },
+
+  galleryNext() {
+    if (!this._currentGallery || !this._currentGallery.items) return;
+    const len = this._currentGallery.items.length;
+    this._currentGallery.currentIndex = (this._currentGallery.currentIndex + 1) % len;
+    this.renderGalleryModal();
+  },
+
+  galleryGoTo(idx) {
+    if (!this._currentGallery || !this._currentGallery.items) return;
+    this._currentGallery.currentIndex = idx;
+    this.renderGalleryModal();
+  },
+
+  openLightbox(imageUrl, caption = '', websiteUrl = '') {
+    this.init();
+    const cleanWeb = (websiteUrl || '').trim();
+    const webHref = cleanWeb ? (cleanWeb.startsWith('http') ? cleanWeb : 'https://' + cleanWeb) : '';
+    const container = document.getElementById('modal-container');
+    container.innerHTML = `
+      <div class="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-md modal-backdrop" onclick="Modals.close()">
+        <div class="relative max-w-5xl w-full max-h-[92vh] flex flex-col items-center bg-neutral-950 rounded-2xl border border-white/10 overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+          
+          <!-- Top bar with website just before picture -->
+          <div class="w-full p-3 px-4 bg-neutral-900 border-b border-white/10 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-white">
+              <span class="material-symbols-outlined text-secondary text-[20px]">photo</span>
+              <span class="text-xs font-bold">${caption || 'Venue Photo'}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              ${webHref ? `
+                <a href="${webHref}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1 bg-secondary text-white rounded-lg text-xs font-bold hover:bg-secondary-container transition-colors">
+                  <span class="material-symbols-outlined text-[14px]">language</span>
+                  <span>Visit Website</span>
+                  <span class="material-symbols-outlined text-[12px]">open_in_new</span>
+                </a>
+              ` : ''}
+              <button onclick="Modals.close()" class="p-1 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors">
+                <span class="material-symbols-outlined text-[22px]">close</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Image -->
+          <div class="p-3 sm:p-6 flex items-center justify-center max-h-[75vh]">
+            <img src="${imageUrl}" class="max-w-full max-h-[70vh] object-contain rounded-xl shadow-2xl">
+          </div>
+
+          <!-- Bottom with caption and website -->
+          ${(caption || webHref) ? `
+            <div class="w-full p-3 px-4 bg-neutral-900 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span class="text-white/80 font-medium">${caption}</span>
+              ${webHref ? `
+                <a href="${webHref}" target="_blank" class="text-secondary hover:underline flex items-center gap-1 font-semibold">
+                  <span>Visit Hall Website</span>
+                  <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                </a>
+              ` : ''}
+            </div>
+          ` : ''}
+
         </div>
       </div>
     `;

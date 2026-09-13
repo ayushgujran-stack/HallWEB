@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host --port 5180",
-    "build": "vite build",
+    "build": "vite build && node scripts/build-split.js",
+    "build:site": "vite build && node scripts/build-split.js --site-only",
+    "build:admin": "vite build && node scripts/build-split.js --admin-only",
     "preview": "vite preview"
   },
   "devDependencies": {

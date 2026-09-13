@@ -406,6 +406,251 @@ const DetailsView = {
       { name: 'High-Speed Guest Wi-Fi', icon: 'wifi' }
     ];
 
+    const hasCustomImages = (Array.isArray(hall.images) && hall.images.length > 0) || (hall.images && typeof hall.images === 'object' && Object.keys(hall.images).length > 0);
+    const isBasic = !hasCustomImages && (hall.listing_tier === 'BASIC' && !hall.listing_fee_paid);
+
+    if (isBasic) {
+      return `
+        <div class="flex flex-col w-full bg-surface pb-24 lg:pb-12">
+          
+          <!-- Top Breadcrumb & Quick Actions Bar -->
+          <section class="w-full bg-surface-container-lowest border-b border-outline">
+            <div class="max-w-[1360px] mx-auto px-gutter-mobile md:px-gutter-desktop py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              
+              <nav class="flex items-center gap-1.5 font-body-sm text-xs text-on-surface-variant flex-wrap" aria-label="Breadcrumb">
+                <a class="hover:text-on-surface transition-colors" href="#/">Home</a>
+                <span class="text-outline-variant">/</span>
+                <a class="hover:text-on-surface transition-colors" href="#/search">Halls in ${hall.city}</a>
+                <span class="text-outline-variant">/</span>
+                <span class="text-on-surface font-bold truncate max-w-xs">${hall.name}</span>
+              </nav>
+
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-surface-container text-tertiary font-label-md text-xs rounded-full font-bold border border-outline">
+                  <span class="material-symbols-outlined text-[15px]">verified</span>
+                  <span>Verified Venue</span>
+                </span>
+
+                <button class="inline-flex items-center gap-1 px-3 py-1 bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-xs rounded-lg transition-all font-semibold" onclick="Modals.openShareModal('${hall.id}')">
+                  <span class="material-symbols-outlined text-[15px]">share</span>
+                  <span>Share</span>
+                </button>
+
+                <button class="w-8 h-8 flex items-center justify-center bg-surface-container hover:bg-surface-container-high ${isFav ? 'text-secondary' : 'text-on-surface-variant'} rounded-lg transition-all" onclick="window.appStore.toggleFavorite('${hall.id}'); DetailsView.updateFavoriteState();" title="Save to Favorites">
+                  <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' ${isFav ? '1' : '0'};">favorite</span>
+                </button>
+              </div>
+
+            </div>
+          </section>
+
+          <!-- Venue Title & Verified Status Section -->
+          <section class="w-full bg-surface-container-lowest py-6 border-b border-outline">
+            <div class="max-w-[1360px] mx-auto px-gutter-mobile md:px-gutter-desktop">
+              <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div class="flex items-center gap-2 text-xs font-semibold text-primary mb-1">
+                    <span class="material-symbols-outlined text-[16px]">domain_verification</span>
+                    <span>Audited Venue Directory</span>
+                  </div>
+                  <h1 class="font-display-sm text-2xl md:text-3xl font-extrabold text-on-surface tracking-tight">
+                    ${hall.name}
+                  </h1>
+                  <p class="font-body-md text-xs md:text-sm text-on-surface-variant mt-1.5 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px] text-primary">location_on</span>
+                    <span>${hall.address || `${hall.area || ''}, ${hall.city}, Karnataka`}</span>
+                  </p>
+                </div>
+
+                <div class="shrink-0 p-3 rounded-xl bg-primary text-white border border-outline flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-white/10 text-amber-400 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">verified</span>
+                  </div>
+                  <div>
+                    <div class="text-[10px] uppercase tracking-wider text-amber-300 font-bold">VenueLuxe Certified</div>
+                    <span class="text-xs font-bold text-white">Physical Inspection Passed</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Company Brand Visual Banner for Non-paying Directory Hall -->
+          <section class="max-w-[1360px] mx-auto w-full px-gutter-mobile md:px-gutter-desktop mt-6">
+            <div class="w-full h-48 md:h-64 rounded-2xl overflow-hidden shadow-sm border border-outline bg-primary relative flex items-center justify-center">
+              <img src="${window.appStore.getCompanyLogoPlaceholder(hall.name)}" alt="VenueLuxe Certified Directory - ${hall.name}" class="w-full h-full object-cover">
+            </div>
+          </section>
+
+          <!-- Main Directory Details Grid -->
+          <section class="max-w-[1360px] mx-auto w-full px-gutter-mobile md:px-gutter-desktop mt-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+              <!-- Left Column: Venue Overview & Location -->
+              <div class="lg:col-span-7 space-y-6">
+
+                <!-- About / Overview Card -->
+                <div class="bg-surface-container-lowest rounded-2xl border border-outline p-6 shadow-sm space-y-4">
+                  <div class="flex items-center gap-2 pb-3 border-b border-outline">
+                    <span class="material-symbols-outlined text-primary text-[22px]">info</span>
+                    <h2 class="font-title-lg text-lg font-bold text-on-surface">About the Venue</h2>
+                  </div>
+                  <p class="font-body-md text-sm text-on-surface-variant leading-relaxed">
+                    ${hall.overview || `${hall.name} is a verified event venue situated in ${hall.city}. For shift reservations, catering arrangements, and rental contracts, please coordinate directly with the venue host offline.`}
+                  </p>
+                </div>
+
+                <!-- Verified Location & Map Card -->
+                <div class="bg-surface-container-lowest rounded-2xl border border-outline p-6 shadow-sm space-y-4">
+                  <div class="flex items-center justify-between pb-3 border-b border-outline">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-primary text-[22px]">map</span>
+                      <h2 class="font-title-lg text-lg font-bold text-on-surface">Physical Location</h2>
+                    </div>
+                    <a href="https://maps.google.com/?q=${encodeURIComponent(hall.name + ' ' + (hall.address || hall.city))}" target="_blank" class="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline">
+                      <span>Open in Google Maps</span>
+                      <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+                    </a>
+                  </div>
+
+                  <p class="text-xs font-medium text-on-surface-variant">
+                    ${hall.address || `${hall.area || ''}, ${hall.city}, Karnataka, India`}
+                  </p>
+
+                  <div id="hall-leaflet-map" class="w-full h-56 rounded-xl border border-outline overflow-hidden z-0"></div>
+                </div>
+
+                <!-- Verified Desk / Contact Info Card -->
+                <div class="bg-surface-container-lowest rounded-2xl border border-outline p-6 shadow-sm space-y-4">
+                  <div class="flex items-center gap-2 pb-3 border-b border-outline">
+                    <span class="material-symbols-outlined text-primary text-[22px]">badge</span>
+                    <h2 class="font-title-lg text-lg font-bold text-on-surface">Venue Contact Desk</h2>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="p-3.5 rounded-xl bg-surface-container border border-outline/50 flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-lg bg-tertiary/10 text-tertiary flex items-center justify-center">
+                        <span class="material-symbols-outlined text-[18px]">call</span>
+                      </div>
+                      <div>
+                        <div class="text-[11px] font-bold text-on-surface-variant">Direct Calling</div>
+                        <a href="tel:${hall.contact?.phone || '+918258229988'}" class="text-xs font-bold text-on-surface hover:text-primary">
+                          ${hall.contact?.phone || '+91 82582 29988'}
+                        </a>
+                      </div>
+                    </div>
+
+                    <div class="p-3.5 rounded-xl bg-surface-container border border-outline/50 flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-[18px]">chat</span>
+                      </div>
+                      <div>
+                        <div class="text-[11px] font-bold text-on-surface-variant">WhatsApp Desk</div>
+                        <a href="https://wa.me/${(hall.contact?.whatsapp || '918258229988').replace(/[^0-9]/g, '')}" target="_blank" class="text-xs font-bold text-emerald-700 hover:underline">
+                          Chat on WhatsApp
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Right Column: Direct Enquiry Form -->
+              <div class="lg:col-span-5 space-y-6">
+                <div class="bg-surface-container-lowest rounded-2xl border border-outline p-6 shadow-sm sticky top-24 space-y-5">
+                  <div>
+                    <h3 class="font-title-lg text-base font-bold text-on-surface flex items-center gap-2">
+                      <span class="material-symbols-outlined text-secondary text-[20px]">mail</span>
+                      Direct Booking Enquiry
+                    </h3>
+                    <p class="font-body-sm text-xs text-on-surface-variant mt-1">
+                      Send your reservation dates and guest requirements directly to the management of ${hall.name}.
+                    </p>
+                  </div>
+
+                  <form onsubmit="event.preventDefault(); DetailsView.submitEnquiry();" class="space-y-3.5 text-left">
+                    <div>
+                      <label class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">Your Name</label>
+                      <input type="text" id="enq-name" required value="${currentUser ? currentUser.name : ''}" placeholder="Full Name" class="w-full px-3 py-2 text-xs rounded-lg border border-outline bg-surface-container focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary">
+                    </div>
+
+                    <div>
+                      <label class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">Phone Number</label>
+                      <input type="tel" id="enq-phone" required value="${currentUser ? currentUser.phone : ''}" placeholder="+91 98765 43210" class="w-full px-3 py-2 text-xs rounded-lg border border-outline bg-surface-container focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary">
+                    </div>
+
+                    <div>
+                      <label class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">Tentative Event Date(s)</label>
+                      <input type="text" id="enq-dates" placeholder="e.g. Nov 14-16, 2026 (Evening)" class="w-full px-3 py-2 text-xs rounded-lg border border-outline bg-surface-container focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary">
+                    </div>
+
+                    <div>
+                      <label class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">Message / Requirements</label>
+                      <textarea id="enq-notes" rows="3" placeholder="Tell us about the occasion, seating requirements, catering preferences..." class="w-full px-3 py-2 text-xs rounded-lg border border-outline bg-surface-container focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 bg-primary text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm hover:bg-inverse-surface transition-all flex items-center justify-center gap-2">
+                      <span class="material-symbols-outlined text-[16px]">send</span>
+                      <span>Send Direct Enquiry</span>
+                    </button>
+                  </form>
+
+                  <div class="pt-3 border-t border-outline text-center">
+                    <p class="text-[11px] text-on-surface-variant">
+                      Prefer to speak directly? Call <a href="tel:${hall.contact?.phone || '+918258229988'}" class="text-primary font-bold hover:underline">${hall.contact?.phone || '+91 82582 29988'}</a>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+        </div>
+      `;
+    }
+
+    // Extract normalized gallery items preserving custom tags given by user
+    const galleryItems = [];
+    if (Array.isArray(hall.images) && hall.images.length > 0) {
+      hall.images.forEach((img, idx) => {
+        if (typeof img === 'string') {
+          galleryItems.push({ url: img, tag: idx === 0 ? 'Main Showcase' : `Photo ${idx + 1}` });
+        } else if (img && typeof img === 'object') {
+          galleryItems.push({
+            url: img.url || hall.cover_image,
+            tag: img.tag || (idx === 0 ? 'Main Showcase' : `Photo ${idx + 1}`)
+          });
+        }
+      });
+    } else if (hall.images && typeof hall.images === 'object') {
+      const defaultKeyLabels = {
+        main: 'Main Ballroom',
+        dining: 'Dining Pavilion',
+        courtyard: 'Courtyard Garden Lawn',
+        suite: 'VIP Bridal Suite',
+        exterior: 'Campus Facade'
+      };
+      Object.entries(hall.images).forEach(([k, v]) => {
+        if (typeof v === 'string' && v) {
+          galleryItems.push({ url: v, tag: defaultKeyLabels[k] || k });
+        } else if (v && typeof v === 'object' && v.url) {
+          galleryItems.push({ url: v.url, tag: v.tag || defaultKeyLabels[k] || k });
+        }
+      });
+    }
+
+    if (galleryItems.length === 0 && hall.cover_image) {
+      galleryItems.push({ url: hall.cover_image, tag: 'Main Showcase' });
+    }
+
+    const primaryImage = galleryItems[0];
+    const satelliteImages = galleryItems.slice(1);
+    const rawWebsite = (hall.website || '').trim();
+    const websiteHref = rawWebsite ? (rawWebsite.startsWith('http') ? rawWebsite : 'https://' + rawWebsite) : '';
+    const cleanDomain = rawWebsite ? rawWebsite.replace(/^https?:\/\//, '').replace(/\/$/, '') : '';
+
     return `
       <div class="flex flex-col w-full bg-surface pb-24 lg:pb-12">
         
@@ -472,6 +717,13 @@ const DetailsView = {
 
               <!-- Top Direct Contact Bar -->
               <div class="flex items-center gap-2 shrink-0 flex-wrap">
+                ${websiteHref ? `
+                  <a class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-secondary text-white hover:bg-on-secondary-container font-label-md text-xs rounded-lg transition-colors font-bold shadow-sm" href="${websiteHref}" target="_blank" rel="noopener noreferrer">
+                    <span class="material-symbols-outlined text-[16px]">public</span>
+                    <span>Website</span>
+                    <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                  </a>
+                ` : ''}
                 <a class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-xs rounded-lg transition-colors font-semibold" href="#venue-map">
                   <span class="material-symbols-outlined text-[16px]">near_me</span>
                   <span>Directions</span>
@@ -492,54 +744,109 @@ const DetailsView = {
         <!-- Polished Photo Showcase Gallery -->
         <section class="w-full bg-surface-container-lowest py-4 md:py-6 border-b border-outline">
           <div class="max-w-[1360px] mx-auto px-gutter-mobile md:px-gutter-desktop">
+            
+            <!-- Hall Website At The Top, Just Before The Pictures -->
+            ${websiteHref ? `
+              <div class="mb-4 sm:mb-5 p-3.5 sm:p-4 bg-surface-container-low hover:bg-surface-container rounded-2xl border border-secondary/30 flex flex-wrap items-center justify-between gap-3 transition-colors shadow-sm">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-secondary/15 text-secondary flex items-center justify-center shrink-0 shadow-sm">
+                    <span class="material-symbols-outlined text-[22px]">language</span>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-[10px] uppercase font-bold tracking-wider text-secondary">Official Hall Website</span>
+                      <span class="px-1.5 py-0.2 bg-secondary/15 text-secondary text-[9px] font-bold rounded">VERIFIED</span>
+                    </div>
+                    <a href="${websiteHref}" target="_blank" rel="noopener noreferrer" class="text-sm sm:text-base font-bold text-on-surface hover:text-secondary flex items-center gap-1.5 group transition-colors">
+                      <span>${cleanDomain}</span>
+                      <span class="material-symbols-outlined text-[14px] text-secondary group-hover:translate-x-0.5 transition-transform">open_in_new</span>
+                    </a>
+                  </div>
+                </div>
+
+                <a href="${websiteHref}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2.5 bg-secondary text-white font-label-md text-xs font-bold rounded-xl hover:bg-on-secondary-container transition-all shadow-sm">
+                  <span class="material-symbols-outlined text-[17px]">public</span>
+                  <span>Visit Hall Website</span>
+                  <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+                </a>
+              </div>
+            ` : ''}
+
+            <!-- Photo Grid -->
             <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-3 h-auto md:h-[440px]">
               
               <!-- Large Primary Image Showcase -->
-              <div class="md:col-span-2 lg:col-span-4 relative rounded-xl overflow-hidden group cursor-pointer bg-surface-container min-h-[260px] md:min-h-0" onclick="Modals.openLightbox('${hall.cover_image}', '${hall.name} - Main Ballroom')">
-                <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${hall.cover_image}" alt="${hall.name} Main Ballroom" onerror="this.onerror=null;this.src='${fallbackUrl}'" loading="lazy">
+              <div class="md:col-span-2 lg:col-span-4 relative rounded-xl overflow-hidden group cursor-pointer bg-surface-container min-h-[260px] md:min-h-0" onclick="Modals.openGalleryModal('${hall.id}', 0)">
+                <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${primaryImage.url}" alt="${primaryImage.tag}" onerror="this.onerror=null;this.src='${fallbackUrl}'" loading="lazy">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+                
+                ${websiteHref ? `
+                  <!-- Website Badge directly with picture (top right) -->
+                  <a href="${websiteHref}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/70 hover:bg-secondary text-white rounded-full text-xs font-bold backdrop-blur-md border border-white/20 shadow-md transition-all">
+                    <span class="material-symbols-outlined text-[15px] text-secondary">language</span>
+                    <span>Official Website</span>
+                    <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                  </a>
+                ` : ''}
+
+                <!-- Bottom Picture Overlay: Custom Tag Given by User & Controls -->
+                <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between flex-wrap gap-2">
                   <div class="text-white">
-                    <span class="font-label-sm text-[10px] uppercase tracking-wider px-2 py-0.5 bg-black/60 backdrop-blur rounded font-semibold">Grand Ballroom</span>
+                    <span class="font-label-sm text-[10px] uppercase tracking-wider px-2 py-0.5 bg-black/60 backdrop-blur rounded font-semibold">${primaryImage.tag}</span>
                     <p class="font-title-lg text-base md:text-lg text-white font-bold mt-1">${hall.name}</p>
                   </div>
-                  <span class="inline-flex items-center gap-1 px-3 py-1.5 bg-white/95 backdrop-blur rounded-lg text-primary font-label-sm text-xs font-bold shadow-sm">
-                    <span class="material-symbols-outlined text-[15px]">zoom_in</span>
-                    <span>Enlarge</span>
-                  </span>
+                  
+                  <div class="flex items-center gap-2">
+                    ${websiteHref ? `
+                      <a href="${websiteHref}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 bg-black/60 hover:bg-secondary text-white backdrop-blur rounded-lg font-label-sm text-xs font-bold transition-colors border border-white/20">
+                        <span class="material-symbols-outlined text-[14px]">public</span>
+                        <span>Visit Website</span>
+                      </a>
+                    ` : ''}
+                    <span class="inline-flex items-center gap-1 px-3 py-1.5 bg-white/95 backdrop-blur rounded-lg text-primary font-label-sm text-xs font-bold shadow-sm">
+                      <span class="material-symbols-outlined text-[15px]">zoom_in</span>
+                      <span>Enlarge</span>
+                    </span>
+                  </div>
                 </div>
               </div>
 
               <!-- Satellite Thumbnail Grid -->
               <div class="hidden md:grid md:col-span-2 grid-cols-2 gap-3">
-                <div class="relative rounded-xl overflow-hidden group cursor-pointer bg-surface-container" onclick="Modals.openLightbox('${hall.images?.dining || hall.cover_image}', 'Dining Hall Pavilion')">
-                  <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${hall.images?.dining || hall.cover_image}" alt="Dining Hall" onerror="this.onerror=null;this.src='${fallbackUrl}'" loading="lazy">
-                  <div class="absolute bottom-2 left-2 px-2 py-0.5 bg-black/70 text-white text-[10px] font-bold rounded backdrop-blur-sm">
-                    Dining Pavilion
-                  </div>
-                </div>
+                ${[0, 1, 2, 3].map((slotIdx) => {
+                  const item = satelliteImages[slotIdx] || primaryImage;
+                  const isFourth = slotIdx === 3;
+                  const totalImages = galleryItems.length;
+                  const hasMore = isFourth && totalImages > 4;
+                  const targetIdx = slotIdx + 1 < totalImages ? slotIdx + 1 : 0;
 
-                <div class="relative rounded-xl overflow-hidden group cursor-pointer bg-surface-container" onclick="Modals.openLightbox('${hall.images?.courtyard || hall.cover_image}', 'Courtyard Garden Lawn')">
-                  <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${hall.images?.courtyard || hall.cover_image}" alt="Courtyard" onerror="this.onerror=null;this.src='${fallbackUrl}'" loading="lazy">
-                  <div class="absolute bottom-2 left-2 px-2 py-0.5 bg-black/70 text-white text-[10px] font-bold rounded backdrop-blur-sm">
-                    Courtyard Lawn
-                  </div>
-                </div>
+                  return `
+                    <div class="relative rounded-xl overflow-hidden group cursor-pointer bg-surface-container" onclick="Modals.openGalleryModal('${hall.id}', ${targetIdx})">
+                      <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${item.url}" alt="${item.tag}" onerror="this.onerror=null;this.src='${fallbackUrl}'" loading="lazy">
+                      
+                      ${websiteHref ? `
+                        <!-- Website badge with picture -->
+                        <a href="${websiteHref}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="absolute top-2 right-2 z-10 px-2 py-0.5 bg-black/70 hover:bg-secondary text-white rounded text-[10px] font-bold backdrop-blur-sm border border-white/20 transition-colors flex items-center gap-1" title="Visit Website">
+                          <span class="material-symbols-outlined text-[12px] text-secondary">language</span>
+                          <span class="material-symbols-outlined text-[10px]">open_in_new</span>
+                        </a>
+                      ` : ''}
 
-                <div class="relative rounded-xl overflow-hidden group cursor-pointer bg-surface-container" onclick="Modals.openLightbox('${hall.images?.suite || hall.cover_image}', 'VIP Bridal Suite')">
-                  <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${hall.images?.suite || hall.cover_image}" alt="VIP Suite" onerror="this.onerror=null;this.src='${fallbackUrl}'" loading="lazy">
-                  <div class="absolute bottom-2 left-2 px-2 py-0.5 bg-black/70 text-white text-[10px] font-bold rounded backdrop-blur-sm">
-                    VIP Green Suite
-                  </div>
-                </div>
+                      <!-- Custom picture tag given by user -->
+                      <div class="absolute bottom-2 left-2 px-2 py-0.5 bg-black/70 text-white text-[10px] font-bold rounded backdrop-blur-sm truncate max-w-[80%]">
+                        ${item.tag}
+                      </div>
 
-                <div class="relative rounded-xl overflow-hidden group cursor-pointer bg-surface-container" onclick="Modals.openLightbox('${hall.images?.exterior || hall.cover_image}', 'Campus Facade')">
-                  <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${hall.images?.exterior || hall.cover_image}" alt="Exterior Facade" onerror="this.onerror=null;this.src='${fallbackUrl}'" loading="lazy">
-                  <div class="absolute inset-0 bg-primary/70 backdrop-blur-[2px] flex flex-col items-center justify-center text-white group-hover:bg-primary/60 transition-colors">
-                    <span class="material-symbols-outlined text-[24px]">photo_library</span>
-                    <span class="font-title-md text-xs font-bold mt-1">View Full Gallery</span>
-                  </div>
-                </div>
+                      ${hasMore ? `
+                        <div class="absolute inset-0 bg-primary/75 backdrop-blur-[2px] flex flex-col items-center justify-center text-white group-hover:bg-primary/65 transition-colors">
+                          <span class="material-symbols-outlined text-[24px]">photo_library</span>
+                          <span class="font-title-md text-xs font-bold mt-1">View All ${totalImages} Photos</span>
+                          ${websiteHref ? `<span class="text-[10px] text-secondary-fixed mt-0.5 underline">Includes Hall Website</span>` : ''}
+                        </div>
+                      ` : ''}
+                    </div>
+                  `;
+                }).join('')}
               </div>
 
             </div>
@@ -835,13 +1142,24 @@ const DetailsView = {
                       <textarea id="dt-notes" rows="2" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-outline text-xs text-on-surface focus:outline-none focus:border-secondary" placeholder="e.g. Stage decor setup time, mandap timings, catering notes..."></textarea>
                     </div>
 
+                    <!-- Direct Offline Settlement Policy Guarantee -->
+                    <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-left space-y-1">
+                      <div class="flex items-center gap-1.5 font-bold text-xs text-secondary">
+                        <span class="material-symbols-outlined text-[16px]">payments</span>
+                        <span>Direct Offline Settlement</span>
+                      </div>
+                      <p class="text-[11px] text-on-surface-variant leading-tight">
+                        Zero online payments on this website. Transmitting this hold reserves your slot while you coordinate advances, custom packages, and rental contracts directly with the hall management offline.
+                      </p>
+                    </div>
+
                     <button type="submit" id="btn-submit-hold" class="w-full py-3 bg-primary text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm hover:bg-inverse-surface transition-all flex items-center justify-center gap-2">
-                      <span class="material-symbols-outlined text-[17px]">lock</span>
-                      <span>Request Direct Slot Hold</span>
+                      <span class="material-symbols-outlined text-[17px]">send</span>
+                      <span>Transmit Free Hold Request (Pay Owner Directly)</span>
                     </button>
 
                     <p class="text-[11px] text-on-surface-variant text-center leading-tight">
-                      ✓ Instant 48-Hour hold sent to ${hall.contact?.owner_name || 'Hall Owner'}. No cancellation penalty.
+                      ✓ Instant 48-Hour hold sent to ${hall.contact?.owner_name || 'Hall Owner'}. No fees or cancellation penalties on this website.
                     </p>
                   </form>
                 ` : `

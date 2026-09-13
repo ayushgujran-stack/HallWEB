@@ -7,6 +7,103 @@ const SearchView = {
   currentLayout: 'split', // 'split' or 'grid'
   mobileMapOpen: false,
 
+  // GPS Geolocation state
+  userLocation: null,
+  isNearMeActive: false,
+  userLocationMarker: null,
+
+  calculateDistance(lat1, lon1, lat2, lon2) {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return 5.0;
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return Math.round((R * c) * 10) / 10;
+  },
+
+  detectUserLocation() {
+    if (!navigator.geolocation) {
+      if (typeof Toast !== 'undefined') Toast.error('Unsupported', 'Your browser does not support GPS location.');
+      return;
+    }
+
+    if (typeof Toast !== 'undefined') Toast.info('Detecting Location...', 'Accessing GPS coordinates to find nearest halls...');
+    
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        this.userLocation = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        };
+        this.isNearMeActive = true;
+        this.filters.sortBy = 'nearest';
+        sessionStorage.setItem('search_near_me', 'true');
+        sessionStorage.setItem('search_user_lat', pos.coords.latitude.toString());
+        sessionStorage.setItem('search_user_lng', pos.coords.longitude.toString());
+
+        if (typeof Toast !== 'undefined') {
+          Toast.success('Location Locked', 'Halls sorted by proximity to your exact location.');
+        }
+
+        this.refreshCardsAndMap();
+
+        if (this.mapInstance && this.userLocation) {
+          this.renderUserMarker();
+          this.mapInstance.setView([this.userLocation.lat, this.userLocation.lng], 12);
+        }
+      },
+      (err) => {
+        console.warn('Geolocation failed:', err.message);
+        if (typeof Toast !== 'undefined') {
+          Toast.info('Location Notice', 'GPS access declined. Pick your town from below.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  },
+
+  resetLocation() {
+    this.userLocation = null;
+    this.isNearMeActive = false;
+    sessionStorage.removeItem('search_near_me');
+    sessionStorage.removeItem('search_user_lat');
+    sessionStorage.removeItem('search_user_lng');
+    if (this.userLocationMarker && this.mapInstance) {
+      this.mapInstance.removeLayer(this.userLocationMarker);
+      this.userLocationMarker = null;
+    }
+    this.refreshCardsAndMap();
+    if (typeof Toast !== 'undefined') Toast.info('Location Reset', 'Default distance ranking restored.');
+  },
+
+  renderUserMarker() {
+    if (!this.mapInstance || !this.userLocation || typeof L === 'undefined') return;
+    if (this.userLocationMarker) {
+      this.mapInstance.removeLayer(this.userLocationMarker);
+      this.userLocationMarker = null;
+    }
+
+    const userIcon = L.divIcon({
+      className: 'user-radar-pin',
+      html: `
+        <div style="position: relative; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;">
+          <span style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: #A65B2B; opacity: 0.35; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></span>
+          <span style="position: relative; width: 14px; height: 14px; border-radius: 50%; background: #A65B2B; border: 2.5px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.35);"></span>
+        </div>
+      `,
+      iconSize: [26, 26],
+      iconAnchor: [13, 13]
+    });
+
+    this.userLocationMarker = L.marker([this.userLocation.lat, this.userLocation.lng], { icon: userIcon })
+      .addTo(this.mapInstance)
+      .bindPopup('<strong>📍 Your Location</strong><br>Showing nearest banquet & wedding halls');
+  },
+
   // Filter state
   filters: {
     query: '',
@@ -254,12 +351,47 @@ const SearchView = {
           </label>
         </div>
 
+        <!-- GPS Proximity & "Near Me" Hub -->
+        <div class="p-3.5 rounded-xl border ${this.isNearMeActive ? 'bg-secondary/10 border-secondary/40 shadow-xs' : 'bg-surface-container-low border-outline'} space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[18px] ${this.isNearMeActive ? 'text-secondary animate-pulse' : 'text-on-surface-variant'}">my_location</span>
+              <span class="font-label-sm text-xs font-bold text-on-surface">Find Halls Near Me</span>
+            </div>
+            ${this.isNearMeActive ? `
+              <button onclick="SearchView.resetLocation()" class="text-[11px] text-secondary hover:underline font-bold">Reset</button>
+            ` : ''}
+          </div>
+
+          <p class="text-[11px] text-on-surface-variant leading-tight">
+            ${this.isNearMeActive 
+              ? '📍 GPS Active: Listing halls by closest driving distance from your coordinates.'
+              : 'Use your phone/laptop GPS to calculate exact distances to nearby venues.'}
+          </p>
+
+          <button onclick="SearchView.detectUserLocation()" class="w-full py-2 bg-secondary text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 shadow-sm hover:bg-secondary-container transition-all">
+            <span class="material-symbols-outlined text-[16px]">near_me</span>
+            <span>${this.isNearMeActive ? 'Update Current Location' : 'Detect My Location'}</span>
+          </button>
+
+          <!-- Quick Radius Pills -->
+          <div class="pt-1">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Distance Radius:</span>
+              <span class="text-[10px] font-bold text-secondary" id="radius-val">Within ${this.filters.radius} km</span>
+            </div>
+            <div class="grid grid-cols-4 gap-1">
+              ${[5, 15, 25, 50].map(r => `
+                <button type="button" onclick="SearchView.updateFilter('radius', ${r}); const el = document.getElementById('radius-val'); if(el) el.innerText = 'Within ${r} km';" class="py-1 text-[11px] font-bold rounded border transition-all text-center ${this.filters.radius === r ? 'bg-primary text-white border-primary shadow-xs' : 'bg-surface-container hover:bg-surface-container-high text-on-surface border-outline'}">
+                  ${r} km
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
         <!-- Distance Radius Slider -->
         <div class="space-y-1">
-          <div class="flex items-center justify-between">
-            <label class="font-label-sm text-[11px] uppercase tracking-wider text-on-surface font-bold">Distance Radius</label>
-            <span class="font-body-sm text-xs font-bold text-secondary" id="radius-val">Within ${this.filters.radius} km</span>
-          </div>
           <input class="w-full h-1.5 bg-surface-container rounded-lg appearance-none cursor-pointer accent-primary" id="radius-range" max="50" min="2" type="range" value="${this.filters.radius}" oninput="SearchView.updateFilter('radius', Number(this.value)); const el = document.getElementById('radius-val'); if(el) el.innerText = 'Within ' + this.value + ' km';">
           <div class="flex items-center justify-between text-on-surface-variant font-body-sm text-[10px]">
             <span>2 km</span>
@@ -315,6 +447,24 @@ const SearchView = {
   getFilteredHalls() {
     let halls = window.appStore.getPublicHalls();
 
+    // Check if user location is stored in session
+    if (!this.userLocation && sessionStorage.getItem('search_near_me') === 'true') {
+      const sLat = parseFloat(sessionStorage.getItem('search_user_lat'));
+      const sLng = parseFloat(sessionStorage.getItem('search_user_lng'));
+      if (!isNaN(sLat) && !isNaN(sLng)) {
+        this.userLocation = { lat: sLat, lng: sLng };
+        this.isNearMeActive = true;
+      }
+    }
+
+    // Compute live distance if userLocation is available
+    if (this.userLocation) {
+      halls = halls.map(h => ({
+        ...h,
+        distance_km: this.calculateDistance(this.userLocation.lat, this.userLocation.lng, h.latitude, h.longitude)
+      }));
+    }
+
     if (this.filters.query) {
       const q = this.filters.query.toLowerCase();
       halls = halls.filter(h => 
@@ -348,27 +498,32 @@ const SearchView = {
       halls = halls.filter(h => (h.pricing?.evening || 0) <= this.filters.maxPrice);
     }
 
-    if (this.filters.sortBy === 'nearest') {
-      halls.sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
-    } else if (this.filters.sortBy === 'rating') {
-      halls.sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0));
-    } else if (this.filters.sortBy === 'capacity') {
-      halls.sort((a, b) => ((b.maximum_capacity || b.seating_capacity || 0) - (a.maximum_capacity || a.seating_capacity || 0)));
-    } else if (this.filters.sortBy === 'price_asc') {
-      halls.sort((a, b) => {
+    // 5. Two-Tier Priority Ordering:
+    // Priority Tier 1: Verified Paid/Premium Venues (Featured First)
+    // Priority Tier 2: Non-Paying / Basic Venues (Placed Last at Bottom of Search)
+    const sortFn = (a, b) => {
+      if (this.filters.sortBy === 'nearest') {
+        return (a.distance_km || 0) - (b.distance_km || 0);
+      } else if (this.filters.sortBy === 'capacity') {
+        return ((b.maximum_capacity || b.seating_capacity || 0) - (a.maximum_capacity || a.seating_capacity || 0));
+      } else if (this.filters.sortBy === 'price_asc') {
         const pA = a.pricing ? (a.pricing.evening || a.pricing.morning || 75000) : 75000;
         const pB = b.pricing ? (b.pricing.evening || b.pricing.morning || 75000) : 75000;
         return pA - pB;
-      });
-    } else if (this.filters.sortBy === 'price_desc') {
-      halls.sort((a, b) => {
+      } else if (this.filters.sortBy === 'price_desc') {
         const pA = a.pricing ? (a.pricing.evening || a.pricing.morning || 75000) : 75000;
         const pB = b.pricing ? (b.pricing.evening || b.pricing.morning || 75000) : 75000;
         return pB - pA;
-      });
-    }
+      } else {
+        // Default: Sort by Rating Descending
+        return (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0);
+      }
+    };
 
-    return halls;
+    const paidHalls = halls.filter(h => h.listing_tier === 'PREMIUM' || h.listing_fee_paid).sort(sortFn);
+    const unpaidHalls = halls.filter(h => !(h.listing_tier === 'PREMIUM' || h.listing_fee_paid)).sort(sortFn);
+
+    return [...paidHalls, ...unpaidHalls];
   },
 
   renderHallCards() {
@@ -390,6 +545,75 @@ const SearchView = {
     return halls.map(hall => {
       const isFav = window.appStore.isFavorite(hall.id);
       const fallbackUrl = window.appStore.getPlaceholderImage(hall.name);
+      const isBasic = (hall.listing_tier === 'BASIC' || !hall.listing_fee_paid);
+
+      if (isBasic) {
+        // Non-paying halls: Display Company Logo instead of venue photos, no external website link
+        const logoUrl = window.appStore.getCompanyLogoPlaceholder(hall.name);
+        return `
+          <div class="group bg-surface-container-lowest rounded-xl border border-outline shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col" onmouseenter="SearchView.highlightMarker('${hall.id}')">
+            
+            <!-- Company Brand Emblem in place of hall photos -->
+            <div class="relative w-full aspect-[16/10] overflow-hidden bg-primary cursor-pointer border-b border-outline/50" onclick="window.location.hash='#/hall/${hall.id}'">
+              <img src="${logoUrl}" alt="VenueLuxe Certified Directory - ${hall.name}" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" loading="lazy">
+              
+              <button class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-surface-container-lowest/90 backdrop-blur ${isFav ? 'text-secondary' : 'text-on-surface-variant'} hover:text-secondary flex items-center justify-center transition-colors shadow-sm z-10" onclick="event.stopPropagation(); window.appStore.toggleFavorite('${hall.id}'); SearchView.updateFavorites();" title="Save">
+                <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' ${isFav ? '1' : '0'};">favorite</span>
+              </button>
+
+              <div class="absolute bottom-2 left-2 flex items-center gap-1.5">
+                <span class="px-2 py-0.5 rounded bg-primary/95 backdrop-blur border border-amber-500/30 text-amber-300 text-[10px] font-bold flex items-center gap-1 shadow-sm">
+                  <span class="material-symbols-outlined text-[12px] text-amber-400">verified</span>
+                  <span>Audited Directory</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Structured Content (No external website) -->
+            <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+              <div class="space-y-1">
+                <div class="flex items-center justify-between text-on-surface-variant font-body-sm text-xs">
+                  <span>${hall.area || hall.city} • <strong class="${this.isNearMeActive ? 'text-secondary font-bold' : ''}">${hall.distance_km} km${this.isNearMeActive ? ' away' : ''}</strong></span>
+                  <span class="flex items-center gap-0.5 text-on-surface font-bold">
+                    <span class="material-symbols-outlined text-[15px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
+                    ${hall.rating || 4.5} (${hall.reviews_count || 0})
+                  </span>
+                </div>
+
+                <h3 class="font-title-lg text-sm md:text-base font-bold text-on-surface group-hover:text-secondary transition-colors cursor-pointer line-clamp-1" onclick="window.location.hash='#/hall/${hall.id}'">
+                  ${hall.name}
+                </h3>
+
+                <p class="font-body-sm text-xs text-on-surface-variant">
+                  Seats ${hall.seating_capacity} • Max ${hall.maximum_capacity} Pax
+                </p>
+
+                <div class="pt-1 flex items-center gap-1 text-[11px] text-amber-900 dark:text-amber-300 font-semibold">
+                  <span class="material-symbols-outlined text-[14px]">handshake</span>
+                  <span>Direct Offline Settlement with Host</span>
+                </div>
+              </div>
+
+              <div class="pt-3 flex items-center justify-between border-t border-outline mt-auto">
+                <div>
+                  <span class="font-title-md text-sm font-bold text-on-surface">₹${hall.pricing ? (hall.pricing.evening || hall.pricing.morning).toLocaleString() : '40,000'}</span>
+                  <span class="font-body-sm text-[11px] text-on-surface-variant"> /shift</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <button class="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container" onclick="Modals.openShareModal('${hall.id}')" title="Share Venue">
+                    <span class="material-symbols-outlined text-[16px]">share</span>
+                  </button>
+                  <a class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline rounded-lg text-xs font-bold transition-colors" href="#/hall/${hall.id}">
+                    View Directory
+                  </a>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        `;
+      }
 
       return `
         <div class="group bg-surface-container-lowest rounded-xl border border-outline shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col" onmouseenter="SearchView.highlightMarker('${hall.id}')">
@@ -426,7 +650,7 @@ const SearchView = {
             <div class="space-y-1">
               <!-- 2. Venue Name & Rating -->
               <div class="flex items-center justify-between text-on-surface-variant font-body-sm text-xs">
-                <span>${hall.area || hall.city} • ${hall.distance_km} km</span>
+                <span>${hall.area || hall.city} • <strong class="${this.isNearMeActive ? 'text-secondary font-bold' : ''}">${hall.distance_km} km${this.isNearMeActive ? ' away' : ''}</strong></span>
                 <span class="flex items-center gap-0.5 text-on-surface font-bold">
                   <span class="material-symbols-outlined text-[15px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
                   ${hall.rating || 5.0} (${hall.reviews_count || 0})
@@ -480,6 +704,10 @@ const SearchView = {
     if (this.currentLayout === 'split') {
       this.initMap('leaflet-search-map');
     }
+    // If incoming with nearMe query param and not yet located, trigger auto-detection
+    if (sessionStorage.getItem('search_near_me') === 'true' && !this.userLocation) {
+      this.detectUserLocation();
+    }
   },
 
   initMap(mapContainerId) {
@@ -491,9 +719,12 @@ const SearchView = {
       this.mapInstance = null;
     }
 
+    const defaultLat = this.userLocation ? this.userLocation.lat : 13.2185;
+    const defaultLng = this.userLocation ? this.userLocation.lng : 74.9983;
+
     this.mapInstance = L.map(mapContainerId, {
       scrollWheelZoom: false
-    }).setView([13.2185, 74.9983], 11);
+    }).setView([defaultLat, defaultLng], this.userLocation ? 12 : 11);
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       attribution: '© OpenStreetMap & CARTO',
@@ -501,6 +732,9 @@ const SearchView = {
     }).addTo(this.mapInstance);
 
     this.renderMapMarkers();
+    if (this.userLocation) {
+      this.renderUserMarker();
+    }
   },
 
   renderMapMarkers() {

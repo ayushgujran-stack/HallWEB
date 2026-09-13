@@ -71,7 +71,6 @@ const FooterComponent = {
               <ul class="space-y-2 font-body-sm text-xs md:text-sm text-on-surface-variant">
                 <li><a class="hover:text-secondary transition-colors" href="/customer/">Customer Portal</a></li>
                 <li><a class="hover:text-secondary transition-colors" href="/owner/">Hall Owner Dashboard</a></li>
-                <li><a class="hover:text-secondary transition-colors" href="/admin/">Admin Verification Center</a></li>
                 <li><a class="hover:text-secondary transition-colors" href="javascript:void(0)" onclick="Modals.openAddHallWizard()">List Your Hall</a></li>
                 <li><a class="hover:text-secondary transition-colors" href="javascript:void(0)" onclick="window.appStore.resetToDefaults(); Toast.success('Reset Complete', 'Demo data reinitialized.'); location.reload();">Reset Demo Data</a></li>
               </ul>
@@ -86,7 +85,7 @@ const FooterComponent = {
             <div class="flex items-center gap-space-md">
               <a class="hover:text-on-surface transition-colors" href="#how-it-works">Privacy Policy</a>
               <a class="hover:text-on-surface transition-colors" href="#how-it-works">Terms of Service</a>
-              <a class="hover:text-on-surface transition-colors" href="/admin/">Verification Standards</a>
+              <a class="hover:text-on-surface transition-colors" href="#how-it-works">Quality & Safety Standards</a>
             </div>
           </div>
         </div>

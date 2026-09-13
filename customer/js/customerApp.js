@@ -5,9 +5,15 @@ function bootCustomerApp() {
   window.__appBooted = true;
 
   try {
-    // Ensure store is seeded in customer role
+    // Seed the store role — but do NOT overwrite an existing owner/admin session.
+    // If we unconditionally set 'customer', the header will lose the "Owner Workspace" link
+    // for users who came from the owner portal or just listed a hall.
     if (window.appStore) {
-      window.appStore.setCurrentRole('customer');
+      const currentUser = window.Auth && window.Auth.getCurrentUser();
+      const existingRole = window.appStore.getCurrentRole();
+      if (!currentUser || (currentUser.role !== 'owner' && currentUser.role !== 'admin' && existingRole !== 'owner' && existingRole !== 'admin')) {
+        window.appStore.setCurrentRole('customer');
+      }
     }
 
     // Render persistent layout

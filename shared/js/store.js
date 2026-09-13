@@ -102,6 +102,9 @@ const INITIAL_HALLS = [
     },
     status: 'LIVE', // LIVE, PENDING_APPROVAL, DRAFT, SUSPENDED, REJECTED
     verification_badge: 'Verified Luxury Hall',
+    website: 'https://www.monarchpalace.com',
+    listing_fee_paid: true,
+    listing_tier: 'PREMIUM',
     cover_image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80',
     images: {
       main: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80',
@@ -177,6 +180,9 @@ const INITIAL_HALLS = [
     },
     status: 'LIVE',
     verification_badge: 'Verified Luxury Hall',
+    website: 'https://www.grandroyalimperial.com',
+    listing_fee_paid: true,
+    listing_tier: 'PREMIUM',
     cover_image: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=80',
     images: {
       main: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=1200&q=80',
@@ -209,29 +215,29 @@ const INITIAL_HALLS = [
     size_sqft: 18000,
     length_ft: 160,
     width_ft: 110,
-    ceiling_height_ft: 20,
-    seating_capacity: 600,
+    ceiling_height_ft: 18,
+    seating_capacity: 650,
     maximum_capacity: 1200,
-    ac_status: 'Hall AC + Open Lawn',
-    indoor_outdoor: 'Both Indoor & Outdoor',
+    ac_status: 'Banquet Hall AC + Open Lawn',
+    indoor_outdoor: 'Indoor + Garden Lawn',
     parking_cars: 180,
-    dining_seats: 350,
-    has_valet: true,
+    dining_seats: 300,
+    has_valet: false,
     has_kitchen: true,
     has_generator: true,
     generator_kva: '80 kVA',
     has_sound_system: true,
     has_stage: true,
-    stage_dimensions: '30 × 16 ft pergola stage',
+    stage_dimensions: '30 × 15 ft',
     green_rooms: 2,
-    elevators: 1,
+    elevators: 0,
     rating: 4.8,
     reviews_count: 52,
     pricing: {
-      morning: 55000,
+      morning: 60000,
       afternoon: 40000,
       evening: 75000,
-      night: 65000,
+      night: 55000,
       full_day: 150000
     },
     public_availability: true,
@@ -243,6 +249,9 @@ const INITIAL_HALLS = [
     },
     status: 'LIVE',
     verification_badge: 'Verified Luxury Hall',
+    website: 'https://www.heritagecrystalbanquets.com',
+    listing_fee_paid: true,
+    listing_tier: 'PREMIUM',
     cover_image: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=1200&q=80',
     images: {
       main: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=1200&q=80'
@@ -746,6 +755,44 @@ class Store {
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   }
 
+  getCompanyLogoPlaceholder(hallName = 'Verified Directory Listing') {
+    const cleanName = String(hallName).replace(/[<>&"]/g, '');
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+      <defs>
+        <linearGradient id="vlLogoBg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#0B0F19"/>
+          <stop offset="50%" stop-color="#111827"/>
+          <stop offset="100%" stop-color="#1E293B"/>
+        </linearGradient>
+        <linearGradient id="vlGold" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#F59E0B"/>
+          <stop offset="50%" stop-color="#D97706"/>
+          <stop offset="100%" stop-color="#92400E"/>
+        </linearGradient>
+        <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="6" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+      <rect width="800" height="500" fill="url(#vlLogoBg)"/>
+      <circle cx="400" cy="180" r="85" fill="none" stroke="url(#vlGold)" stroke-width="1.5" opacity="0.3"/>
+      <circle cx="400" cy="180" r="70" fill="none" stroke="url(#vlGold)" stroke-width="2.5" opacity="0.6"/>
+      <!-- VenueLuxe Brand Emblem -->
+      <g transform="translate(400, 180)">
+        <rect x="-38" y="-38" width="76" height="76" rx="20" fill="#111827" stroke="url(#vlGold)" stroke-width="2.5" filter="url(#goldGlow)"/>
+        <path d="M-19 -9 C-9 -24 9 -24 19 -9 V22 H-19 Z" fill="url(#vlGold)" fill-opacity="0.25" stroke="url(#vlGold)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="0" cy="-6" r="4" fill="#FAF8F5"/>
+        <line x1="0" y1="2" x2="0" y2="22" stroke="url(#vlGold)" stroke-width="2.2" stroke-linecap="round"/>
+      </g>
+      <text x="400" y="305" font-family="'Playfair Display', serif" font-size="28" font-weight="700" fill="#FAF8F5" text-anchor="middle" letter-spacing="2">VENUE<tspan fill="#F59E0B">LUXE</tspan></text>
+      <text x="400" y="335" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700" fill="#9CA3AF" text-anchor="middle" letter-spacing="3">VERIFIED VENUE DIRECTORY</text>
+      <rect x="250" y="360" width="300" height="28" rx="14" fill="#1E293B" stroke="url(#vlGold)" stroke-width="1" stroke-opacity="0.5"/>
+      <text x="400" y="378" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700" fill="#F59E0B" text-anchor="middle" letter-spacing="0.5">★ PHYSICALLY AUDITED & CERTIFIED</text>
+      <text x="400" y="420" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="600" fill="#D1D5DB" text-anchor="middle" letter-spacing="0.5">${cleanName}</text>
+    </svg>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  }
+
   resetToDefaults() {
     localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(INITIAL_USERS));
     localStorage.setItem(STORAGE_KEYS.CURRENT_ROLE, 'guest');
@@ -805,12 +852,30 @@ class Store {
   // --- Halls State ---
   getHalls() {
     const raw = localStorage.getItem(STORAGE_KEYS.HALLS);
-    return raw ? JSON.parse(raw) : INITIAL_HALLS;
+    let halls = raw ? JSON.parse(raw) : INITIAL_HALLS;
+    return halls.map(h => {
+      const isPaid = (h.listing_fee_paid === true || h.listing_tier === 'PREMIUM');
+      return {
+        ...h,
+        listing_tier: isPaid ? 'PREMIUM' : (h.listing_tier || 'BASIC'),
+        listing_fee_paid: isPaid,
+        // Preserve hall website for display in gallery and details
+        website: h.website || '',
+        website_verified: isPaid ? Boolean(h.website_verified) : Boolean(h.website_verified)
+      };
+    });
   }
 
   // Only approved + live halls for public customer view (Requirement #25)
   getPublicHalls() {
     return this.getHalls().filter(h => h.status === 'LIVE');
+  }
+
+  // Only paid / premium halls for Homepage storefront featured section (Non-paying halls strictly excluded from storefront)
+  getFeaturedHalls() {
+    return this.getPublicHalls()
+      .filter(h => h.listing_tier === 'PREMIUM' || h.listing_fee_paid)
+      .sort((a, b) => (b.rating || 0) - (a.rating || 0));
   }
 
   getHallById(id) {
@@ -829,6 +894,19 @@ class Store {
       id: 'hall-' + Date.now(),
       slug: (hallData.name || 'venue').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString().slice(-4),
       status: 'PENDING_APPROVAL', // Requirement #13: When hall owner adds a hall, it MUST be PENDING APPROVAL!
+      physical_verification: {
+        status: 'PENDING_INSPECTION',
+        inspected_by: '',
+        inspection_date: null,
+        notes: ''
+      },
+      physical_inspection_status: 'PENDING_INSPECTION',
+      inspected_by: '',
+      website: hallData.website || '',
+      website_verified: false,
+      listing_tier: 'BASIC',
+      listing_fee_paid: false,
+      listing_fee_receipt: '',
       rating: 0,
       reviews_count: 0,
       created_at: new Date().toISOString().split('T')[0]
@@ -867,17 +945,91 @@ class Store {
     }
   }
 
-  // --- Admin Approval Workflow (Requirement #13 & #15) ---
-  approveHall(id) {
+  // --- Admin Verification & Physical Inspection Workflow ---
+  auditHallVerification(id, auditData = {}) {
+    const hall = this.getHallById(id);
+    if (!hall) return null;
+
+    const physicalVerified = (auditData.physicalStatus === 'VERIFIED');
+    const feePaid = Boolean(auditData.feePaid);
+    const listingTier = feePaid ? 'PREMIUM' : 'BASIC';
+    // Website verified only when fee is paid
+    const websiteVerified = feePaid && Boolean(auditData.websiteVerified && auditData.website);
+
+    let status = hall.status;
+
+    if (auditData.publishLive) {
+      if (!physicalVerified) {
+        throw new Error('Physical in-person inspection must be passed before publishing.');
+      }
+      // Website is ONLY required if paying fee (Premium showcase). For non-paying (Basic), website is not required.
+      if (feePaid && !auditData.website) {
+        throw new Error('Official website is required for Premium verified showcase.');
+      }
+      status = 'LIVE';
+    }
+
+    const updates = {
+      physical_verification: {
+        status: auditData.physicalStatus || 'PENDING_INSPECTION',
+        inspected_by: auditData.inspectedBy || (hall.physical_verification?.inspected_by || ''),
+        inspection_date: auditData.inspectionDate || (hall.physical_verification?.inspection_date || new Date().toISOString().split('T')[0]),
+        notes: auditData.notes || (hall.physical_verification?.notes || '')
+      },
+      physical_inspection_status: auditData.physicalStatus || (hall.physical_inspection_status || 'PENDING_INSPECTION'),
+      inspected_by: auditData.inspectedBy || (hall.inspected_by || ''),
+      // Non-paying halls do not display their website on the customer platform
+      website: feePaid ? (auditData.website !== undefined ? auditData.website : (hall.website || '')) : '',
+      website_verified: websiteVerified,
+      listing_fee_paid: feePaid,
+      listing_fee_receipt: auditData.feeReceipt || (hall.listing_fee_receipt || ''),
+      listing_tier: listingTier,
+      status: status,
+      verification_badge: physicalVerified ? 'Physically Inspected & Verified' : (hall.verification_badge || 'Pending Verification')
+    };
+
+    this.updateHall(id, updates);
+
+    if (auditData.publishLive) {
+      this.addAuditLog(
+        'Venue Published Live',
+        hall.name,
+        `Inspection: PASSED (${updates.physical_verification.inspected_by || 'Field Team'}) | Website: ${feePaid ? (updates.website || 'VERIFIED') : 'N/A (Basic Directory)'} | Tier: ${listingTier}`
+      );
+      this.addNotification(
+        'Venue Published Live!',
+        `Your hall "${hall.name}" has completed physical verification and is published on VenueLuxe as a ${listingTier === 'PREMIUM' ? 'Full Premium Showcase' : 'Verified Directory Listing (VenueLuxe Logo)'}.`,
+        '/owner/'
+      );
+    } else {
+      this.addAuditLog('Verification Audit Updated', hall.name, `Inspection status: ${updates.physical_verification.status}`);
+    }
+
+    return this.getHallById(id);
+  }
+
+  updateHallWebsite(id, websiteUrl) {
     const hall = this.getHallById(id);
     if (hall) {
-      this.updateHall(id, {
-        status: 'LIVE',
-        verification_badge: 'Verified Luxury Hall'
-      });
-      this.addAuditLog('Hall Approved', hall.name, 'Super Admin approved hall. Status changed from PENDING to LIVE.');
-      this.addNotification('Hall Approved & Live!', `Your hall "${hall.name}" has been approved and is now publicly visible for bookings.`, '#/owner');
+      this.updateHall(id, { website: websiteUrl });
+      this.addAuditLog('Venue Website Registered', hall.name, `Website updated to: ${websiteUrl}`);
+      return this.getHallById(id);
     }
+    return null;
+  }
+
+  // Legacy approval support with audit integration
+  approveHall(id, options = {}) {
+    return this.auditHallVerification(id, {
+      physicalStatus: 'VERIFIED',
+      inspectedBy: options.inspectedBy || 'Senior Field Auditor',
+      website: options.website || this.getHallById(id)?.website || 'https://venuecraft.marketplace',
+      websiteVerified: true,
+      feePaid: options.feePaid !== undefined ? options.feePaid : true,
+      feeReceipt: options.feeReceipt || 'OFFLINE-CONFIRMED',
+      publishLive: true,
+      ...options
+    });
   }
 
   rejectHall(id, reason = 'Compliance criteria not met.') {

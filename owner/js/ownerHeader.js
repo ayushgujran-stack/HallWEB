@@ -15,7 +15,7 @@ const OwnerHeaderComponent = {
   },
 
   render() {
-    const currentUser = window.appStore.getOwnerUser();
+    const currentUser = (window.Auth && window.Auth.getCurrentUser()) || window.appStore.getOwnerUser();
     const notifications = window.appStore.getNotifications();
     const unreadNotifsCount = notifications.filter(n => n.unread).length;
 

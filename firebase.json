@@ -13,5 +13,27 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
-  }
+  },
+  "hosting": [
+    {
+      "target": "site",
+      "public": "dist-site",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        { "source": "/", "destination": "/customer/index.html" },
+        { "source": "/customer", "destination": "/customer/index.html" },
+        { "source": "/customer/**", "destination": "/customer/index.html" },
+        { "source": "/owner", "destination": "/owner/index.html" },
+        { "source": "/owner/**", "destination": "/owner/index.html" }
+      ]
+    },
+    {
+      "target": "admin",
+      "public": "dist-admin",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        { "source": "**", "destination": "/index.html" }
+      ]
+    }
+  ]
 }

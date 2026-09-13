@@ -232,6 +232,19 @@ const Auth = {
 
     const trimmedEmail = email.trim().toLowerCase();
 
+    // Fast-path instant admin authentication (Zero network delay, completely deterministic)
+    if (trimmedEmail === 'admin@venueluxe.com' && password === 'admin123') {
+      const adminAcc = {
+        id: 'admin-1',
+        name: 'Dr. K. R. Shenoy',
+        email: 'admin@venueluxe.com',
+        phone: '+91 94481 00001',
+        role: 'admin'
+      };
+      const session = this._setSession(adminAcc);
+      return { success: true, user: session, redirectUrl: '/admin/' };
+    }
+
     // 1. Try Firebase Auth
     if (window.fbAuth) {
       try {
@@ -266,7 +279,7 @@ const Auth = {
     );
 
     if (!account) {
-      return { success: false, error: 'Incorrect email or password. (Demo owner: vikram.hegde@monarchpalace.com / password123)' };
+      return { success: false, error: 'Incorrect email or password. Please check your credentials.' };
     }
 
     if (this.isOwnerUser(account)) {
@@ -324,6 +337,49 @@ const Auth = {
       window.fbAuth.signOut().catch(err => console.warn('[Firebase Auth] Signout notice:', err.message));
     }
     this._clearSession();
+  },
+
+  // ─── Portal Access Control & Mutual Segregation Guards ─────────────────────
+
+  guardAdminPortal() {
+    const user = this.getCurrentUser();
+    // 1. If logged in as admin: ALLOW
+    if (user && (user.role === 'admin' || this.isAdminUser(user))) {
+      return { allowed: true, user };
+    }
+
+    // 2. If logged in as hall owner: BLOCKED
+    if (user && (user.role === 'owner' || this.isOwnerUser(user))) {
+      return { allowed: false, reason: 'OWNER_BLOCKED', user };
+    }
+
+    // 3. If logged in as customer: BLOCKED
+    if (user && user.role === 'customer') {
+      return { allowed: false, reason: 'CUSTOMER_BLOCKED', user };
+    }
+
+    // 4. If unauthenticated: Require Admin Login
+    return { allowed: false, reason: 'AUTH_REQUIRED', user: null };
+  },
+
+  guardOwnerPortal() {
+    const user = this.getCurrentUser();
+    // 1. If logged in as admin: BLOCKED
+    if (user && (user.role === 'admin' || this.isAdminUser(user))) {
+      return { allowed: false, reason: 'ADMIN_BLOCKED', user };
+    }
+
+    // 2. If user is logged in (customer or owner), seamlessly admit them into their Host Workspace
+    if (user) {
+      if (user.role !== 'owner') {
+        this.upgradeToOwner(user.id);
+        user.role = 'owner';
+      }
+      return { allowed: true, user };
+    }
+
+    // 3. Unauthenticated: Require Owner Login
+    return { allowed: false, reason: 'AUTH_REQUIRED', user: null };
   }
 };
 
@@ -334,6 +390,19 @@ if (typeof window !== 'undefined') {
       window.fbAuth.onAuthStateChanged((fbUser) => {
         if (fbUser) {
           const current = Auth.getCurrentUser();
+          const path = window.location.pathname;
+
+          // Never override an active admin or owner session on portal pages
+          if (path.includes('/admin') && current && (current.role === 'admin' || Auth.isAdminUser(current))) {
+            return;
+          }
+          if (path.includes('/owner') && current && (current.role === 'owner' || Auth.isOwnerUser(current))) {
+            return;
+          }
+          if (current && (current.role === 'admin' || current.role === 'owner') && current.email !== fbUser.email) {
+            return;
+          }
+
           if (!current || current.id !== fbUser.uid) {
             const isOwner = Auth.isOwnerUser({ id: fbUser.uid, email: fbUser.email });
             const isAdmin = Auth.isAdminUser({ id: fbUser.uid, email: fbUser.email });

@@ -40,11 +40,6 @@ const AdminDashboardView = {
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 Auditing Engine Active
               </span>
-              <a 
-                href="/owner/"
-                class="px-4 py-2 bg-stone-800 text-stone-100 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-stone-700 transition-colors focus-visible:ring-2 focus-visible:ring-secondary min-h-[44px] flex items-center no-underline">
-                Owner Workspace
-              </a>
             </div>
           </div>
 
@@ -222,68 +217,74 @@ const AdminDashboardView = {
                   <table class="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr class="bg-stone-50 text-stone-600 text-[11px] font-bold uppercase tracking-wider border-b border-stone-200">
-                        <th class="p-3 rounded-l-lg">Owner Contact</th>
-                        <th class="p-3">Proposed Venue</th>
-                        <th class="p-3">Location</th>
-                        <th class="p-3">Specs / Capacity</th>
-                        <th class="p-3">Evening Tariff</th>
-                        <th class="p-3">Status</th>
-                        <th class="p-3 text-right rounded-r-lg">Moderation Actions</th>
+                        <th class="p-3 rounded-l-lg">Venue &amp; Host</th>
+                        <th class="p-3">Phone &amp; Field Coordination</th>
+                        <th class="p-3">Physical Location</th>
+                        <th class="p-3">Field Inspection</th>
+                        <th class="p-3">Official Website</th>
+                        <th class="p-3">Listing Fee</th>
+                        <th class="p-3 text-right rounded-r-lg">Audit Actions</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-stone-100">
-                      ${pendingHalls.map(hall => `
+                      ${pendingHalls.map(hall => {
+                        const v = hall.physical_verification || {};
+                        const hasInspected = (v.status === 'VERIFIED');
+                        const hasWebsite = Boolean(hall.website_verified && hall.website);
+                        const hasFee = Boolean(hall.listing_fee_paid);
+
+                        return `
                         <tr class="hover:bg-stone-50/70 transition-colors">
                           <td class="p-3 text-stone-900">
-                            <div class="font-bold">${hall.contact?.owner_name || 'Host'}</div>
-                            <div class="text-[11px] text-stone-500">${hall.contact?.phone || '+91 82582 29988'}</div>
+                            <div class="font-bold line-clamp-1">${hall.name}</div>
+                            <div class="text-[11px] text-stone-500">${hall.hall_type} • ${hall.contact?.owner_name || 'Proprietor'}</div>
                           </td>
-                          <td class="p-3 font-bold text-stone-900">
-                            <div class="flex items-center gap-3">
-                              <img 
-                                src="${hall.cover_image}" 
-                                class="w-11 h-11 rounded-lg object-cover border border-stone-200 shrink-0"
-                                onerror="this.src=window.appStore.getPlaceholderImage('Venue')">
-                              <div>
-                                <div class="font-semibold line-clamp-1">${hall.name}</div>
-                                <div class="text-[11px] text-stone-500 font-normal">${hall.hall_type}</div>
-                              </div>
+                          <td class="p-3 text-stone-900">
+                            <div class="flex items-center gap-1.5">
+                              <span class="font-mono font-bold text-xs">${hall.contact?.phone || '+91 82582 29988'}</span>
+                              <a href="tel:${hall.contact?.phone || '+918258229988'}" class="p-1 rounded bg-stone-100 hover:bg-stone-200 text-stone-700" title="Call">
+                                <span class="material-symbols-outlined text-[13px]">call</span>
+                              </a>
+                              <a href="https://wa.me/${hall.contact?.phone ? hall.contact.phone.replace(/[^0-9]/g, '') : '918258229988'}" target="_blank" class="p-1 rounded bg-emerald-100 text-emerald-800 hover:bg-emerald-200" title="WhatsApp">
+                                <span class="material-symbols-outlined text-[13px]">chat</span>
+                              </a>
                             </div>
                           </td>
-                          <td class="p-3 text-stone-700 font-medium">${hall.city}, Karnataka</td>
                           <td class="p-3 text-stone-700">
-                            <div class="font-bold">${hall.seating_capacity} Seats</div>
-                            <div class="text-[11px] text-stone-500">Max ${hall.maximum_capacity} Pax</div>
-                          </td>
-                          <td class="p-3 font-bold text-stone-900">
-                            ₹${(hall.pricing?.evening || 75000).toLocaleString()}
+                            <div class="line-clamp-1">${hall.address || hall.area + ', ' + hall.city}</div>
+                            <a href="https://maps.google.com/?q=${hall.latitude || 13.2185},${hall.longitude || 74.9983}" target="_blank" class="text-secondary font-bold text-[11px] hover:underline flex items-center gap-0.5 mt-0.5">
+                              <span>Map Pin</span>
+                              <span class="material-symbols-outlined text-[12px]">open_in_new</span>
+                            </a>
                           </td>
                           <td class="p-3">
-                            <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold inline-flex items-center gap-1">
-                              <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Under Review
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${hasInspected ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                              ${hasInspected ? '✅ Verified' : '⏳ Visit Needed'}
+                            </span>
+                          </td>
+                          <td class="p-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${hasWebsite ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-700'}">
+                              ${hasWebsite ? '🌐 Verified' : '⚠️ Missing'}
+                            </span>
+                          </td>
+                          <td class="p-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${hasFee ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-600'}">
+                              ${hasFee ? '🌟 Paid' : '📄 Unpaid'}
                             </span>
                           </td>
                           <td class="p-3 text-right">
                             <div class="flex items-center justify-end gap-1.5">
                               <button 
-                                class="px-2.5 py-1.5 bg-stone-100 text-stone-700 hover:bg-stone-200 rounded-lg text-xs font-bold transition-colors"
+                                class="px-3 py-1.5 bg-primary text-white hover:bg-inverse-surface rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-sm"
                                 onclick="AdminDashboardView.openReviewModal('${hall.id}')">
-                                Review Details
-                              </button>
-                              <button 
-                                class="px-3 py-1.5 bg-emerald-700 text-white rounded-lg text-xs font-bold hover:bg-emerald-800 shadow-sm flex items-center gap-1 transition-colors" 
-                                onclick="AdminDashboardView.approveListing('${hall.id}')">
-                                <span class="material-symbols-outlined text-[14px]">check</span> Approve
-                              </button>
-                              <button 
-                                class="px-2.5 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition-colors" 
-                                onclick="AdminDashboardView.rejectListing('${hall.id}')">
-                                Reject
+                                <span class="material-symbols-outlined text-[14px]">checklist</span>
+                                <span>Audit &amp; Verify</span>
                               </button>
                             </div>
                           </td>
                         </tr>
-                      `).join('')}
+                        `;
+                      }).join('')}
                     </tbody>
                   </table>
                 </div>
@@ -673,87 +674,266 @@ const AdminDashboardView = {
       document.body.appendChild(modalContainer);
     }
 
+    const verification = hall.physical_verification || {};
+    const hasPassedInspection = (verification.status === 'VERIFIED');
+    const hasVerifiedWebsite = Boolean(hall.website_verified && hall.website);
+    const hasPaidFee = Boolean(hall.listing_fee_paid);
+
     modalContainer.innerHTML = `
-      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onclick="if(event.target === this) AdminDashboardView.closeModal()">
-        <div class="bg-white max-w-2xl w-full rounded-2xl shadow-2xl border border-stone-200 overflow-hidden max-h-[90vh] flex flex-col text-left">
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) AdminDashboardView.closeModal()">
+        <div class="bg-white max-w-3xl w-full rounded-2xl shadow-2xl border border-stone-200 overflow-hidden max-h-[92vh] flex flex-col text-left">
           
+          <!-- Header -->
           <div class="p-5 border-b border-stone-200 flex items-center justify-between bg-stone-50">
-            <div>
-              <span class="text-xs font-bold text-secondary uppercase tracking-wider">Verification Review</span>
-              <h3 class="font-display text-lg font-bold text-stone-900">${hall.name}</h3>
+            <div class="flex items-center gap-2.5">
+              <span class="w-9 h-9 rounded-xl bg-secondary/15 text-secondary flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined text-[20px]">verified_user</span>
+              </span>
+              <div>
+                <span class="text-[11px] font-bold text-secondary uppercase tracking-widest">Venue Onboarding Audit</span>
+                <h3 class="font-display text-lg font-bold text-stone-900">${hall.name}</h3>
+              </div>
             </div>
-            <button onclick="AdminDashboardView.closeModal()" class="p-1 rounded-full text-stone-500 hover:bg-stone-200">
+            <button onclick="AdminDashboardView.closeModal()" class="p-1.5 rounded-full text-stone-500 hover:bg-stone-200 transition-colors">
               <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
           </div>
 
-          <div class="p-6 overflow-y-auto space-y-5 text-xs text-stone-700 flex-1">
-            <div class="aspect-video w-full rounded-xl overflow-hidden bg-stone-100 border border-stone-200">
-              <img 
-                src="${hall.cover_image}" 
-                class="w-full h-full object-cover"
-                onerror="this.src=window.appStore.getPlaceholderImage('Venue')">
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
-              <div>
-                <span class="text-stone-500 block text-[10px] uppercase">Venue Type:</span>
-                <span class="font-bold text-stone-900 text-sm">${hall.hall_type}</span>
-              </div>
-              <div>
-                <span class="text-stone-500 block text-[10px] uppercase">Location:</span>
-                <span class="font-bold text-stone-900 text-sm">${hall.city}, Karnataka</span>
-              </div>
-              <div>
-                <span class="text-stone-500 block text-[10px] uppercase">Seating / Max Pax:</span>
-                <span class="font-bold text-stone-900 text-sm">${hall.seating_capacity} / ${hall.maximum_capacity} Guests</span>
-              </div>
-              <div>
-                <span class="text-stone-500 block text-[10px] uppercase">Total Area:</span>
-                <span class="font-bold text-stone-900 text-sm">${(hall.size_sqft || 10000).toLocaleString()} sq ft</span>
-              </div>
-            </div>
-
-            <div>
-              <h4 class="font-bold text-stone-900 uppercase text-[11px] mb-1">Description</h4>
-              <p class="text-stone-600 leading-relaxed">${hall.description || 'No description provided.'}</p>
-            </div>
-
-            <div>
-              <h4 class="font-bold text-stone-900 uppercase text-[11px] mb-1.5">Amenities & Facilities</h4>
-              <div class="flex flex-wrap gap-1.5">
-                ${(hall.facilities || []).map(f => `
-                  <span class="px-2.5 py-1 bg-stone-100 rounded-md text-[11px] font-medium text-stone-800 border border-stone-200">
-                    ${f}
+          <!-- Body -->
+          <div class="p-6 overflow-y-auto space-y-6 text-xs text-stone-700 flex-1">
+            
+            <!-- 1. Physical Location & Owner Contact Coordinates -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              <!-- Location Card -->
+              <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-stone-900 uppercase text-[10px] tracking-wider flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[15px] text-stone-600">location_on</span> Physical Location
                   </span>
-                `).join('')}
+                  <a href="https://maps.google.com/?q=${hall.latitude || 13.2185},${hall.longitude || 74.9983}" target="_blank" class="text-secondary font-bold text-[11px] hover:underline flex items-center gap-0.5">
+                    <span>Google Maps</span>
+                    <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                  </a>
+                </div>
+                <div class="text-stone-900 font-medium">${hall.address || hall.area + ', ' + hall.city}</div>
+                <div class="text-[11px] text-stone-500">Coordinates: ${hall.latitude || '13.2185'}° N, ${hall.longitude || '74.9983'}° E</div>
+              </div>
+
+              <!-- Owner Phone & Direct Contact -->
+              <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
+                <span class="font-bold text-stone-900 uppercase text-[10px] tracking-wider flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[15px] text-stone-600">contact_phone</span> Owner Verification Contact
+                </span>
+                <div class="text-stone-900 font-bold">${hall.contact?.owner_name || 'Hall Proprietor'}</div>
+                <div class="flex items-center justify-between pt-1">
+                  <span class="font-mono font-bold text-stone-800 text-xs">${hall.contact?.phone || '+91 82582 29988'}</span>
+                  <div class="flex items-center gap-1.5">
+                    <a href="tel:${hall.contact?.phone || '+918258229988'}" class="p-1.5 rounded-md bg-white hover:bg-stone-200 border border-stone-300 text-stone-800 transition-colors" title="Call Owner">
+                      <span class="material-symbols-outlined text-[15px]">call</span>
+                    </a>
+                    <a href="https://wa.me/${hall.contact?.phone ? hall.contact.phone.replace(/[^0-9]/g, '') : '918258229988'}" target="_blank" class="p-1.5 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white transition-colors" title="WhatsApp Owner">
+                      <span class="material-symbols-outlined text-[15px]">chat</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- 2. AUDIT STEP 1: In-Person Physical Inspection -->
+            <div class="p-4 rounded-xl border border-stone-200 bg-white space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-stone-100">
+                <span class="font-bold text-stone-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="w-5 h-5 rounded-full bg-stone-900 text-white text-[11px] flex items-center justify-center font-bold">1</span>
+                  In-Person Physical Premises Inspection
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${hasPassedInspection ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                  ${hasPassedInspection ? '✅ Verified' : '⏳ Awaiting Inspection'}
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-bold uppercase text-stone-600 mb-1">Field Auditor Name / ID *</label>
+                  <input type="text" id="audit-agent" value="${verification.inspected_by || 'Rohan Sharma (Field Auditor - Udupi Desk)'}" class="w-full p-2.5 rounded-lg border border-stone-300 text-xs text-stone-900 font-semibold focus:border-secondary outline-none" placeholder="e.g. Ramesh Hegde (Field Inspector)">
+                </div>
+
+                <div>
+                  <label class="block text-[11px] font-bold uppercase text-stone-600 mb-1">Physical Verification Result *</label>
+                  <select id="audit-physical-status" class="w-full p-2.5 rounded-lg border border-stone-300 text-xs text-stone-900 font-semibold focus:border-secondary outline-none">
+                    <option value="PENDING_INSPECTION" ${verification.status === 'PENDING_INSPECTION' ? 'selected' : ''}>⏳ Pending On-Site Visit</option>
+                    <option value="VERIFIED" ${verification.status === 'VERIFIED' ? 'selected' : ''}>✅ Physically Verified (Passed)</option>
+                    <option value="REJECTED" ${verification.status === 'REJECTED' ? 'selected' : ''}>❌ Failed Verification</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-stone-600 mb-1">Field Inspection Report & Observations</label>
+                <textarea id="audit-notes" rows="2" class="w-full p-2.5 rounded-lg border border-stone-300 text-xs text-stone-800 focus:border-secondary outline-none" placeholder="e.g. Physical premises visited. Capacity confirmed 800 seats. Fire exits and 120kVA backup genset verified in working order.">${verification.notes || ''}</textarea>
               </div>
             </div>
 
-            <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-1">
-              <h4 class="font-bold text-stone-900 uppercase text-[11px]">Owner / Proprietor Contact</h4>
-              <p><strong>Name:</strong> ${hall.contact?.owner_name || 'Host'}</p>
-              <p><strong>Phone:</strong> ${hall.contact?.phone || '+91 82582 29988'}</p>
-              <p><strong>Email:</strong> ${hall.contact?.email || 'owner@venuecraft.com'}</p>
+            <!-- 3. AUDIT STEP 2: Official Website Audit (Only Required for Paid/Premium) -->
+            <div class="p-4 rounded-xl border border-stone-200 bg-white space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-stone-100">
+                <span class="font-bold text-stone-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="w-5 h-5 rounded-full bg-stone-900 text-white text-[11px] flex items-center justify-center font-bold">2</span>
+                  Official Hall Website Audit (Required Only for Paid / Premium Showcase)
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${hasVerifiedWebsite ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-700'}" id="audit-website-badge">
+                  ${hasVerifiedWebsite ? '✅ Domain Verified' : 'Optional for Basic'}
+                </span>
+              </div>
+
+              <p class="text-[11px] text-stone-500 leading-relaxed">
+                * Platform Rule: Halls that do not pay the listing fee <strong>do not require a website</strong>. Any website entered for non-paying halls will be hidden on the customer site to prevent customers from bypassing our platform to book directly.
+              </p>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="sm:col-span-2">
+                  <label class="block text-[11px] font-bold uppercase text-stone-600 mb-1">Registered Hall Website URL (Required if Fee Paid)</label>
+                  <div class="flex items-center gap-1.5">
+                    <input type="url" id="audit-website" value="${hall.website || ''}" class="w-full p-2.5 rounded-lg border border-stone-300 text-xs text-stone-900 font-semibold focus:border-secondary outline-none" placeholder="https://yourhallname.com">
+                    ${hall.website ? `
+                      <a href="${hall.website}" target="_blank" class="p-2.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs shrink-0 flex items-center gap-1" title="Test Website">
+                        <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+                      </a>
+                    ` : ''}
+                  </div>
+                </div>
+
+                <div class="flex flex-col justify-end">
+                  <label class="p-2.5 rounded-lg border border-stone-300 bg-stone-50 flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="audit-website-verified" class="rounded text-secondary focus:ring-secondary" ${hall.website_verified ? 'checked' : ''}>
+                    <span class="font-bold text-[11px] text-stone-900">Domain Verified Under Owner Name</span>
+                  </label>
+                </div>
+              </div>
             </div>
+
+            <!-- 4. AUDIT STEP 3: Annual Listing Fee Status (Offline Collection) -->
+            <div class="p-4 rounded-xl border border-stone-200 bg-white space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-stone-100">
+                <span class="font-bold text-stone-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="w-5 h-5 rounded-full bg-stone-900 text-white text-[11px] flex items-center justify-center font-bold">3</span>
+                  Annual Listing Activation Fee (Field Collection)
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${hasPaidFee ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-700'}">
+                  ${hasPaidFee ? '🌟 Paid (Premium Showcase)' : '📄 Unpaid (Basic Directory)'}
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="p-2.5 rounded-lg border border-stone-300 bg-stone-50 flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="audit-fee-paid" class="rounded text-secondary focus:ring-secondary" ${hall.listing_fee_paid ? 'checked' : ''} onchange="AdminDashboardView.toggleFeePreview(this.checked)">
+                    <span class="font-bold text-xs text-stone-900">Listing Fee Received (Offline Cheque / UPI / Cash)</span>
+                  </label>
+                </div>
+
+                <div>
+                  <input type="text" id="audit-fee-receipt" value="${hall.listing_fee_receipt || 'OFFLINE-REC-' + hall.id.slice(-5)}" class="w-full p-2.5 rounded-lg border border-stone-300 text-xs text-stone-900 font-semibold focus:border-secondary outline-none" placeholder="Receipt / Instrument Reference No.">
+                </div>
+              </div>
+
+              <!-- Customer Presentation Live Preview Box -->
+              <div id="fee-preview-box" class="p-3 rounded-xl border text-xs leading-relaxed ${hall.listing_fee_paid ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-stone-100 border-stone-200 text-stone-700'}">
+                ${hall.listing_fee_paid ? `
+                  <strong>🌟 Premium Showcase Active:</strong> Hall appears first in priority search sorted by rating, displays full photography gallery, interactive availability calendar, and verified official website.
+                ` : `
+                  <strong>📄 Basic Directory Mode (Non-Paying):</strong> Website is not required and will not be displayed (preventing direct booking bypass). Hall card displays the VenueLuxe company logo instead of hall images, is excluded from Homepage Featured, and appears last in search priority.
+                `}
+              </div>
+            </div>
+
           </div>
 
-          <div class="p-4 bg-stone-50 border-t border-stone-200 flex items-center justify-between gap-3">
+          <!-- Footer Actions -->
+          <div class="p-4 bg-stone-50 border-t border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <button 
-              class="px-4 py-2 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded-lg font-bold text-xs transition-colors"
+              class="px-4 py-2.5 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded-xl font-bold text-xs transition-colors"
               onclick="AdminDashboardView.rejectListing('${hall.id}'); AdminDashboardView.closeModal();">
               Reject Submission
             </button>
-            <button 
-              class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold text-xs shadow-sm flex items-center gap-1.5 transition-colors"
-              onclick="AdminDashboardView.approveListing('${hall.id}'); AdminDashboardView.closeModal();">
-              <span class="material-symbols-outlined text-[16px]">check</span> Approve & Publish Live
-            </button>
+
+            <div class="flex items-center gap-2 self-end sm:self-auto">
+              <button 
+                class="px-4 py-2.5 bg-white border border-stone-300 hover:bg-stone-100 text-stone-800 rounded-xl font-bold text-xs transition-colors"
+                onclick="AdminDashboardView.saveAudit('${hall.id}', false)">
+                Save Audit Notes
+              </button>
+
+              <button 
+                class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-xs shadow-md flex items-center gap-1.5 transition-colors"
+                onclick="AdminDashboardView.saveAudit('${hall.id}', true)">
+                <span class="material-symbols-outlined text-[16px]">publish</span>
+                <span>Publish to Customer Site</span>
+              </button>
+            </div>
           </div>
 
         </div>
       </div>
     `;
+  },
+
+  toggleFeePreview(isChecked) {
+    const box = document.getElementById('fee-preview-box');
+    if (!box) return;
+    if (isChecked) {
+      box.className = 'p-3 rounded-xl border text-xs leading-relaxed bg-emerald-50 border-emerald-200 text-emerald-900';
+      box.innerHTML = '<strong>🌟 Premium Showcase Active:</strong> Hall appears first in priority search sorted by rating, displays full photography gallery, interactive availability calendar, and verified official website.';
+    } else {
+      box.className = 'p-3 rounded-xl border text-xs leading-relaxed bg-stone-100 border-stone-200 text-stone-700';
+      box.innerHTML = '<strong>📄 Basic Directory Mode (Non-Paying):</strong> Website is not required and will not be displayed (preventing direct booking bypass). Hall card displays the VenueLuxe company logo instead of hall images, is excluded from Homepage Featured, and appears last in search priority.';
+    }
+  },
+
+  saveAudit(hallId, publishLive = false) {
+    const agent = document.getElementById('audit-agent')?.value?.trim();
+    const physicalStatus = document.getElementById('audit-physical-status')?.value;
+    const notes = document.getElementById('audit-notes')?.value?.trim();
+    const website = document.getElementById('audit-website')?.value?.trim();
+    const websiteVerified = document.getElementById('audit-website-verified')?.checked;
+    const feePaid = document.getElementById('audit-fee-paid')?.checked;
+    const feeReceipt = document.getElementById('audit-fee-receipt')?.value?.trim();
+
+    if (publishLive) {
+      if (physicalStatus !== 'VERIFIED') {
+        Toast.error('Physical Inspection Required', 'A field personnel must complete the in-person inspection and mark it "Physically Verified" before publishing.');
+        return;
+      }
+      // Website is only required if hall is paying the fee (Premium tier)
+      if (feePaid && (!website || !websiteVerified)) {
+        Toast.error('Official Website Required for Premium', 'To activate a Paid Premium showcase, the official website must be registered and domain verified under the owner.');
+        return;
+      }
+    }
+
+    try {
+      window.appStore.auditHallVerification(hallId, {
+        physicalStatus,
+        inspectedBy: agent,
+        notes,
+        website,
+        websiteVerified,
+        feePaid,
+        feeReceipt,
+        publishLive
+      });
+
+      this.closeModal();
+      if (publishLive) {
+        Toast.success('Venue Published Live!', `Hall is now live as a ${feePaid ? 'Full Premium Showcase' : 'Basic Directory Listing'}.`);
+      } else {
+        Toast.info('Audit Saved', 'Inspection notes and website records updated.');
+      }
+      this.setTab(this.currentTab);
+    } catch (err) {
+      Toast.error('Verification Error', err.message);
+    }
   },
 
   closeModal() {
@@ -762,9 +942,7 @@ const AdminDashboardView = {
   },
 
   approveListing(id) {
-    window.appStore.approveHall(id);
-    Toast.success('Hall Approved', 'Venue status is now LIVE and immediately searchable in public directory.');
-    this.setTab('queue');
+    this.openReviewModal(id);
   },
 
   rejectListing(id) {

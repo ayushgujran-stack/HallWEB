@@ -3,8 +3,8 @@
 
 const LandingView = {
   render() {
-    const publicHalls = window.appStore.getPublicHalls();
-    const featuredHalls = publicHalls.slice(0, 4);
+    // Only verified paying (Premium) halls appear on Homepage Storefront, sorted by rating
+    const featuredHalls = window.appStore.getFeaturedHalls().slice(0, 4);
 
     return `
       <div class="flex flex-col w-full bg-surface">
@@ -89,11 +89,17 @@ const LandingView = {
             </div>
             
             <div class="mt-4 pt-3 border-t border-outline/50 flex flex-wrap items-center justify-between gap-3 text-on-surface-variant">
-              <div class="flex items-center gap-1.5 overflow-x-auto py-1 text-xs">
-                <span class="font-semibold text-on-surface-variant mr-1 shrink-0">Popular:</span>
+              <div class="flex items-center gap-2 overflow-x-auto py-1 text-xs">
+                <!-- GPS Near Me Action -->
+                <button class="px-3.5 py-1.5 rounded-full bg-secondary text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm hover:bg-secondary-container cursor-pointer shrink-0" onclick="LandingView.findNearMe()" type="button" title="Detect your location and show closest halls">
+                  <span class="material-symbols-outlined text-[16px] animate-pulse">near_me</span>
+                  <span>Find Halls Near Me</span>
+                </button>
+
+                <span class="font-semibold text-on-surface-variant ml-2 mr-1 shrink-0">Popular:</span>
                 <button class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors cursor-pointer" onclick="LandingView.setSearchCity('Mangalore')" type="button">Mangalore</button>
                 <button class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors cursor-pointer" onclick="LandingView.setSearchCity('Udupi')" type="button">Udupi</button>
-                <button class="px-3 py-1 rounded-full bg-secondary text-white font-medium shadow-2xs cursor-pointer" onclick="LandingView.setSearchCity('Karkala')" type="button">Karkala</button>
+                <button class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors cursor-pointer" onclick="LandingView.setSearchCity('Karkala')" type="button">Karkala</button>
                 <button class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors cursor-pointer" onclick="LandingView.setSearchCity('Bangalore')" type="button">Bangalore</button>
               </div>
               <div class="flex items-center gap-4 text-xs">
@@ -443,21 +449,37 @@ const LandingView = {
     if (input) input.value = `${cityName}, Karnataka`;
   },
 
-  useMyLocation() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const input = document.getElementById('hero-location-input');
-          if (input) input.value = 'Karkala (Current Geolocation)';
-          Toast.success('Location Detected', 'Set search coordinates to your location.');
-        },
-        (err) => {
-          Toast.info('Location Access', 'Defaulted to Karkala & Mangalore Coastal Region.');
-        }
-      );
-    } else {
-      Toast.info('Geolocation', 'Browser does not support geolocation.');
+  findNearMe() {
+    if (!navigator.geolocation) {
+      Toast.info('Location Unavailable', 'Your browser does not support GPS location. Choose your city from below.');
+      return;
     }
+
+    Toast.info('Detecting Location...', 'Accessing your GPS coordinates to find nearest halls...');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        sessionStorage.setItem('search_near_me', 'true');
+        sessionStorage.setItem('search_user_lat', lat.toString());
+        sessionStorage.setItem('search_user_lng', lng.toString());
+        sessionStorage.setItem('search_filter_location', 'Near My Current Location');
+        Toast.success('Location Found!', 'Showing halls nearest to you.');
+        window.location.hash = '#/search?nearMe=true';
+      },
+      (err) => {
+        console.warn('Geolocation error:', err.message);
+        Toast.info('Location Access', 'GPS access was not allowed. Defaulted to coastal Karnataka.');
+        sessionStorage.removeItem('search_near_me');
+        sessionStorage.setItem('search_filter_location', 'Karkala');
+        window.location.hash = '#/search';
+      },
+      { timeout: 8000, enableHighAccuracy: true }
+    );
+  },
+
+  useMyLocation() {
+    this.findNearMe();
   },
 
   performHeroSearch() {
