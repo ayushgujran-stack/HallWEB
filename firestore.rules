@@ -1,0 +1,151 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId} (matches request.auth.uid)
+    // Fields:
+    //   - id: string (required)
+    //   - name: string (required, 1-100 chars)
+    //   - email: string (required, valid email)
+    //   - phone: string (optional, 7-20 chars)
+    //   - role: string (required, in ['customer', 'owner', 'admin'])
+    //   - created_at: string (required)
+    //
+    // Collection: halls
+    // Document ID: {hallId}
+    // Fields:
+    //   - id: string (required)
+    //   - name: string (required)
+    //   - owner_id: string (required)
+    //   - city: string (required)
+    //   - status: string (required, in ['LIVE', 'PENDING', 'REJECTED', 'SUSPENDED'])
+    //
+    // Collection: bookings
+    // Document ID: {bookingId}
+    // Fields:
+    //   - id: string (required)
+    //   - customer_id: string (required)
+    //   - customer_name: string (required)
+    //   - customer_email: string (required)
+    //   - customer_phone: string (required)
+    //   - hall_id: string (required)
+    //   - hall_name: string (required)
+    //   - date: string (required)
+    //   - slot: string (required)
+    //   - guests: number (required, > 0)
+    //   - amount: number (required, >= 0)
+    //   - status: string (required, in ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED', 'CONFIRMED'])
+    //
+    // Collection: reviews
+    // Document ID: {reviewId}
+    //
+    // Collection: notifications
+    // Document ID: {notificationId}
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidStatus(status) {
+      return status in ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED', 'CONFIRMED'];
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasRequiredFields(['id', 'name', 'email', 'role']) &&
+        validStringLength('name', 1, 100) &&
+        isValidEmail(data.email) &&
+        data.role in ['customer', 'owner', 'admin'];
+    }
+
+    function isValidBooking(data) {
+      return hasRequiredFields(['id', 'customer_id', 'hall_id', 'date', 'slot', 'status']) &&
+        data.status in ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED', 'CONFIRMED'] &&
+        validStringLength('customer_name', 1, 100) &&
+        data.guests is number && data.guests > 0;
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // 1. Users Collection
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data);
+      allow delete: if false;
+    }
+
+    // 2. Halls Collection
+    match /halls/{hallId} {
+      // Anyone can browse venue cards and calendar availability
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+
+    // 3. Bookings Collection
+    match /bookings/{bookingId} {
+      // Customer who made the booking, hall owners, and admins can read
+      allow read: if isAuthenticated();
+      // Authenticated customer can submit new booking in PENDING state
+      allow create: if isAuthenticated() && isValidBooking(request.resource.data);
+      // Status transitions (Approve, Reject, Cancel) by authenticated parties
+      allow update: if isAuthenticated() && isValidBooking(request.resource.data);
+      allow delete: if isAuthenticated();
+    }
+
+    // 4. Reviews Collection
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && hasRequiredFields(['hall_id', 'rating', 'user_name']);
+      allow update, delete: if isAuthenticated();
+    }
+
+    // 5. Notifications Collection
+    match /notifications/{notificationId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Default deny for unhandled collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

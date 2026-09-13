@@ -1,0 +1,32 @@
+/* VenueLuxe — Super Admin Dashboard Specific Styles */
+
+/* Audit log table layout & rows */
+.audit-table-row {
+  transition: background-color 0.15s ease;
+}
+.audit-table-row:hover {
+  background-color: rgba(244, 240, 235, 0.6);
+}
+
+/* Verification queue item highlight */
+.verification-card {
+  border-left: 4px solid #B45309;
+}
+.verification-card.approved {
+  border-left-color: #166534;
+}
+.verification-card.rejected {
+  border-left-color: #B91C1C;
+}
+
+/* Moderation Flag Pill */
+.flag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}

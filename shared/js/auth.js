@@ -1,0 +1,355 @@
+// VenueLuxe Auth System
+// Hybrid Firebase Authentication & Offline LocalStorage Fallback
+// Supports intelligent role recognition & redirection (Owner -> /owner/, Admin -> /admin/, Customer -> /customer/)
+
+const AUTH_KEYS = {
+  SESSION: 'venueluxe_auth_session',
+  ACCOUNTS: 'venueluxe_auth_accounts'
+};
+
+const DEFAULT_ACCOUNTS = [
+  {
+    id: 'owner-1',
+    name: 'Vikram Hegde',
+    email: 'vikram.hegde@monarchpalace.com',
+    phone: '+91 82582 29988',
+    password: 'password123',
+    role: 'owner',
+    business_name: 'Regal Horizons Hospitality'
+  },
+  {
+    id: 'cust-1',
+    name: 'Ananya Rao',
+    email: 'ananya.rao@example.com',
+    phone: '+91 98450 12345',
+    password: 'password123',
+    role: 'customer'
+  },
+  {
+    id: 'admin-1',
+    name: 'Dr. K. R. Shenoy',
+    email: 'admin@venueluxe.com',
+    phone: '+91 94481 00001',
+    password: 'admin123',
+    role: 'admin'
+  }
+];
+
+const Auth = {
+  // ─── Internal helpers ───────────────────────────────────────────────────────
+
+  _getAccounts() {
+    const raw = localStorage.getItem(AUTH_KEYS.ACCOUNTS);
+    if (!raw) {
+      localStorage.setItem(AUTH_KEYS.ACCOUNTS, JSON.stringify(DEFAULT_ACCOUNTS));
+      return DEFAULT_ACCOUNTS;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      // Ensure default accounts exist
+      DEFAULT_ACCOUNTS.forEach(def => {
+        if (!parsed.some(a => a.email.toLowerCase() === def.email.toLowerCase())) {
+          parsed.push(def);
+        }
+      });
+      return parsed;
+    } catch {
+      return DEFAULT_ACCOUNTS;
+    }
+  },
+
+  _saveAccounts(accounts) {
+    localStorage.setItem(AUTH_KEYS.ACCOUNTS, JSON.stringify(accounts));
+  },
+
+  isOwnerUser(user) {
+    if (!user) return false;
+    if (user.role === 'owner') return true;
+    if (user.id === 'owner-1' || user.email === 'vikram.hegde@monarchpalace.com') return true;
+    if (window.appStore) {
+      const halls = window.appStore.getHalls();
+      const owns = halls.some(h => 
+        h.owner_id === user.id || 
+        (user.email && h.contact?.email && h.contact.email.toLowerCase() === user.email.toLowerCase())
+      );
+      if (owns) return true;
+    }
+    return false;
+  },
+
+  isAdminUser(user) {
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+    if (user.id === 'admin-1' || user.email === 'admin@venueluxe.com') return true;
+    return false;
+  },
+
+  upgradeToOwner(userId) {
+    const accounts = this._getAccounts();
+    const acc = accounts.find(a => a.id === userId);
+    if (acc) {
+      acc.role = 'owner';
+      this._saveAccounts(accounts);
+    }
+    const current = this.getCurrentUser();
+    if (current && current.id === userId) {
+      current.role = 'owner';
+      this._setSession(current);
+    }
+    if (window.appStore) {
+      const users = window.appStore.getUsers();
+      const u = users.find(x => x.id === userId);
+      if (u) {
+        u.role = 'owner';
+        localStorage.setItem('venueluxe_users', JSON.stringify(users));
+      }
+    }
+    return true;
+  },
+
+  _setSession(user) {
+    let role = user.role;
+    if (!role || role === 'customer') {
+      if (this.isOwnerUser(user)) role = 'owner';
+      else if (this.isAdminUser(user)) role = 'admin';
+      else role = 'customer';
+    }
+
+    const session = { ...user, role, password: undefined };
+    localStorage.setItem(AUTH_KEYS.SESSION, JSON.stringify(session));
+
+    // Sync with appStore
+    if (window.appStore) {
+      const users = window.appStore.getUsers();
+      const existingIdx = users.findIndex(u => u.id === user.id || (user.email && u.email?.toLowerCase() === user.email.toLowerCase()));
+      if (existingIdx >= 0) {
+        users[existingIdx] = { ...users[existingIdx], ...session, role };
+      } else {
+        users.push({ ...session, role });
+      }
+      localStorage.setItem('venueluxe_users', JSON.stringify(users));
+      localStorage.setItem('venueluxe_current_user', JSON.stringify(session));
+      localStorage.setItem('venueluxe_current_role', role);
+    }
+
+    window.dispatchEvent(new CustomEvent('authChanged', { detail: { user: session } }));
+    return session;
+  },
+
+  _clearSession() {
+    localStorage.removeItem(AUTH_KEYS.SESSION);
+    localStorage.removeItem('venueluxe_current_user');
+    localStorage.setItem('venueluxe_current_role', 'guest');
+    window.dispatchEvent(new CustomEvent('authChanged', { detail: { user: null } }));
+  },
+
+  // ─── Public API ─────────────────────────────────────────────────────────────
+
+  getCurrentUser() {
+    const raw = localStorage.getItem(AUTH_KEYS.SESSION);
+    return raw ? JSON.parse(raw) : null;
+  },
+
+  isLoggedIn() {
+    return !!this.getCurrentUser();
+  },
+
+  async register({ name, phone, email, password, role = 'customer' }) {
+    if (!name || !phone || !email || !password) {
+      return { success: false, error: 'All fields are required.' };
+    }
+    if (password.length < 6) {
+      return { success: false, error: 'Password must be at least 6 characters.' };
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedName = name.trim();
+    const trimmedPhone = phone.trim();
+
+    // 1. Try Firebase Auth
+    if (window.fbAuth) {
+      try {
+        const userCred = await window.fbAuth.createUserWithEmailAndPassword(trimmedEmail, password);
+        const fbUser = userCred.user;
+        if (fbUser.updateProfile) {
+          await fbUser.updateProfile({ displayName: trimmedName });
+        }
+
+        const newUser = {
+          id: fbUser.uid,
+          name: trimmedName,
+          phone: trimmedPhone,
+          email: trimmedEmail,
+          role: role || 'customer',
+          created_at: new Date().toISOString().split('T')[0]
+        };
+
+        if (window.fbDb) {
+          window.fbDb.collection('users').doc(fbUser.uid).set(newUser).catch(err => {
+            console.warn('[Firestore] Note saving user profile:', err.message);
+          });
+        }
+
+        const session = this._setSession(newUser);
+        const redirectUrl = session.role === 'owner' ? '/owner/' : (session.role === 'admin' ? '/admin/' : null);
+        return { success: true, user: session, redirectUrl };
+      } catch (fbErr) {
+        console.warn('[Firebase Auth] Register notice:', fbErr.message);
+        if (fbErr.code === 'auth/email-already-in-use') {
+          return { success: false, error: 'An account with this email already exists in Firebase. Please sign in.' };
+        }
+      }
+    }
+
+    // 2. Local fallback registration
+    const accounts = this._getAccounts();
+    if (accounts.find(a => a.email.toLowerCase() === trimmedEmail)) {
+      return { success: false, error: 'An account with this email already exists. Please sign in.' };
+    }
+
+    const newUser = {
+      id: 'usr-' + Date.now(),
+      name: trimmedName,
+      phone: trimmedPhone,
+      email: trimmedEmail,
+      password,
+      role: role || 'customer',
+      created_at: new Date().toISOString().split('T')[0]
+    };
+
+    accounts.push(newUser);
+    this._saveAccounts(accounts);
+
+    const session = this._setSession(newUser);
+    const redirectUrl = session.role === 'owner' ? '/owner/' : (session.role === 'admin' ? '/admin/' : null);
+    return { success: true, user: session, redirectUrl };
+  },
+
+  async login({ email, password }) {
+    if (!email || !password) {
+      return { success: false, error: 'Email and password are required.' };
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // 1. Try Firebase Auth
+    if (window.fbAuth) {
+      try {
+        const userCred = await window.fbAuth.signInWithEmailAndPassword(trimmedEmail, password);
+        const fbUser = userCred.user;
+
+        const accounts = this._getAccounts();
+        const localAcc = accounts.find(a => a.email.toLowerCase() === trimmedEmail);
+        const isOwner = localAcc?.role === 'owner' || this.isOwnerUser({ id: fbUser.uid, email: trimmedEmail });
+        const isAdmin = localAcc?.role === 'admin' || this.isAdminUser({ id: fbUser.uid, email: trimmedEmail });
+
+        const sessionUser = {
+          id: fbUser.uid,
+          name: fbUser.displayName || (localAcc ? localAcc.name : trimmedEmail.split('@')[0]),
+          phone: fbUser.phoneNumber || (localAcc ? localAcc.phone : '+91 98450 12345'),
+          email: fbUser.email,
+          role: isOwner ? 'owner' : (isAdmin ? 'admin' : 'customer')
+        };
+
+        const session = this._setSession(sessionUser);
+        const redirectUrl = session.role === 'owner' ? '/owner/' : (session.role === 'admin' ? '/admin/' : null);
+        return { success: true, user: session, redirectUrl };
+      } catch (fbErr) {
+        console.warn('[Firebase Auth] Login notice:', fbErr.message);
+      }
+    }
+
+    // 2. Local fallback login
+    const accounts = this._getAccounts();
+    const account = accounts.find(
+      a => a.email.toLowerCase() === trimmedEmail && a.password === password
+    );
+
+    if (!account) {
+      return { success: false, error: 'Incorrect email or password. (Demo owner: vikram.hegde@monarchpalace.com / password123)' };
+    }
+
+    if (this.isOwnerUser(account)) {
+      account.role = 'owner';
+    } else if (this.isAdminUser(account)) {
+      account.role = 'admin';
+    }
+
+    const session = this._setSession(account);
+    const redirectUrl = session.role === 'owner' ? '/owner/' : (session.role === 'admin' ? '/admin/' : null);
+    return { success: true, user: session, redirectUrl };
+  },
+
+  async loginWithGoogle() {
+    if (!window.fbAuth || typeof firebase === 'undefined') {
+      return { success: false, error: 'Firebase Auth is initializing. Please try again in a moment.' };
+    }
+
+    try {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.addScope('email');
+      provider.addScope('profile');
+      const result = await window.fbAuth.signInWithPopup(provider);
+      const fbUser = result.user;
+
+      const isOwner = this.isOwnerUser({ id: fbUser.uid, email: fbUser.email });
+      const isAdmin = this.isAdminUser({ id: fbUser.uid, email: fbUser.email });
+
+      const sessionUser = {
+        id: fbUser.uid,
+        name: fbUser.displayName || 'Google User',
+        phone: fbUser.phoneNumber || '+91 98000 00000',
+        email: fbUser.email,
+        profile_image: fbUser.photoURL || '',
+        role: isOwner ? 'owner' : (isAdmin ? 'admin' : 'customer')
+      };
+
+      if (window.fbDb) {
+        window.fbDb.collection('users').doc(fbUser.uid).set(sessionUser, { merge: true }).catch(err => {
+          console.warn('[Firestore] Note saving Google user profile:', err.message);
+        });
+      }
+
+      const session = this._setSession(sessionUser);
+      const redirectUrl = session.role === 'owner' ? '/owner/' : (session.role === 'admin' ? '/admin/' : null);
+      return { success: true, user: session, redirectUrl };
+    } catch (err) {
+      console.error('[Firebase Auth] Google popup error:', err);
+      return { success: false, error: err.message || 'Google sign-in was cancelled or failed.' };
+    }
+  },
+
+  logout() {
+    if (window.fbAuth) {
+      window.fbAuth.signOut().catch(err => console.warn('[Firebase Auth] Signout notice:', err.message));
+    }
+    this._clearSession();
+  }
+};
+
+// Listen for Firebase auth state changes to keep sessions synchronized
+if (typeof window !== 'undefined') {
+  window.addEventListener('load', () => {
+    if (window.fbAuth && window.fbAuth.onAuthStateChanged) {
+      window.fbAuth.onAuthStateChanged((fbUser) => {
+        if (fbUser) {
+          const current = Auth.getCurrentUser();
+          if (!current || current.id !== fbUser.uid) {
+            const isOwner = Auth.isOwnerUser({ id: fbUser.uid, email: fbUser.email });
+            const isAdmin = Auth.isAdminUser({ id: fbUser.uid, email: fbUser.email });
+            Auth._setSession({
+              id: fbUser.uid,
+              name: fbUser.displayName || fbUser.email.split('@')[0],
+              email: fbUser.email,
+              phone: fbUser.phoneNumber || (current ? current.phone : '+91 98000 00000'),
+              profile_image: fbUser.photoURL || (current ? current.profile_image : ''),
+              role: isOwner ? 'owner' : (isAdmin ? 'admin' : 'customer')
+            });
+          }
+        }
+      });
+    }
+  });
+}
+
+window.Auth = Auth;
