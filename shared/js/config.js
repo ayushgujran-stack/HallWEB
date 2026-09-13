@@ -1,97 +1,55 @@
 // VenueLuxe Platform Global Configuration
-// Centralized configuration for platform defaults, regions, application settings, and map providers
+// Centralized configuration for platform defaults, regions, application settings, and 100% Free Maps
 
 (function() {
-  const env = (typeof window !== 'undefined' && window.__ENV) ? window.__ENV : {};
-
   window.VENUELUXE_CONFIG = {
     // Application Settings
-    APP_NAME: env.VITE_APP_TITLE || 'VenueLuxe',
+    APP_NAME: 'VenueLuxe',
     PRIMARY_REGION: 'Karnataka, India',
     DEFAULT_CITIES: ['Karkala', 'Mangalore', 'Udupi', 'Manipal', 'Bangalore'],
 
-    // Maps & Geocoding Configuration (Supports OpenStreetMap, Mapbox, and LocationIQ)
+    // Maps & Geocoding Configuration (100% Free OpenStreetMap Ecosystem - Zero Keys Required)
     MAPS: {
-      PROVIDER: env.VITE_MAP_PROVIDER || 'osm',
-      DEFAULT_CENTER: [13.2172, 74.9966], // Default: Karkala / Udupi, Karnataka
+      PROVIDER: 'osm',
+      DEFAULT_CENTER: [13.2172, 74.9966], // Default center: Karkala / Udupi, Karnataka
       DEFAULT_ZOOM: 14,
       
-      // 1. OpenStreetMap & Nominatim (100% Free - Default)
-      OSM_TILE_URL: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      // Clean high-performance Carto Voyager tiles based on OpenStreetMap
       CARTO_VOYAGER_URL: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-      NOMINATIM_URL: env.VITE_NOMINATIM_URL || 'https://nominatim.openstreetmap.org/search',
-
-      // 2. Mapbox (Vector tiles & high performance)
-      MAPBOX_ACCESS_TOKEN: env.VITE_MAPBOX_ACCESS_TOKEN || '',
-
-      // 3. LocationIQ (Fast geocoding & address autocomplete)
-      LOCATIONIQ_API_KEY: env.VITE_LOCATIONIQ_API_KEY || '',
-      LOCATIONIQ_SEARCH_URL: 'https://us1.locationiq.com/v1/search',
-      LOCATIONIQ_AUTOCOMPLETE_URL: 'https://api.locationiq.com/v1/autocomplete'
+      // Standard OpenStreetMap fallback
+      OSM_STANDARD_URL: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      
+      // Free Geocoding endpoints (No API key needed)
+      NOMINATIM_URL: 'https://nominatim.openstreetmap.org/search',
+      PHOTON_OSM_URL: 'https://photon.komoot.io/api/'
     },
 
-    // Dynamic tile layer provider for Leaflet maps
+    // Tile layer provider for Leaflet maps
     getTileLayerConfig() {
-      const maps = this.MAPS;
-      // If Mapbox token is provided and selected
-      if (maps.MAPBOX_ACCESS_TOKEN && maps.PROVIDER === 'mapbox') {
-        return {
-          url: `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=${maps.MAPBOX_ACCESS_TOKEN}`,
-          options: {
-            attribution: '© <a href="https://www.mapbox.com/">Mapbox</a> © <a href="https://www.openstreetmap.org/">OpenStreetMap</a>',
-            maxZoom: 19,
-            tileSize: 512,
-            zoomOffset: -1
-          }
-        };
-      }
-
-      // Default: Clean Carto Voyager tiles based on OpenStreetMap
       return {
-        url: maps.CARTO_VOYAGER_URL,
+        url: this.MAPS.CARTO_VOYAGER_URL,
         options: {
-          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
-          maxZoom: 19
+          attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions" target="_blank">CARTO</a>',
+          maxZoom: 19,
+          subdomains: 'abcd'
         }
       };
     },
 
-    // Geocode an address query using LocationIQ (if key present) or Nominatim OSM (free fallback)
+    // 100% Free Address Geocoding (Nominatim OSM + Photon OSM Fallback)
     async geocodeAddress(query) {
       if (!query || !query.trim()) return null;
       const maps = this.MAPS;
 
-      // 1. Try LocationIQ if key exists
-      if (maps.LOCATIONIQ_API_KEY) {
-        try {
-          const url = `${maps.LOCATIONIQ_SEARCH_URL}?key=${encodeURIComponent(maps.LOCATIONIQ_API_KEY)}&q=${encodeURIComponent(query)}&format=json&limit=1`;
-          const res = await fetch(url);
-          if (res.ok) {
-            const data = await res.json();
-            if (data && data.length > 0) {
-              return {
-                lat: parseFloat(data[0].lat),
-                lng: parseFloat(data[0].lon),
-                displayName: data[0].display_name
-              };
-            }
-          }
-        } catch (e) {
-          console.warn('[VenueLuxe Map] LocationIQ query failed, falling back to Nominatim', e);
-        }
-      }
-
-      // 2. OpenStreetMap Nominatim fallback (100% free)
+      // 1. First attempt: Nominatim OpenStreetMap
       try {
         const url = `${maps.NOMINATIM_URL}?format=json&q=${encodeURIComponent(query)}&limit=1`;
         const res = await fetch(url, {
-          headers: {
-            'Accept-Language': 'en'
-          }
+          headers: { 'Accept-Language': 'en' }
         });
         if (res.ok) {
           const data = await res.json();
-          if (data && data.length > 0) {
+          if (Array.isArray(data) && data.length > 0) {
             return {
               lat: parseFloat(data[0].lat),
               lng: parseFloat(data[0].lon),
@@ -100,8 +58,30 @@
           }
         }
       } catch (e) {
-        console.error('[VenueLuxe Map] Geocoding error:', e);
+        console.warn('[VenueLuxe Map] Nominatim search attempt failed, trying Photon...', e);
       }
+
+      // 2. Second attempt: Photon OSM Geocoder (Fast & completely free)
+      try {
+        const photonUrl = `${maps.PHOTON_OSM_URL}?q=${encodeURIComponent(query)}&limit=1`;
+        const res = await fetch(photonUrl);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.features && data.features.length > 0) {
+            const coords = data.features[0].geometry.coordinates; // [lng, lat]
+            const props = data.features[0].properties;
+            const name = [props.name, props.street, props.city, props.state].filter(Boolean).join(', ');
+            return {
+              lat: parseFloat(coords[1]),
+              lng: parseFloat(coords[0]),
+              displayName: name || query
+            };
+          }
+        }
+      } catch (e) {
+        console.error('[VenueLuxe Map] Photon search error:', e);
+      }
+
       return null;
     }
   };

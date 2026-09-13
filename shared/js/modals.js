@@ -762,7 +762,22 @@ const Modals = {
     }
     L.tileLayer(tileUrl, tileOpts).addTo(map);
 
+    const pinIcon = L.divIcon({
+      className: 'wz-draggable-pin-wrapper',
+      html: `
+        <div style="width:38px; height:50px; cursor:grab; transform:translate(-19px, -46px); filter:drop-shadow(0 4px 8px rgba(0,0,0,0.35));">
+          <svg viewBox="0 0 24 24" width="38" height="50" fill="#A65B2B" stroke="#ffffff" stroke-width="1.2">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+            <circle cx="12" cy="9" r="3.2" fill="#ffffff"/>
+          </svg>
+        </div>
+      `,
+      iconSize: [38, 50],
+      iconAnchor: [19, 50]
+    });
+
     const marker = L.marker([lat, lng], {
+      icon: pinIcon,
       draggable: true
     }).addTo(map);
     this._wizardMarkerInstance = marker;
@@ -808,11 +823,10 @@ const Modals = {
     if (latInput) latInput.addEventListener('input', onManualChange);
     if (lngInput) lngInput.addEventListener('input', onManualChange);
 
-    setTimeout(() => {
-      try {
-        map.invalidateSize();
-      } catch (e) {}
-    }, 150);
+    // Call invalidateSize multiple times to ensure tiles render immediately as modal opens
+    setTimeout(() => { try { map.invalidateSize(); } catch (e) {} }, 50);
+    setTimeout(() => { try { map.invalidateSize(); } catch (e) {} }, 250);
+    setTimeout(() => { try { map.invalidateSize(); } catch (e) {} }, 500);
   },
 
   locateWizardGPS() {

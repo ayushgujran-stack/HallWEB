@@ -10,11 +10,7 @@ function syncEnvFile() {
   const envPath = path.resolve(__dirname, '.env');
   const targetPath = path.resolve(__dirname, 'shared/js/env.js');
   const envVars = {
-    VITE_APP_TITLE: "VenueLuxe",
-    VITE_MAP_PROVIDER: "osm",
-    VITE_NOMINATIM_URL: "https://nominatim.openstreetmap.org/search",
-    VITE_MAPBOX_ACCESS_TOKEN: "",
-    VITE_LOCATIONIQ_API_KEY: ""
+    VITE_APP_TITLE: "VenueLuxe"
   };
 
   if (fs.existsSync(envPath)) {
