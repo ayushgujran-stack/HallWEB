@@ -6,6 +6,54 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+function syncEnvFile() {
+  const envPath = path.resolve(__dirname, '.env');
+  const targetPath = path.resolve(__dirname, 'shared/js/env.js');
+  const envVars = {
+    VITE_APP_TITLE: "VenueLuxe",
+    VITE_MAP_PROVIDER: "osm",
+    VITE_NOMINATIM_URL: "https://nominatim.openstreetmap.org/search",
+    VITE_MAPBOX_ACCESS_TOKEN: "",
+    VITE_LOCATIONIQ_API_KEY: ""
+  };
+
+  if (fs.existsSync(envPath)) {
+    const content = fs.readFileSync(envPath, 'utf8');
+    content.split('\n').forEach(line => {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+        const [key, ...rest] = trimmed.split('=');
+        const val = rest.join('=').trim().replace(/^["']|["']$/g, '');
+        if (key.trim().startsWith('VITE_')) {
+          envVars[key.trim()] = val;
+        }
+      }
+    });
+  }
+
+  const jsContent = `// Auto-generated from .env\nwindow.__ENV = ${JSON.stringify(envVars, null, 2)};\n`;
+  fs.writeFileSync(targetPath, jsContent, 'utf8');
+}
+
+function envSyncPlugin() {
+  return {
+    name: 'env-sync-plugin',
+    buildStart() {
+      syncEnvFile();
+    },
+    configureServer(server) {
+      syncEnvFile();
+      server.watcher.add(path.resolve(__dirname, '.env'));
+      server.watcher.on('change', (file) => {
+        if (file.endsWith('.env')) {
+          syncEnvFile();
+          console.log('✓ Synced .env to shared/js/env.js');
+        }
+      });
+    }
+  };
+}
+
 function copyStaticAssets() {
   return {
     name: 'copy-static-assets',
@@ -52,7 +100,7 @@ export default defineConfig({
     strictPort: true,
     host: true
   },
-  plugins: [copyStaticAssets(), rootRedirect()],
+  plugins: [envSyncPlugin(), copyStaticAssets(), rootRedirect()],
   build: {
     outDir: 'dist',
     rollupOptions: {

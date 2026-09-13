@@ -15,6 +15,11 @@ const Modals = {
   },
 
   close() {
+    if (this._wizardMapInstance) {
+      try { this._wizardMapInstance.remove(); } catch (e) {}
+      this._wizardMapInstance = null;
+      this._wizardMarkerInstance = null;
+    }
     const container = document.getElementById('modal-container');
     if (container) container.innerHTML = '';
   },
@@ -204,6 +209,9 @@ const Modals = {
         </div>
       </div>
     `;
+    if (step === 6) {
+      setTimeout(() => this.initWizardMap(), 60);
+    }
   },
 
   getWizardStepHTML(step) {
@@ -440,25 +448,51 @@ const Modals = {
       case 6:
         return `
           <div class="space-y-4">
-            <p class="text-xs text-on-surface-variant">Pinpoint the venue geolocation for OpenStreetMap search indexing.</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 class="text-sm font-bold text-on-surface">Pinpoint Venue Geolocation</h3>
+                <p class="text-xs text-on-surface-variant">Click anywhere on the map or drag the pin marker to set the exact hall entrance for guests.</p>
+              </div>
+              <span id="wz-coords-badge" class="px-2.5 py-1 rounded bg-secondary-fixed text-on-secondary-fixed text-[11px] font-mono font-bold shrink-0 self-start sm:self-auto border border-secondary-fixed-dim">
+                ${d.latitude ? `${d.latitude}° N, ${d.longitude}° E` : '13.2172° N, 74.9966° E'}
+              </span>
+            </div>
+
+            <!-- Search Address & GPS Quick Actions -->
+            <div class="flex flex-col sm:flex-row gap-2">
+              <div class="relative flex-1">
+                <span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-[18px]">search</span>
+                <input type="text" id="wz-map-search-query" class="w-full pl-9 pr-3 py-2 text-xs rounded-lg bg-surface-container-low border border-surface-container text-on-surface focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Search landmark, street, area, or town..." value="${[d.area, d.city].filter(Boolean).join(', ')}" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); Modals.searchWizardMapAddress(); }">
+              </div>
+              <button type="button" onclick="Modals.searchWizardMapAddress()" class="px-3.5 py-2 text-xs font-bold rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface border border-surface-container shrink-0 flex items-center justify-center gap-1.5 transition-colors">
+                <span class="material-symbols-outlined text-[16px] text-secondary">travel_explore</span>
+                <span>Find on Map</span>
+              </button>
+              <button type="button" onclick="Modals.locateWizardGPS()" class="px-3.5 py-2 text-xs font-bold rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface border border-surface-container shrink-0 flex items-center justify-center gap-1.5 transition-colors">
+                <span class="material-symbols-outlined text-[16px] text-primary">my_location</span>
+                <span>Current GPS</span>
+              </button>
+            </div>
+
+            <!-- Interactive Leaflet Map Picker -->
+            <div class="relative w-full h-64 md:h-72 rounded-xl overflow-hidden border border-surface-container bg-surface-container shadow-inner">
+              <div id="wz-map-picker" class="w-full h-full z-0"></div>
+              <div class="absolute bottom-2 left-2 z-[400] bg-surface-container-lowest/90 backdrop-blur-sm px-2.5 py-1 rounded-md text-[10px] text-on-surface font-medium border border-surface-container shadow-sm pointer-events-none flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px] text-secondary">pin_drop</span>
+                <span>Drag pin marker or click anywhere on the map</span>
+              </div>
+            </div>
+
+            <!-- Manual Lat/Lng inputs (automatically synchronized) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Latitude</label>
-                <input type="number" step="0.0001" id="wz-lat" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-mono" value="${d.latitude}">
+                <input type="number" step="0.000001" id="wz-lat" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-mono" value="${d.latitude || 13.2172}">
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Longitude</label>
-                <input type="number" step="0.0001" id="wz-lng" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-mono" value="${d.longitude}">
+                <input type="number" step="0.000001" id="wz-lng" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-mono" value="${d.longitude || 74.9966}">
               </div>
-            </div>
-            <div class="p-4 bg-surface-container-low rounded-xl border border-surface-container flex items-center justify-between">
-              <div>
-                <span class="text-xs font-bold text-on-surface block">Automatic Geocoding</span>
-                <span class="text-[11px] text-on-surface-variant">Coordinates preset for Karkala Heritage Corridor</span>
-              </div>
-              <button class="px-3 py-1.5 text-xs bg-primary text-on-primary rounded font-semibold" type="button" onclick="Toast.info('Location Pin', 'Coordinates successfully verified.');">
-                Verify Pin
-              </button>
             </div>
           </div>
         `;
@@ -693,6 +727,163 @@ const Modals = {
     if (this.currentWizardStep > 1) {
       this.currentWizardStep--;
       this.renderWizard();
+    }
+  },
+
+  initWizardMap() {
+    const mapEl = document.getElementById('wz-map-picker');
+    if (!mapEl || typeof L === 'undefined') return;
+
+    let lat = Number(this.wizardData.latitude) || 13.2172;
+    let lng = Number(this.wizardData.longitude) || 74.9966;
+
+    if (this._wizardMapInstance) {
+      try {
+        this._wizardMapInstance.remove();
+      } catch (e) {}
+      this._wizardMapInstance = null;
+      this._wizardMarkerInstance = null;
+    }
+
+    const map = L.map('wz-map-picker', {
+      zoomControl: true
+    }).setView([lat, lng], 15);
+    this._wizardMapInstance = map;
+
+    let tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    let tileOpts = {
+      attribution: '© OpenStreetMap contributors © CARTO',
+      maxZoom: 19
+    };
+    if (window.VENUELUXE_CONFIG && typeof window.VENUELUXE_CONFIG.getTileLayerConfig === 'function') {
+      const cfg = window.VENUELUXE_CONFIG.getTileLayerConfig();
+      tileUrl = cfg.url;
+      tileOpts = cfg.options;
+    }
+    L.tileLayer(tileUrl, tileOpts).addTo(map);
+
+    const marker = L.marker([lat, lng], {
+      draggable: true
+    }).addTo(map);
+    this._wizardMarkerInstance = marker;
+
+    const updateCoords = (newLat, newLng) => {
+      const roundedLat = Number(Number(newLat).toFixed(6));
+      const roundedLng = Number(Number(newLng).toFixed(6));
+      this.wizardData.latitude = roundedLat;
+      this.wizardData.longitude = roundedLng;
+      const latInput = document.getElementById('wz-lat');
+      const lngInput = document.getElementById('wz-lng');
+      if (latInput) latInput.value = roundedLat;
+      if (lngInput) lngInput.value = roundedLng;
+      const badge = document.getElementById('wz-coords-badge');
+      if (badge) badge.innerText = `${roundedLat}° N, ${roundedLng}° E`;
+    };
+
+    marker.on('dragend', (e) => {
+      const pos = e.target.getLatLng();
+      updateCoords(pos.lat, pos.lng);
+      if (window.Toast) window.Toast.info('Pin Moved', `Updated coordinates: ${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`);
+    });
+
+    map.on('click', (e) => {
+      marker.setLatLng(e.latlng);
+      updateCoords(e.latlng.lat, e.latlng.lng);
+    });
+
+    const latInput = document.getElementById('wz-lat');
+    const lngInput = document.getElementById('wz-lng');
+    const onManualChange = () => {
+      const nLat = parseFloat(latInput?.value);
+      const nLng = parseFloat(lngInput?.value);
+      if (!isNaN(nLat) && !isNaN(nLng)) {
+        marker.setLatLng([nLat, nLng]);
+        map.panTo([nLat, nLng]);
+        this.wizardData.latitude = nLat;
+        this.wizardData.longitude = nLng;
+        const badge = document.getElementById('wz-coords-badge');
+        if (badge) badge.innerText = `${nLat}° N, ${nLng}° E`;
+      }
+    };
+    if (latInput) latInput.addEventListener('input', onManualChange);
+    if (lngInput) lngInput.addEventListener('input', onManualChange);
+
+    setTimeout(() => {
+      try {
+        map.invalidateSize();
+      } catch (e) {}
+    }, 150);
+  },
+
+  locateWizardGPS() {
+    if (!navigator.geolocation) {
+      if (window.Toast) window.Toast.error('GPS Unavailable', 'Geolocation is not supported by your browser.');
+      return;
+    }
+    if (window.Toast) window.Toast.info('Detecting Location', 'Acquiring GPS coordinates from your device...');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = Number(pos.coords.latitude.toFixed(6));
+        const lng = Number(pos.coords.longitude.toFixed(6));
+        if (this._wizardMarkerInstance && this._wizardMapInstance) {
+          this._wizardMarkerInstance.setLatLng([lat, lng]);
+          this._wizardMapInstance.setView([lat, lng], 16);
+        }
+        const latInput = document.getElementById('wz-lat');
+        const lngInput = document.getElementById('wz-lng');
+        if (latInput) latInput.value = lat;
+        if (lngInput) lngInput.value = lng;
+        this.wizardData.latitude = lat;
+        this.wizardData.longitude = lng;
+        const badge = document.getElementById('wz-coords-badge');
+        if (badge) badge.innerText = `${lat}° N, ${lng}° E`;
+        if (window.Toast) window.Toast.success('GPS Located', 'Pin dropped at your current location.');
+      },
+      (err) => {
+        if (window.Toast) window.Toast.warning('GPS Denied', 'Could not access GPS. You can drag the pin on the map directly.');
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  },
+
+  async searchWizardMapAddress() {
+    const searchInput = document.getElementById('wz-map-search-query');
+    let query = searchInput ? searchInput.value.trim() : '';
+    if (!query) {
+      query = [this.wizardData.address, this.wizardData.area, this.wizardData.city, this.wizardData.state].filter(Boolean).join(', ');
+    }
+    if (!query) {
+      if (window.Toast) window.Toast.warning('Query Required', 'Please enter a landmark, street or town name.');
+      return;
+    }
+
+    if (window.Toast) window.Toast.info('Searching Address', `Locating "${query}"...`);
+    try {
+      let result = null;
+      if (window.VENUELUXE_CONFIG && typeof window.VENUELUXE_CONFIG.geocodeAddress === 'function') {
+        result = await window.VENUELUXE_CONFIG.geocodeAddress(query);
+      }
+      if (result && result.lat && result.lng) {
+        const lat = Number(result.lat.toFixed(6));
+        const lng = Number(result.lng.toFixed(6));
+        if (this._wizardMarkerInstance && this._wizardMapInstance) {
+          this._wizardMarkerInstance.setLatLng([lat, lng]);
+          this._wizardMapInstance.setView([lat, lng], 16);
+        }
+        const latInput = document.getElementById('wz-lat');
+        const lngInput = document.getElementById('wz-lng');
+        if (latInput) latInput.value = lat;
+        if (lngInput) lngInput.value = lng;
+        this.wizardData.latitude = lat;
+        this.wizardData.longitude = lng;
+        const badge = document.getElementById('wz-coords-badge');
+        if (badge) badge.innerText = `${lat}° N, ${lng}° E`;
+        if (window.Toast) window.Toast.success('Location Found', result.displayName || 'Pin updated on map.');
+      } else {
+        if (window.Toast) window.Toast.warning('Not Found', 'Could not locate that spot. Drag the pin directly on the map to pinpoint.');
+      }
+    } catch (e) {
+      if (window.Toast) window.Toast.error('Search Failed', 'Could not complete geocoding search.');
     }
   },
 

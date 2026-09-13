@@ -1255,10 +1255,14 @@ const DetailsView = {
       scrollWheelZoom: false
     }).setView([hall.latitude, hall.longitude], 14);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '© OpenStreetMap & CARTO',
-      maxZoom: 18
-    }).addTo(map);
+    const tileConfig = (window.VENUELUXE_CONFIG && typeof window.VENUELUXE_CONFIG.getTileLayerConfig === 'function')
+      ? window.VENUELUXE_CONFIG.getTileLayerConfig()
+      : {
+          url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+          options: { attribution: '© OpenStreetMap & CARTO', maxZoom: 18 }
+        };
+
+    L.tileLayer(tileConfig.url, tileConfig.options).addTo(map);
 
     const customIcon = L.divIcon({
       className: 'custom-pin-wrapper',
