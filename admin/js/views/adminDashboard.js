@@ -12,7 +12,9 @@ const AdminDashboardView = {
     const bookings = window.appStore.getBookings();
     const users = window.appStore.getUsers();
     const auditLogs = window.appStore.getAuditLogs();
-    const reports = window.appStore.getReports();
+    const allReports = window.appStore.getReports();
+    const openReports = allReports.filter(r => r.status !== 'RESOLVED');
+    const resolvedReports = allReports.filter(r => r.status === 'RESOLVED');
 
     return `
       <div class="flex flex-col w-full min-h-[calc(100vh-5rem)] bg-surface py-6 md:py-10">
@@ -44,7 +46,7 @@ const AdminDashboardView = {
           </div>
 
           <!-- Urgent Governance Action Bar (if items pending) -->
-          ${(pendingHalls.length > 0 || reports.length > 0) ? `
+          ${(pendingHalls.length > 0 || openReports.length > 0) ? `
             <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0">
@@ -53,7 +55,7 @@ const AdminDashboardView = {
                 <div>
                   <h4 class="text-xs font-bold text-amber-900 uppercase tracking-wider">Urgent Attention Required</h4>
                   <p class="text-xs text-amber-800 mt-0.5">
-                    <strong>${pendingHalls.length} venue(s)</strong> awaiting publication audit & <strong>${reports.length} user safety report(s)</strong> logged.
+                    <strong>${pendingHalls.length} venue(s)</strong> awaiting publication audit & <strong>${openReports.length} open safety report(s)</strong> logged.
                   </p>
                 </div>
               </div>
@@ -63,9 +65,9 @@ const AdminDashboardView = {
                     Review Queue (${pendingHalls.length})
                   </button>
                 ` : ''}
-                ${reports.length > 0 ? `
+                ${openReports.length > 0 ? `
                   <button onclick="AdminDashboardView.setTab('reports')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg transition-colors">
-                    View Reports (${reports.length})
+                    View Reports (${openReports.length})
                   </button>
                 ` : ''}
               </div>
@@ -374,110 +376,169 @@ const AdminDashboardView = {
                     <tr class="bg-stone-50 text-stone-600 text-[11px] font-bold uppercase tracking-wider border-b border-stone-200">
                       <th class="p-3 rounded-l-lg">Venue Name</th>
                       <th class="p-3">Location</th>
-                      <th class="p-3">Dimensions & Capacity</th>
-                      <th class="p-3">Calendar Status</th>
+                      <th class="p-3">Capacity & Specs</th>
+                      <th class="p-3">Showcase Tier</th>
                       <th class="p-3">Listing State</th>
                       <th class="p-3 text-right rounded-r-lg">Admin Actions</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-stone-100">
-                    ${halls.map(h => `
-                      <tr class="hover:bg-stone-50/70 transition-colors">
-                        <td class="p-3 font-bold text-stone-900">
-                          <div class="flex items-center gap-3">
-                            <img 
-                              src="${h.cover_image}" 
-                              class="w-10 h-10 rounded-lg object-cover border border-stone-200 shrink-0"
-                              onerror="this.src=window.appStore.getPlaceholderImage('Venue')">
-                            <div>
-                              <div class="font-semibold line-clamp-1">${h.name}</div>
-                              <div class="text-[10px] text-stone-400 font-mono">${h.id}</div>
+                    ${halls.map(h => {
+                      const isPaid = (h.listing_fee_paid === true || h.listing_tier === 'PREMIUM');
+                      const customerUrl = AdminDashboardView.getCustomerHallUrl(h.id);
+                      return `
+                        <tr class="hover:bg-stone-50/70 transition-colors">
+                          <td class="p-3 font-bold text-stone-900">
+                            <div class="flex items-center gap-3">
+                              <img 
+                                src="${h.cover_image}" 
+                                class="w-10 h-10 rounded-lg object-cover border border-stone-200 shrink-0"
+                                onerror="this.src=window.appStore.getPlaceholderImage('Venue')">
+                              <div>
+                                <div class="font-semibold line-clamp-1">${h.name}</div>
+                                <div class="text-[10px] text-stone-400 font-mono">${h.id}</div>
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td class="p-3 text-stone-700">${h.city}, ${h.area || ''}</td>
-                        <td class="p-3 text-stone-700">
-                          <div class="font-semibold">${h.seating_capacity} Sit / ${h.maximum_capacity} Max</div>
-                          <div class="text-[11px] text-stone-500">${(h.size_sqft || 10000).toLocaleString()} sq ft</div>
-                        </td>
-                        <td class="p-3">
-                          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${h.public_availability ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-800'}">
-                            ${h.public_availability ? 'Public' : 'Private'}
-                          </span>
-                        </td>
-                        <td class="p-3">
-                          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${h.status === 'LIVE' ? 'bg-emerald-700 text-white' : (h.status === 'PENDING_APPROVAL' ? 'bg-amber-600 text-white' : 'bg-stone-600 text-white')}">
-                            ${h.status}
-                          </span>
-                        </td>
-                        <td class="p-3 text-right">
-                          <div class="flex items-center justify-end gap-1.5">
-                            <a href="#/hall/${h.id}" class="p-2 bg-stone-100 hover:bg-stone-200 rounded-lg text-stone-700 transition-colors" title="View Public Profile">
-                              <span class="material-symbols-outlined text-[16px]">visibility</span>
-                            </a>
-
-                            ${h.status === 'LIVE' ? `
-                              <button class="px-2.5 py-1.5 bg-stone-100 text-amber-800 hover:bg-amber-100 rounded-lg text-[11px] font-bold transition-colors" onclick="AdminDashboardView.suspendListing('${h.id}')">
-                                Suspend
-                              </button>
+                          </td>
+                          <td class="p-3 text-stone-700">${h.city}, ${h.area || ''}</td>
+                          <td class="p-3 text-stone-700">
+                            <div class="font-semibold">${h.seating_capacity || 0} Sit / ${h.maximum_capacity || 0} Max</div>
+                            <div class="text-[11px] text-stone-500">${(h.size_sqft || 0).toLocaleString()} sq ft</div>
+                          </td>
+                          <td class="p-3">
+                            ${isPaid ? `
+                              <div class="space-y-1">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-200">
+                                  <span class="material-symbols-outlined text-[13px] text-emerald-600">star</span>
+                                  <span>Premium Showcase</span>
+                                </span>
+                                <div class="text-[10px] text-stone-400 font-mono">Ref: ${h.listing_fee_receipt || 'PAID'}</div>
+                              </div>
                             ` : `
-                              <button class="px-2.5 py-1.5 bg-emerald-700 text-white hover:bg-emerald-800 rounded-lg text-[11px] font-bold transition-colors" onclick="AdminDashboardView.restoreListing('${h.id}')">
-                                Restore
-                              </button>
+                              <div class="space-y-1">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-stone-100 text-stone-600 text-[10px] font-semibold border border-stone-200">
+                                  Directory (Unpaid)
+                                </span>
+                                <button 
+                                  class="block px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-md text-[10px] font-bold transition-colors shadow-xs"
+                                  onclick="AdminDashboardView.promptUpgradeToPremium('${h.id}')"
+                                  title="Owner paid later? Click to upgrade this venue to Premium and restore full features.">
+                                  ★ Upgrade to Premium
+                                </button>
+                              </div>
                             `}
+                          </td>
+                          <td class="p-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${h.status === 'LIVE' ? 'bg-emerald-700 text-white' : (h.status === 'PENDING_APPROVAL' ? 'bg-amber-600 text-white' : 'bg-stone-600 text-white')}">
+                              ${h.status}
+                            </span>
+                          </td>
+                          <td class="p-3 text-right">
+                            <div class="flex items-center justify-end gap-1.5">
+                              <!-- View Venue Details & Specifications Modal -->
+                              <button 
+                                class="p-2 bg-stone-100 hover:bg-stone-200 rounded-lg text-stone-700 transition-colors" 
+                                onclick="AdminDashboardView.openVenueInspectionModal('${h.id}')" 
+                                title="Inspect Venue Specifications & Full Records">
+                                <span class="material-symbols-outlined text-[16px]">visibility</span>
+                              </button>
 
-                            <button class="p-2 text-rose-700 hover:bg-rose-50 rounded-lg transition-colors" onclick="AdminDashboardView.deleteListing('${h.id}')" title="Delete Venue">
-                              <span class="material-symbols-outlined text-[16px]">delete</span>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    `).join('')}
+                              <!-- Direct Customer View Link -->
+                              <a 
+                                href="${customerUrl}" 
+                                target="_blank" 
+                                class="p-2 bg-stone-100 hover:bg-stone-200 rounded-lg text-stone-700 transition-colors" 
+                                title="Open Live Customer View (New Tab)">
+                                <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+                              </a>
+
+                              ${h.status === 'LIVE' ? `
+                                <button class="px-2.5 py-1.5 bg-stone-100 text-amber-800 hover:bg-amber-100 rounded-lg text-[11px] font-bold transition-colors" onclick="AdminDashboardView.suspendListing('${h.id}')">
+                                  Suspend
+                                </button>
+                              ` : `
+                                <button class="px-2.5 py-1.5 bg-emerald-700 text-white hover:bg-emerald-800 rounded-lg text-[11px] font-bold transition-colors" onclick="AdminDashboardView.restoreListing('${h.id}')">
+                                  Restore
+                                </button>
+                              `}
+
+                              <button class="p-2 text-rose-700 hover:bg-rose-50 rounded-lg transition-colors" onclick="AdminDashboardView.deleteListing('${h.id}')" title="Delete Venue">
+                                <span class="material-symbols-outlined text-[16px]">delete</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      `;
+                    }).join('')}
                   </tbody>
                 </table>
               </div>
 
               <!-- Mobile Master Hall Cards -->
               <div class="md:hidden space-y-3">
-                ${halls.map(h => `
-                  <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
-                    <div class="flex items-center gap-3">
-                      <img 
-                        src="${h.cover_image}" 
-                        class="w-12 h-12 rounded-lg object-cover border border-stone-200 shrink-0"
-                        onerror="this.src=window.appStore.getPlaceholderImage('Venue')">
-                      <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-1.5">
-                          <span class="px-2 py-0.2 rounded text-[10px] font-bold ${h.status === 'LIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-700'}">
-                            ${h.status}
-                          </span>
+                ${halls.map(h => {
+                  const isPaid = (h.listing_fee_paid === true || h.listing_tier === 'PREMIUM');
+                  const customerUrl = AdminDashboardView.getCustomerHallUrl(h.id);
+                  return `
+                    <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
+                      <div class="flex items-center gap-3">
+                        <img 
+                          src="${h.cover_image}" 
+                          class="w-12 h-12 rounded-lg object-cover border border-stone-200 shrink-0"
+                          onerror="this.src=window.appStore.getPlaceholderImage('Venue')">
+                        <div class="flex-1 min-w-0">
+                          <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${h.status === 'LIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-700'}">
+                              ${h.status}
+                            </span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isPaid ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-700'}">
+                              ${isPaid ? '★ PREMIUM' : 'DIRECTORY'}
+                            </span>
+                          </div>
+                          <h4 class="font-bold text-sm text-stone-900 truncate mt-1">${h.name}</h4>
+                          <p class="text-xs text-stone-500">${h.city} • ${h.seating_capacity || 0} seats</p>
                         </div>
-                        <h4 class="font-bold text-sm text-stone-900 truncate mt-0.5">${h.name}</h4>
-                        <p class="text-xs text-stone-500">${h.city} • ${h.seating_capacity} seats</p>
                       </div>
-                    </div>
 
-                    <div class="flex items-center justify-between pt-2 border-t border-stone-200 text-xs">
-                      <a href="#/hall/${h.id}" class="px-3 py-1.5 bg-white border border-stone-300 rounded-lg font-bold text-stone-700">
-                        View Profile
-                      </a>
-                      <div class="flex items-center gap-1.5">
-                        ${h.status === 'LIVE' ? `
-                          <button class="px-3 py-1.5 bg-amber-100 text-amber-900 rounded-lg font-bold" onclick="AdminDashboardView.suspendListing('${h.id}')">
-                            Suspend
+                      ${!isPaid ? `
+                        <div class="p-2.5 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-between gap-2">
+                          <span class="text-[11px] text-amber-900 font-medium">Non-Paying Directory</span>
+                          <button 
+                            class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded text-xs font-bold transition-colors"
+                            onclick="AdminDashboardView.promptUpgradeToPremium('${h.id}')">
+                            ★ Upgrade to Premium
                           </button>
-                        ` : `
-                          <button class="px-3 py-1.5 bg-emerald-700 text-white rounded-lg font-bold" onclick="AdminDashboardView.restoreListing('${h.id}')">
-                            Restore
+                        </div>
+                      ` : ''}
+
+                      <div class="flex items-center justify-between pt-2 border-t border-stone-200 text-xs gap-2">
+                        <div class="flex items-center gap-1.5">
+                          <button onclick="AdminDashboardView.openVenueInspectionModal('${h.id}')" class="px-3 py-1.5 bg-white border border-stone-300 rounded-lg font-bold text-stone-700 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[15px]">visibility</span>
+                            <span>Inspect</span>
                           </button>
-                        `}
-                        <button class="p-1.5 text-rose-700 hover:bg-rose-50 rounded-lg" onclick="AdminDashboardView.deleteListing('${h.id}')">
-                          <span class="material-symbols-outlined text-[16px]">delete</span>
-                        </button>
+                          <a href="${customerUrl}" target="_blank" class="p-1.5 bg-white border border-stone-300 rounded-lg text-stone-700" title="Open Customer View">
+                            <span class="material-symbols-outlined text-[15px]">open_in_new</span>
+                          </a>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                          ${h.status === 'LIVE' ? `
+                            <button class="px-3 py-1.5 bg-amber-100 text-amber-900 rounded-lg font-bold" onclick="AdminDashboardView.suspendListing('${h.id}')">
+                              Suspend
+                            </button>
+                          ` : `
+                            <button class="px-3 py-1.5 bg-emerald-700 text-white rounded-lg font-bold" onclick="AdminDashboardView.restoreListing('${h.id}')">
+                              Restore
+                            </button>
+                          `}
+                          <button class="p-1.5 text-rose-700 hover:bg-rose-50 rounded-lg" onclick="AdminDashboardView.deleteListing('${h.id}')">
+                            <span class="material-symbols-outlined text-[16px]">delete</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                `).join('')}
+                  `;
+                }).join('')}
               </div>
             </div>
           ` : ''}
@@ -522,47 +583,104 @@ const AdminDashboardView = {
 
           <!-- TAB 4: REPORTS & COMPLAINTS -->
           ${this.currentTab === 'reports' ? `
-            <div class="bg-white p-5 sm:p-6 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+            <div class="bg-white p-5 sm:p-6 rounded-2xl border border-stone-200 shadow-sm space-y-5">
               <div class="flex items-center justify-between pb-3 border-b border-stone-100">
                 <div>
                   <span class="text-xs uppercase tracking-widest text-rose-700 font-bold">Trust & Safety</span>
                   <h2 class="font-display text-lg sm:text-xl font-bold text-stone-900">Flagged Customer Complaints</h2>
                 </div>
-                <span class="text-xs text-stone-500">${reports.length} Open Reports</span>
+                <span class="text-xs text-stone-500 font-medium">${openReports.length} Open Reports</span>
               </div>
 
-              ${reports.length === 0 ? `
-                <div class="py-12 text-center bg-stone-50 rounded-xl border border-dashed border-stone-200">
-                  <p class="text-xs text-stone-500">No active safety complaints or reports.</p>
+              ${openReports.length === 0 ? `
+                <div class="py-12 text-center bg-stone-50 rounded-xl border border-dashed border-stone-200 space-y-2">
+                  <span class="material-symbols-outlined text-[32px] text-emerald-600">verified</span>
+                  <p class="text-xs font-bold text-stone-700">All Clear — No Open Safety Complaints</p>
+                  <p class="text-[11px] text-stone-500">Active listings are compliant with safety and listing policies.</p>
                 </div>
               ` : `
                 <div class="space-y-3">
-                  ${reports.map(r => `
-                    <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
-                      <div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                          <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-bold uppercase">${r.reason}</span>
-                          <span class="font-bold text-xs text-stone-900">${r.hall_name}</span>
-                          <span class="text-[11px] text-stone-500">• Reported by ${r.reporter_name}</span>
+                  ${openReports.map(r => {
+                    const venue = window.appStore.getHallById(r.hall_id) || window.appStore.getHalls().find(h => h.name === r.hall_name);
+                    const isSuspended = venue && venue.status === 'SUSPENDED';
+                    const targetHallId = venue ? venue.id : (r.hall_id || '');
+                    return `
+                      <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <div class="space-y-1">
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-bold uppercase">${r.reason}</span>
+                            <span class="font-bold text-xs text-stone-900">${r.hall_name}</span>
+                            ${isSuspended ? `
+                              <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-bold border border-amber-300">
+                                Venue Suspended
+                              </span>
+                            ` : `
+                              <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                                Venue Active (Live)
+                              </span>
+                            `}
+                            <span class="text-[11px] text-stone-500">• Reported by ${r.reporter_name} on ${r.date || 'Recent'}</span>
+                          </div>
+                          <p class="text-xs text-stone-600 leading-relaxed">${r.details}</p>
                         </div>
-                        <p class="text-xs text-stone-600 mt-1.5 leading-relaxed">${r.details}</p>
+                        <div class="flex items-center gap-2 shrink-0 self-end md:self-auto flex-wrap">
+                          ${targetHallId ? `
+                            <button 
+                              class="p-2 bg-white hover:bg-stone-200 text-stone-700 text-xs rounded-lg border border-stone-300 transition-colors"
+                              onclick="AdminDashboardView.openVenueInspectionModal('${targetHallId}')"
+                              title="Inspect Venue Specifications">
+                              <span class="material-symbols-outlined text-[16px]">visibility</span>
+                            </button>
+                          ` : ''}
+                          <button 
+                            class="px-3 py-1.5 bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-bold rounded-lg transition-colors min-h-[38px]" 
+                            onclick="AdminDashboardView.dismissReport('${r.id}')">
+                            Dismiss Ticket
+                          </button>
+                          ${!isSuspended ? `
+                            <button 
+                              class="px-3.5 py-1.5 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-lg transition-colors min-h-[38px] flex items-center gap-1 shadow-xs" 
+                              onclick="AdminDashboardView.suspendFromReport('${r.id}', '${targetHallId}')">
+                              <span class="material-symbols-outlined text-[15px]">block</span>
+                              <span>Suspend Venue</span>
+                            </button>
+                          ` : `
+                            <button 
+                              class="px-3 py-1.5 bg-amber-50 text-amber-800 border border-amber-300 text-xs font-bold rounded-lg min-h-[38px] cursor-not-allowed opacity-90"
+                              disabled>
+                              Already Suspended
+                            </button>
+                          `}
+                        </div>
                       </div>
-                      <div class="flex items-center gap-2 shrink-0 self-end md:self-auto">
-                        <button 
-                          class="px-3 py-1.5 bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-bold rounded-lg transition-colors min-h-[38px]" 
-                          onclick="AdminDashboardView.dismissReport('${r.id}')">
-                          Dismiss
-                        </button>
-                        <button 
-                          class="px-3 py-1.5 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-lg transition-colors min-h-[38px]" 
-                          onclick="AdminDashboardView.suspendListing('${r.hall_id}'); AdminDashboardView.dismissReport('${r.id}');">
-                          Suspend Venue
-                        </button>
-                      </div>
-                    </div>
-                  `).join('')}
+                    `;
+                  }).join('')}
                 </div>
               `}
+
+              <!-- Resolved Complaints Archive -->
+              ${resolvedReports.length > 0 ? `
+                <div class="pt-4 border-t border-stone-200 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-stone-700">Resolved Complaints History (${resolvedReports.length})</span>
+                  </div>
+                  <div class="space-y-2 opacity-80">
+                    ${resolvedReports.slice(0, 5).map(r => `
+                      <div class="p-3 bg-stone-100/70 rounded-lg border border-stone-200 flex items-center justify-between gap-3 text-xs">
+                        <div>
+                          <span class="font-bold text-stone-800">${r.hall_name}</span>
+                          <span class="text-stone-500">• ${r.reason}</span>
+                          <div class="text-[11px] text-emerald-800 font-medium mt-0.5">✓ ${r.resolution || 'Resolved by administrator'}</div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded bg-stone-200 text-stone-600 text-[10px] font-bold uppercase">
+                          Resolved
+                        </span>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : ''}
+
             </div>
           ` : ''}
 
@@ -934,6 +1052,265 @@ const AdminDashboardView = {
     } catch (err) {
       Toast.error('Verification Error', err.message);
     }
+  },
+
+  getCustomerHallUrl(hallId) {
+    if (window.location.pathname.startsWith('/admin')) {
+      return `../customer/#/hall/${hallId}`;
+    }
+    return `/customer/#/hall/${hallId}`;
+  },
+
+  openVenueInspectionModal(hallId) {
+    const hall = window.appStore.getHallById(hallId);
+    if (!hall) {
+      if (window.Toast) Toast.error('Venue Not Found', 'Could not locate venue records.');
+      return;
+    }
+
+    let modalContainer = document.getElementById('modal-container');
+    if (!modalContainer) {
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'modal-container';
+      document.body.appendChild(modalContainer);
+    }
+
+    const isPaid = (hall.listing_fee_paid === true || hall.listing_tier === 'PREMIUM');
+    const customerUrl = this.getCustomerHallUrl(hall.id);
+    const images = Array.isArray(hall.images) ? hall.images : (hall.cover_image ? [hall.cover_image] : []);
+
+    modalContainer.innerHTML = `
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) AdminDashboardView.closeModal()">
+        <div class="bg-white max-w-3xl w-full rounded-2xl shadow-2xl border border-stone-200 overflow-hidden max-h-[92vh] flex flex-col text-left">
+          
+          <!-- Modal Header -->
+          <div class="p-5 border-b border-stone-200 flex items-center justify-between bg-stone-50 shrink-0">
+            <div class="flex items-center gap-3">
+              <img src="${hall.cover_image || window.appStore.getPlaceholderImage('Venue')}" class="w-12 h-12 rounded-xl object-cover border border-stone-200 shadow-sm shrink-0" onerror="this.src=window.appStore.getPlaceholderImage('Venue')">
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="font-display text-lg font-bold text-stone-900">${hall.name}</h3>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold ${hall.status === 'LIVE' ? 'bg-emerald-100 text-emerald-800' : (hall.status === 'SUSPENDED' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800')}">
+                    ${hall.status}
+                  </span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isPaid ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-stone-200 text-stone-700'}">
+                    ${isPaid ? '★ PREMIUM SHOWCASE' : 'DIRECTORY TIER (UNPAID)'}
+                  </span>
+                </div>
+                <p class="text-xs text-stone-500 mt-0.5">${hall.city}, ${hall.area || ''} • ID: <span class="font-mono">${hall.id}</span></p>
+              </div>
+            </div>
+            <button onclick="AdminDashboardView.closeModal()" class="p-1.5 rounded-full text-stone-500 hover:bg-stone-200 transition-colors">
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
+
+          <!-- Modal Scrollable Body -->
+          <div class="p-6 overflow-y-auto space-y-6 text-xs text-stone-700 flex-1">
+            
+            <!-- Quick Actions Toolbar -->
+            <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-2 flex-wrap">
+                <a href="${customerUrl}" target="_blank" class="px-3.5 py-2 bg-primary hover:bg-stone-800 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 transition-colors shadow-sm">
+                  <span>Open Live Customer Listing</span>
+                  <span class="material-symbols-outlined text-[15px]">open_in_new</span>
+                </a>
+                <button onclick="AdminDashboardView.closeModal(); AdminDashboardView.openReviewModal('${hall.id}')" class="px-3.5 py-2 bg-stone-200 hover:bg-stone-300 text-stone-900 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-colors">
+                  <span class="material-symbols-outlined text-[15px]">fact_check</span>
+                  <span>Full Audit & Inspection</span>
+                </button>
+              </div>
+
+              <!-- Tier Action Button -->
+              <div>
+                ${!isPaid ? `
+                  <button onclick="AdminDashboardView.promptUpgradeToPremium('${hall.id}')" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors">
+                    <span class="material-symbols-outlined text-[16px]">star</span>
+                    <span>Upgrade to Premium Showcase</span>
+                  </button>
+                ` : `
+                  <button onclick="AdminDashboardView.promptDowngradeToBasic('${hall.id}')" class="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 rounded-lg font-semibold text-xs transition-colors">
+                    Revert to Basic Directory
+                  </button>
+                `}
+              </div>
+            </div>
+
+            <!-- Venue Specifications & Capacity -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 text-center">
+                <span class="text-[10px] uppercase font-bold text-stone-400 block">Seating</span>
+                <span class="font-bold text-base text-stone-900">${hall.seating_capacity || 0}</span>
+                <span class="text-[10px] text-stone-500 block">Seats</span>
+              </div>
+              <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 text-center">
+                <span class="text-[10px] uppercase font-bold text-stone-400 block">Floating Max</span>
+                <span class="font-bold text-base text-stone-900">${hall.maximum_capacity || 0}</span>
+                <span class="text-[10px] text-stone-500 block">Guests</span>
+              </div>
+              <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 text-center">
+                <span class="text-[10px] uppercase font-bold text-stone-400 block">Floor Area</span>
+                <span class="font-bold text-base text-stone-900">${(hall.size_sqft || 0).toLocaleString()}</span>
+                <span class="text-[10px] text-stone-500 block">sq ft</span>
+              </div>
+              <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 text-center">
+                <span class="text-[10px] uppercase font-bold text-stone-400 block">Pricing Starts</span>
+                <span class="font-bold text-base text-stone-900">₹${(hall.pricing?.morning || 60000).toLocaleString()}</span>
+                <span class="text-[10px] text-stone-500 block">per shift</span>
+              </div>
+            </div>
+
+            <!-- Location & Contact -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-stone-900 text-xs flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[16px] text-secondary">location_on</span> Venue Address
+                  </span>
+                  <a href="https://maps.google.com/?q=${hall.latitude || 13.2172},${hall.longitude || 74.9966}" target="_blank" class="text-secondary font-bold text-[11px] hover:underline flex items-center gap-0.5">
+                    <span>Google Maps</span>
+                    <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                  </a>
+                </div>
+                <div class="text-stone-800">${hall.address || `${hall.area || ''}, ${hall.city}, Karnataka`}</div>
+                <div class="text-[11px] text-stone-500">Coordinates: ${hall.latitude || 13.2172}° N, ${hall.longitude || 74.9966}° E</div>
+              </div>
+
+              <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
+                <span class="font-bold text-stone-900 text-xs flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[16px] text-secondary">contact_phone</span> Venue Host / Proprietor
+                </span>
+                <div class="font-semibold text-stone-900">${hall.contact?.owner_name || 'Registered Host'}</div>
+                <div class="flex items-center justify-between pt-1">
+                  <span class="font-mono text-xs text-stone-800 font-bold">${hall.contact?.phone || 'N/A'}</span>
+                  <div class="flex items-center gap-1.5">
+                    ${hall.contact?.phone ? `
+                      <a href="tel:${hall.contact.phone}" class="p-1.5 rounded-md bg-white border border-stone-300 hover:bg-stone-100 text-stone-800 transition-colors" title="Call Host">
+                        <span class="material-symbols-outlined text-[15px]">call</span>
+                      </a>
+                      <a href="https://wa.me/${hall.contact.phone.replace(/[^0-9]/g, '')}" target="_blank" class="p-1.5 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white transition-colors" title="WhatsApp Host">
+                        <span class="material-symbols-outlined text-[15px]">chat</span>
+                      </a>
+                    ` : ''}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Description -->
+            ${hall.description ? `
+              <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-1.5">
+                <span class="font-bold text-stone-900 text-xs">Venue Description</span>
+                <p class="text-stone-600 leading-relaxed whitespace-pre-line">${hall.description}</p>
+              </div>
+            ` : ''}
+
+            <!-- Facilities & Registered Amenities -->
+            <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
+              <span class="font-bold text-stone-900 text-xs">Registered Amenities & Facilities</span>
+              <div class="flex flex-wrap gap-1.5 pt-1">
+                ${Array.isArray(hall.facilities) && hall.facilities.length > 0 
+                  ? hall.facilities.map(f => `<span class="px-2.5 py-1 rounded-md bg-white border border-stone-200 text-stone-800 text-[11px] font-medium">${f}</span>`).join('') 
+                  : '<span class="text-stone-400 italic">No specific facilities registered.</span>'}
+              </div>
+            </div>
+
+            <!-- Photos Preview -->
+            ${images.length > 0 ? `
+              <div class="space-y-2">
+                <span class="font-bold text-stone-900 text-xs">Uploaded Photos (${images.length})</span>
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  ${images.map(img => {
+                    const src = typeof img === 'object' ? img.url : img;
+                    return `
+                      <div class="aspect-square rounded-lg overflow-hidden border border-stone-200 bg-stone-100">
+                        <img src="${src}" class="w-full h-full object-cover" onerror="this.src=window.appStore.getPlaceholderImage('Venue')">
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="p-4 px-6 bg-stone-50 border-t border-stone-200 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-2">
+              ${hall.status === 'LIVE' ? `
+                <button onclick="AdminDashboardView.suspendListing('${hall.id}'); AdminDashboardView.closeModal();" class="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold rounded-lg transition-colors">
+                  Suspend Venue
+                </button>
+              ` : `
+                <button onclick="AdminDashboardView.restoreListing('${hall.id}'); AdminDashboardView.closeModal();" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition-colors">
+                  Restore to LIVE
+                </button>
+              `}
+              <button onclick="AdminDashboardView.deleteListing('${hall.id}'); AdminDashboardView.closeModal();" class="px-3 py-1.5 text-rose-700 hover:bg-rose-50 text-xs font-bold rounded-lg transition-colors">
+                Delete Listing
+              </button>
+            </div>
+            <button onclick="AdminDashboardView.closeModal()" class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-bold rounded-lg transition-colors">
+              Close
+            </button>
+          </div>
+
+        </div>
+      </div>
+    `;
+  },
+
+  promptUpgradeToPremium(hallId) {
+    const hall = window.appStore.getHallById(hallId);
+    if (!hall) return;
+
+    const receipt = prompt(`Upgrade "${hall.name}" to Premium Showcase?\n\nEnter Payment / Transaction Receipt Reference (e.g. UPI Ref, Cheque, or Cash Receipt):`, `REC-${Date.now().toString().slice(-6)}`);
+    if (receipt === null) return;
+
+    const notes = prompt('Enter any administrative notes (optional):', 'Listing fee paid offline / field verification');
+    
+    window.appStore.upgradeHallToPremium(hallId, receipt, notes || '');
+    if (window.Toast) {
+      Toast.success('Upgraded to Premium Showcase! 🌟', `"${hall.name}" has been upgraded to Premium Showcase. All features restored.`);
+    }
+    
+    this.setTab(this.currentTab);
+    const modal = document.getElementById('modal-container');
+    if (modal && modal.innerHTML.trim() !== '') {
+      this.openVenueInspectionModal(hallId);
+    }
+  },
+
+  promptDowngradeToBasic(hallId) {
+    const hall = window.appStore.getHallById(hallId);
+    if (!hall) return;
+
+    if (!confirm(`Revert "${hall.name}" to Directory Tier (Basic / Unpaid)?\n\nThis will restrict photos to basic directory mode.`)) return;
+
+    window.appStore.downgradeHallToBasic(hallId);
+    if (window.Toast) {
+      Toast.info('Tier Updated', `"${hall.name}" has been moved to Directory Tier.`);
+    }
+    this.setTab(this.currentTab);
+    const modal = document.getElementById('modal-container');
+    if (modal && modal.innerHTML.trim() !== '') {
+      this.openVenueInspectionModal(hallId);
+    }
+  },
+
+  suspendFromReport(reportId, hallId) {
+    if (!confirm('Are you sure you want to suspend this venue listing and resolve the safety complaint?')) return;
+    
+    const success = window.appStore.suspendHall(hallId, 'Suspended by Super Admin due to customer safety complaint.');
+    window.appStore.resolveReport(reportId, 'Venue suspended by Super Admin due to customer safety complaint.');
+    
+    if (success) {
+      if (window.Toast) Toast.success('Venue Suspended', 'Venue listing has been suspended from customer search and complaint resolved.');
+    } else {
+      if (window.Toast) Toast.info('Complaint Resolved', 'Safety ticket marked as resolved.');
+    }
+    
+    this.setTab('reports');
   },
 
   closeModal() {

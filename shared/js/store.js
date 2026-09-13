@@ -1077,19 +1077,86 @@ class Store {
   }
 
   suspendHall(id, reason = 'Administrative review.') {
-    const hall = this.getHallById(id);
-    if (hall) {
-      this.updateHall(id, { status: 'SUSPENDED' });
-      this.addAuditLog('Hall Suspended', hall.name, `Suspended by Super Admin. Reason: ${reason}`);
+    let hall = this.getHallById(id);
+    if (!hall) {
+      const halls = this.getHalls();
+      hall = halls.find(h => h.id === id || h.name === id || (id && h.name.toLowerCase().includes(String(id).toLowerCase())));
     }
+    if (hall) {
+      this.updateHall(hall.id, { status: 'SUSPENDED' });
+      this.addAuditLog('Hall Suspended', hall.name, `Suspended by Super Admin. Reason: ${reason}`);
+      this.addNotification('Venue Suspended', `Your venue listing "${hall.name}" has been suspended: ${reason}`, '/owner/');
+      return true;
+    }
+    return false;
   }
 
   restoreHall(id) {
-    const hall = this.getHallById(id);
-    if (hall) {
-      this.updateHall(id, { status: 'LIVE' });
-      this.addAuditLog('Hall Restored', hall.name, 'Super Admin restored hall to LIVE status.');
+    let hall = this.getHallById(id);
+    if (!hall) {
+      const halls = this.getHalls();
+      hall = halls.find(h => h.id === id || h.name === id);
     }
+    if (hall) {
+      this.updateHall(hall.id, { status: 'LIVE' });
+      this.addAuditLog('Hall Restored', hall.name, 'Super Admin restored hall to LIVE status.');
+      this.addNotification('Venue Restored Live', `Your venue listing "${hall.name}" has been restored to LIVE status!`, '/owner/');
+      return true;
+    }
+    return false;
+  }
+
+  upgradeHallToPremium(id, receipt = '', notes = '') {
+    let hall = this.getHallById(id);
+    if (!hall) {
+      const halls = this.getHalls();
+      hall = halls.find(h => h.id === id || h.name === id);
+    }
+    if (!hall) return null;
+
+    const receiptCode = receipt ? receipt.trim() : `REC-${Date.now().toString().slice(-6)}`;
+    const updates = {
+      listing_tier: 'PREMIUM',
+      listing_fee_paid: true,
+      listing_fee_receipt: receiptCode,
+      status: hall.status === 'REJECTED' ? 'PENDING_APPROVAL' : hall.status
+    };
+
+    if (hall.saved_website && !hall.website) {
+      updates.website = hall.saved_website;
+    }
+
+    const updated = this.updateHall(hall.id, updates);
+    this.addAuditLog(
+      'Venue Upgraded to Premium',
+      hall.name,
+      `Listing fee confirmed paid. Receipt: ${receiptCode}. Full Showcase features unlocked.${notes ? ' Note: ' + notes : ''}`
+    );
+    this.addNotification(
+      'Upgraded to Premium Showcase! 🌟',
+      `Payment confirmed! Your venue "${hall.name}" has been upgraded to Premium Showcase. Full photo gallery, live calendar holds, and official website are now active for customers!`,
+      '/owner/'
+    );
+    return updated;
+  }
+
+  downgradeHallToBasic(id, reason = 'Listing fee expired or unpaid.') {
+    let hall = this.getHallById(id);
+    if (!hall) return null;
+
+    const updates = {
+      listing_tier: 'BASIC',
+      listing_fee_paid: false
+    };
+
+    const updated = this.updateHall(hall.id, updates);
+    this.addAuditLog('Venue Downgraded to Basic', hall.name, `Downgraded to Directory tier. Reason: ${reason}`);
+    this.addNotification(
+      'Listing Tier Changed',
+      `Your venue "${hall.name}" has been placed in Directory Tier. Please contact admin to renew Premium showcase.`,
+      '/owner/'
+    );
+    return updated;
   }
 
   // --- Bookings State & Cloud Firestore Real-time Sync ---
