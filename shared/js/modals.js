@@ -1863,6 +1863,311 @@ const Modals = {
     if (window.OwnerRouter) {
       window.OwnerRouter.handleRoute();
     }
+  },
+
+  // --- Owner Date Range Blockout Modal ---
+  openBlockRangeModal(hallId, defaultDate = '') {
+    this.init();
+    const hall = window.appStore.getHallById(hallId) || window.appStore.getHalls()[0];
+    if (!hall) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const startDate = defaultDate || today;
+
+    const container = document.getElementById('modal-container');
+    container.innerHTML = `
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
+        <div class="bg-surface-container-lowest max-w-lg w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden">
+          
+          <div class="p-6 pb-4 border-b border-surface-container bg-surface-container-low flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="w-9 h-9 rounded-xl bg-error/10 text-error flex items-center justify-center">
+                <span class="material-symbols-outlined text-[20px]">block</span>
+              </span>
+              <div>
+                <span class="font-label-sm text-[11px] font-bold text-error uppercase tracking-widest">Date Blockout</span>
+                <h3 class="font-headline-sm text-base font-bold text-on-surface">${hall.name}</h3>
+              </div>
+            </div>
+            <button onclick="Modals.close()" class="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
+
+          <form class="p-6 space-y-4" onsubmit="event.preventDefault(); Modals.submitBlockRange('${hall.id}')">
+            <p class="text-xs text-on-surface-variant leading-relaxed">
+              Block availability for maintenance, family functions, or offline reservations. Blocked slots will appear unavailable to prospective guests on the customer site.
+            </p>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Start Date *</label>
+                <input type="date" id="blk-start" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-semibold focus:border-secondary outline-none" value="${startDate}" min="${today}" required>
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">End Date *</label>
+                <input type="date" id="blk-end" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-semibold focus:border-secondary outline-none" value="${startDate}" min="${startDate}" required>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Shifts to Block *</label>
+              <select id="blk-shift" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-semibold focus:border-secondary outline-none">
+                <option value="all" selected>All Shifts (Full Day Blockout)</option>
+                <option value="Morning">Morning (7AM - 2PM) Only</option>
+                <option value="Afternoon">Afternoon (12PM - 4PM) Only</option>
+                <option value="Evening">Evening (4PM - 11PM) Only</option>
+                <option value="Night">Night (7PM - 1AM) Only</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Reason for Blockout *</label>
+              <input type="text" id="blk-reason" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-semibold focus:border-secondary outline-none" placeholder="e.g. Annual Maintenance & Painting" value="Proprietor Maintenance" required>
+              <div class="flex items-center gap-1.5 flex-wrap mt-2">
+                <span class="text-[10px] text-on-surface-variant font-medium">Suggestions:</span>
+                ${['Annual Maintenance', 'Private Family Event', 'VIP Booking Hold', 'Deep Cleaning & Audio Overhaul'].map(s => `
+                  <button type="button" onclick="document.getElementById('blk-reason').value = '${s}'" class="text-[10px] px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant transition-colors border border-outline">
+                    ${s}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="pt-2 flex items-center justify-end gap-2 border-t border-surface-container">
+              <button type="button" onclick="Modals.close()" class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:bg-surface-container rounded-lg">
+                Cancel
+              </button>
+              <button type="submit" class="px-5 py-2.5 bg-error text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md hover:bg-error/90 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px]">lock</span>
+                <span>Confirm Blockout</span>
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    `;
+  },
+
+  submitBlockRange(hallId) {
+    const start = document.getElementById('blk-start')?.value;
+    const end = document.getElementById('blk-end')?.value;
+    const shift = document.getElementById('blk-shift')?.value || 'all';
+    const reason = document.getElementById('blk-reason')?.value?.trim() || 'Proprietor Blockout';
+
+    if (!start || !end) {
+      Toast.error('Dates Required', 'Please select both start and end dates.');
+      return;
+    }
+    if (new Date(end) < new Date(start)) {
+      Toast.error('Invalid Date Range', 'End date cannot be earlier than start date.');
+      return;
+    }
+
+    window.appStore.blockDateRange(start, end, reason, hallId, shift);
+    this.close();
+    Toast.success('Dates Blocked', `Availability blocked from ${start} to ${end}.`);
+
+    if (window.OwnerDashboardView) {
+      const container = document.getElementById('app-content');
+      if (container) container.innerHTML = window.OwnerDashboardView.render();
+    }
+  },
+
+  // --- Owner Peak / Festival Tariff Modal ---
+  openPeakPricingModal(hallId, defaultDate = '') {
+    this.init();
+    const hall = window.appStore.getHallById(hallId) || window.appStore.getHalls()[0];
+    if (!hall) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const startDate = defaultDate || today;
+
+    const container = document.getElementById('modal-container');
+    container.innerHTML = `
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
+        <div class="bg-surface-container-lowest max-w-lg w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden">
+          
+          <div class="p-6 pb-4 border-b border-surface-container bg-surface-container-low flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                <span class="material-symbols-outlined text-[20px]">trending_up</span>
+              </span>
+              <div>
+                <span class="font-label-sm text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest">Surge & Peak Pricing</span>
+                <h3 class="font-headline-sm text-base font-bold text-on-surface">${hall.name}</h3>
+              </div>
+            </div>
+            <button onclick="Modals.close()" class="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
+
+          <form class="p-6 space-y-4" onsubmit="event.preventDefault(); Modals.submitPeakPricing('${hall.id}')">
+            <p class="text-xs text-on-surface-variant leading-relaxed">
+              Configure premium festival rates, auspicious wedding muhurat surge, or seasonal holiday tariffs across specific date windows.
+            </p>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Start Date *</label>
+                <input type="date" id="pk-start" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-semibold focus:border-secondary outline-none" value="${startDate}" min="${today}" required>
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">End Date *</label>
+                <input type="date" id="pk-end" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-semibold focus:border-secondary outline-none" value="${startDate}" min="${startDate}" required>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Rate Surge Multiplier *</label>
+              <div class="grid grid-cols-3 gap-2">
+                <label class="p-2.5 rounded-xl border border-surface-container bg-surface-container-low hover:bg-surface-container cursor-pointer flex flex-col items-center text-center">
+                  <input type="radio" name="pk-mult" value="1.15" class="sr-only peer">
+                  <span class="font-bold text-sm text-on-surface peer-checked:text-secondary">+15%</span>
+                  <span class="text-[10px] text-on-surface-variant">High Season</span>
+                </label>
+                <label class="p-2.5 rounded-xl border border-secondary bg-secondary-fixed/30 cursor-pointer flex flex-col items-center text-center">
+                  <input type="radio" name="pk-mult" value="1.25" class="sr-only peer" checked>
+                  <span class="font-bold text-sm text-secondary font-black">+25%</span>
+                  <span class="text-[10px] text-secondary font-semibold">Auspicious</span>
+                </label>
+                <label class="p-2.5 rounded-xl border border-surface-container bg-surface-container-low hover:bg-surface-container cursor-pointer flex flex-col items-center text-center">
+                  <input type="radio" name="pk-mult" value="1.50" class="sr-only peer">
+                  <span class="font-bold text-sm text-on-surface peer-checked:text-secondary">+50%</span>
+                  <span class="text-[10px] text-on-surface-variant">Festival / NYE</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="p-3 bg-surface-container-low rounded-xl border border-outline text-xs text-on-surface-variant">
+              💡 The updated tariff will be displayed directly on the customer storefront calendar and applied to all incoming hold deposits.
+            </div>
+
+            <div class="pt-2 flex items-center justify-end gap-2 border-t border-surface-container">
+              <button type="button" onclick="Modals.close()" class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:bg-surface-container rounded-lg">
+                Cancel
+              </button>
+              <button type="submit" class="px-5 py-2.5 bg-secondary text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md hover:bg-secondary/90 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px]">price_check</span>
+                <span>Apply Peak Tariff</span>
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    `;
+  },
+
+  submitPeakPricing(hallId) {
+    const start = document.getElementById('pk-start')?.value;
+    const end = document.getElementById('pk-end')?.value;
+    const multEl = document.querySelector('input[name="pk-mult"]:checked');
+    const multiplier = multEl ? parseFloat(multEl.value) : 1.25;
+
+    if (!start || !end) {
+      Toast.error('Dates Required', 'Please select both start and end dates.');
+      return;
+    }
+    if (new Date(end) < new Date(start)) {
+      Toast.error('Invalid Date Range', 'End date cannot be earlier than start date.');
+      return;
+    }
+
+    window.appStore.setPeakTariffRange(start, end, multiplier, hallId);
+    this.close();
+    Toast.success('Peak Tariff Applied', `Set ${Math.round((multiplier - 1) * 100)}% surge for ${start} to ${end}.`);
+
+    if (window.OwnerDashboardView) {
+      const container = document.getElementById('app-content');
+      if (container) container.innerHTML = window.OwnerDashboardView.render();
+    }
+  },
+
+  // --- Owner Date Range Unblock Modal ---
+  openUnblockRangeModal(hallId, defaultDate = '') {
+    this.init();
+    const hall = window.appStore.getHallById(hallId) || window.appStore.getHalls()[0];
+    if (!hall) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const startDate = defaultDate || today;
+
+    const container = document.getElementById('modal-container');
+    container.innerHTML = `
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
+        <div class="bg-surface-container-lowest max-w-lg w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden">
+          
+          <div class="p-6 pb-4 border-b border-surface-container bg-surface-container-low flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="w-9 h-9 rounded-xl bg-status-available-bg text-status-available flex items-center justify-center">
+                <span class="material-symbols-outlined text-[20px]">lock_open</span>
+              </span>
+              <div>
+                <span class="font-label-sm text-[11px] font-bold text-status-available uppercase tracking-widest">Restore Availability</span>
+                <h3 class="font-headline-sm text-base font-bold text-on-surface">${hall.name}</h3>
+              </div>
+            </div>
+            <button onclick="Modals.close()" class="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
+
+          <form class="p-6 space-y-4" onsubmit="event.preventDefault(); Modals.submitUnblockRange('${hall.id}')">
+            <p class="text-xs text-on-surface-variant leading-relaxed">
+              Remove blockouts and restore standard open availability on the customer website for this date window.
+            </p>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Start Date *</label>
+                <input type="date" id="ubk-start" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-semibold focus:border-secondary outline-none" value="${startDate}" min="${today}" required>
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">End Date *</label>
+                <input type="date" id="ubk-end" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-semibold focus:border-secondary outline-none" value="${startDate}" min="${startDate}" required>
+              </div>
+            </div>
+
+            <div class="pt-2 flex items-center justify-end gap-2 border-t border-surface-container">
+              <button type="button" onclick="Modals.close()" class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:bg-surface-container rounded-lg">
+                Cancel
+              </button>
+              <button type="submit" class="px-5 py-2.5 bg-status-available text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md hover:bg-status-available/90 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                <span>Restore Availability</span>
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    `;
+  },
+
+  submitUnblockRange(hallId) {
+    const start = document.getElementById('ubk-start')?.value;
+    const end = document.getElementById('ubk-end')?.value;
+
+    if (!start || !end) {
+      Toast.error('Dates Required', 'Please select both start and end dates.');
+      return;
+    }
+    if (new Date(end) < new Date(start)) {
+      Toast.error('Invalid Date Range', 'End date cannot be earlier than start date.');
+      return;
+    }
+
+    window.appStore.unblockDateRange(start, end, hallId, 'all');
+    this.close();
+    Toast.success('Availability Restored', `Unlocked dates from ${start} to ${end}.`);
+
+    if (window.OwnerDashboardView) {
+      const container = document.getElementById('app-content');
+      if (container) container.innerHTML = window.OwnerDashboardView.render();
+    }
   }
 };
 

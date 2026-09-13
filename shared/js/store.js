@@ -1218,22 +1218,54 @@ class Store {
     return raw ? JSON.parse(raw) : getInitialSlotMatrix();
   }
 
-  updateSlotStatus(date, slotName, newStatus, hallId = null) {
+  // Helper to get effective slot matrix for a specific hall and date
+  getHallDateMatrix(hallId, date) {
     const matrix = this.getSlotMatrix();
-    if (!matrix[date]) {
-      matrix[date] = {
-        'Morning': { status: 'available', price: 85000 },
-        'Afternoon': { status: 'available', price: 60000 },
-        'Evening': { status: 'available', price: 95000 },
-        'Night': { status: 'available', price: 75000 },
-        'Full Day': { status: 'available', price: 210000 }
-      };
+    const hallKey = hallId ? `${hallId}__${date}` : null;
+    if (hallKey && matrix[hallKey]) {
+      return matrix[hallKey];
     }
-    // normalize slotName if needed (e.g., 'Morning (7AM - 2PM)' -> 'Morning')
-    const key = Object.keys(matrix[date]).find(k => slotName.toLowerCase().startsWith(k.toLowerCase())) || slotName;
-    if (matrix[date][key]) {
-      matrix[date][key].status = newStatus;
-      if (hallId) matrix[date][key].hall_id = hallId;
+    if (matrix[date]) {
+      return matrix[date];
+    }
+    const hall = hallId ? this.getHallById(hallId) : null;
+    const p = hall?.pricing || { morning: 85000, afternoon: 60000, evening: 95000, night: 75000, full_day: 210000 };
+    return {
+      'Morning': { status: 'available', price: p.morning || 85000 },
+      'Afternoon': { status: 'available', price: p.afternoon || 60000 },
+      'Evening': { status: 'available', price: p.evening || 95000 },
+      'Night': { status: 'available', price: p.night || 75000 },
+      'Full Day': { status: 'available', price: p.full_day || 210000 }
+    };
+  }
+
+  updateSlotStatus(date, slotName, newStatus, hallId = null, reason = '') {
+    const matrix = this.getSlotMatrix();
+    const storageKey = hallId ? `${hallId}__${date}` : date;
+    if (!matrix[storageKey]) {
+      matrix[storageKey] = JSON.parse(JSON.stringify(this.getHallDateMatrix(hallId, date)));
+    }
+    const key = Object.keys(matrix[storageKey]).find(k => slotName.toLowerCase().startsWith(k.toLowerCase())) || slotName;
+    if (matrix[storageKey][key]) {
+      matrix[storageKey][key].status = newStatus;
+      if (reason) matrix[storageKey][key].reason = reason;
+      if (hallId) matrix[storageKey][key].hall_id = hallId;
+    }
+    localStorage.setItem('venueluxe_slot_matrix', JSON.stringify(matrix));
+    window.dispatchEvent(new CustomEvent('slotMatrixUpdated', { detail: matrix }));
+  }
+
+  setCustomSlotPrice(date, slotName, newPrice, hallId = null) {
+    const matrix = this.getSlotMatrix();
+    const storageKey = hallId ? `${hallId}__${date}` : date;
+    if (!matrix[storageKey]) {
+      matrix[storageKey] = JSON.parse(JSON.stringify(this.getHallDateMatrix(hallId, date)));
+    }
+    const key = Object.keys(matrix[storageKey]).find(k => slotName.toLowerCase().startsWith(k.toLowerCase())) || slotName;
+    if (matrix[storageKey][key]) {
+      matrix[storageKey][key].price = Number(newPrice);
+      matrix[storageKey][key].isCustomPrice = true;
+      if (hallId) matrix[storageKey][key].hall_id = hallId;
     }
     localStorage.setItem('venueluxe_slot_matrix', JSON.stringify(matrix));
     window.dispatchEvent(new CustomEvent('slotMatrixUpdated', { detail: matrix }));
@@ -1241,24 +1273,118 @@ class Store {
 
   toggleSlotMaintenance(date, slotName, hallId = null) {
     const matrix = this.getSlotMatrix();
-    if (!matrix[date]) {
-      matrix[date] = {
-        'Morning': { status: 'available', price: 85000 },
-        'Afternoon': { status: 'available', price: 60000 },
-        'Evening': { status: 'available', price: 95000 },
-        'Night': { status: 'available', price: 75000 },
-        'Full Day': { status: 'available', price: 210000 }
-      };
+    const storageKey = hallId ? `${hallId}__${date}` : date;
+    if (!matrix[storageKey]) {
+      matrix[storageKey] = JSON.parse(JSON.stringify(this.getHallDateMatrix(hallId, date)));
     }
-    const key = Object.keys(matrix[date]).find(k => slotName.toLowerCase().startsWith(k.toLowerCase())) || slotName;
-    if (matrix[date][key]) {
-      const current = matrix[date][key].status;
-      matrix[date][key].status = (current === 'blocked') ? 'available' : 'blocked';
-      if (hallId) matrix[date][key].hall_id = hallId;
+    const key = Object.keys(matrix[storageKey]).find(k => slotName.toLowerCase().startsWith(k.toLowerCase())) || slotName;
+    if (matrix[storageKey][key]) {
+      const current = matrix[storageKey][key].status;
+      matrix[storageKey][key].status = (current === 'blocked') ? 'available' : 'blocked';
+      if (matrix[storageKey][key].status === 'blocked') {
+        matrix[storageKey][key].reason = 'Proprietor Maintenance';
+      } else {
+        delete matrix[storageKey][key].reason;
+      }
+      if (hallId) matrix[storageKey][key].hall_id = hallId;
     }
     localStorage.setItem('venueluxe_slot_matrix', JSON.stringify(matrix));
     window.dispatchEvent(new CustomEvent('slotMatrixUpdated', { detail: matrix }));
-    return matrix[date][key]?.status;
+    return matrix[storageKey][key]?.status;
+  }
+
+  blockDateRange(startDate, endDate, reason = 'Maintenance / Private Function', hallId = null, shiftKey = 'all') {
+    const matrix = this.getSlotMatrix();
+    const start = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
+    const cur = new Date(start);
+
+    while (cur <= end) {
+      const dateStr = cur.toISOString().split('T')[0];
+      const storageKey = hallId ? `${hallId}__${dateStr}` : dateStr;
+      if (!matrix[storageKey]) {
+        matrix[storageKey] = JSON.parse(JSON.stringify(this.getHallDateMatrix(hallId, dateStr)));
+      }
+      if (shiftKey === 'all') {
+        Object.keys(matrix[storageKey]).forEach(k => {
+          matrix[storageKey][k].status = 'blocked';
+          matrix[storageKey][k].reason = reason;
+          if (hallId) matrix[storageKey][k].hall_id = hallId;
+        });
+      } else {
+        const k = Object.keys(matrix[storageKey]).find(key => shiftKey.toLowerCase().startsWith(key.toLowerCase())) || shiftKey;
+        if (matrix[storageKey][k]) {
+          matrix[storageKey][k].status = 'blocked';
+          matrix[storageKey][k].reason = reason;
+          if (hallId) matrix[storageKey][k].hall_id = hallId;
+        }
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    localStorage.setItem('venueluxe_slot_matrix', JSON.stringify(matrix));
+    window.dispatchEvent(new CustomEvent('slotMatrixUpdated', { detail: matrix }));
+    return true;
+  }
+
+  unblockDateRange(startDate, endDate, hallId = null, shiftKey = 'all') {
+    const matrix = this.getSlotMatrix();
+    const start = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
+    const cur = new Date(start);
+
+    while (cur <= end) {
+      const dateStr = cur.toISOString().split('T')[0];
+      const storageKey = hallId ? `${hallId}__${dateStr}` : dateStr;
+      if (matrix[storageKey]) {
+        if (shiftKey === 'all') {
+          Object.keys(matrix[storageKey]).forEach(k => {
+            if (matrix[storageKey][k].status === 'blocked') {
+              matrix[storageKey][k].status = 'available';
+              delete matrix[storageKey][k].reason;
+            }
+          });
+        } else {
+          const k = Object.keys(matrix[storageKey]).find(key => shiftKey.toLowerCase().startsWith(key.toLowerCase())) || shiftKey;
+          if (matrix[storageKey][k] && matrix[storageKey][k].status === 'blocked') {
+            matrix[storageKey][k].status = 'available';
+            delete matrix[storageKey][k].reason;
+          }
+        }
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    localStorage.setItem('venueluxe_slot_matrix', JSON.stringify(matrix));
+    window.dispatchEvent(new CustomEvent('slotMatrixUpdated', { detail: matrix }));
+    return true;
+  }
+
+  setPeakTariffRange(startDate, endDate, multiplier = 1.25, hallId = null) {
+    const matrix = this.getSlotMatrix();
+    const start = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
+    const cur = new Date(start);
+
+    while (cur <= end) {
+      const dateStr = cur.toISOString().split('T')[0];
+      const storageKey = hallId ? `${hallId}__${dateStr}` : dateStr;
+      if (!matrix[storageKey]) {
+        matrix[storageKey] = JSON.parse(JSON.stringify(this.getHallDateMatrix(hallId, dateStr)));
+      }
+      Object.keys(matrix[storageKey]).forEach(k => {
+        const basePrice = matrix[storageKey][k].price || 75000;
+        matrix[storageKey][k].price = Math.round((basePrice * multiplier) / 500) * 500;
+        matrix[storageKey][k].isPeak = true;
+        matrix[storageKey][k].surgeMultiplier = multiplier;
+        if (hallId) matrix[storageKey][k].hall_id = hallId;
+      });
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    localStorage.setItem('venueluxe_slot_matrix', JSON.stringify(matrix));
+    window.dispatchEvent(new CustomEvent('slotMatrixUpdated', { detail: matrix }));
+    return true;
   }
 
   // --- Reviews State ---

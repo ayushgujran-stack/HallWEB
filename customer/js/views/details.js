@@ -109,8 +109,7 @@ const DetailsView = {
     const p = hall.pricing || { morning: 85000, afternoon: 60000, evening: 95000, night: 75000, full_day: 210000 };
     const allBookings = window.appStore ? window.appStore.getBookings() : [];
     const hallBookings = allBookings.filter(b => b.hall_id === hall.id && b.date === dateStr && b.status !== 'CANCELLED' && b.status !== 'REJECTED');
-    const slotMatrix = window.appStore ? window.appStore.getSlotMatrix() : {};
-    const dateMatrix = slotMatrix[dateStr] || {};
+    const dateMatrix = window.appStore ? window.appStore.getHallDateMatrix(hall.id, dateStr) : {};
 
     const standardSlots = [
       { key: 'Morning', name: 'Morning (7AM - 2PM)', short: 'Morning', hours: '7:00 AM – 2:00 PM', defaultPrice: p.morning || 85000 },
@@ -123,13 +122,17 @@ const DetailsView = {
     return standardSlots.map(s => {
       const bookingMatch = hallBookings.find(b => b.slot && (b.slot === s.name || b.slot.toLowerCase().startsWith(s.key.toLowerCase())));
       let status = 'available';
+      let reason = '';
       if (bookingMatch) {
         status = (bookingMatch.status === 'APPROVED' || bookingMatch.status === 'CONFIRMED') ? 'booked' : 'pending';
       } else if (dateMatrix[s.key] && dateMatrix[s.key].status) {
         status = dateMatrix[s.key].status;
+        reason = dateMatrix[s.key].reason || '';
       }
 
       const price = (dateMatrix[s.key] && dateMatrix[s.key].price) || s.defaultPrice;
+      const isPeak = Boolean(dateMatrix[s.key] && dateMatrix[s.key].isPeak);
+
       return {
         name: s.name,
         key: s.key,
@@ -137,6 +140,8 @@ const DetailsView = {
         hours: s.hours,
         price,
         status,
+        reason,
+        isPeak,
         booking: bookingMatch || null
       };
     });
@@ -238,19 +243,25 @@ const DetailsView = {
               const availCount = slots.filter(s => s.status === 'available').length;
               const bookedCount = slots.filter(s => s.status === 'booked').length;
               const pendingCount = slots.filter(s => s.status === 'pending').length;
+              const blockedCount = slots.filter(s => s.status === 'blocked').length;
+              const hasPeak = slots.some(s => s.isPeak);
 
               let statusBadge = '';
-              if (availCount === 5) {
+              let dotClass = 'bg-status-available';
+
+              if (blockedCount === 5) {
+                statusBadge = `<span class="hidden sm:inline-block px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-slate-200 text-slate-700 border border-slate-300">Blocked</span>`;
+                dotClass = 'bg-slate-400';
+              } else if (availCount === 5) {
                 statusBadge = `<span class="hidden sm:inline-block px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-status-available-bg text-status-available border border-status-available-border">5 Open</span>`;
+                dotClass = 'bg-status-available';
               } else if (availCount === 0) {
                 statusBadge = `<span class="hidden sm:inline-block px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-status-error-bg text-status-error border border-status-error-border">Sold Out</span>`;
+                dotClass = 'bg-status-error';
               } else {
                 statusBadge = `<span class="hidden sm:inline-block px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-status-pending-bg text-status-pending border border-status-pending-border">${availCount} Open</span>`;
+                dotClass = 'bg-status-pending';
               }
-
-              let dotClass = 'bg-status-available';
-              if (availCount === 0) dotClass = 'bg-status-error';
-              else if (availCount < 5) dotClass = 'bg-status-pending';
 
               return `
                 <div 
@@ -311,16 +322,21 @@ const DetailsView = {
                         <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white' : 'bg-status-available'}"></span>
                       ` : (s.status === 'pending' ? `
                         <span class="w-2 h-2 rounded-full bg-status-pending"></span>
+                      ` : (s.status === 'blocked' ? `
+                        <span class="w-2 h-2 rounded-full bg-slate-400"></span>
                       ` : `
                         <span class="w-2 h-2 rounded-full bg-status-error"></span>
-                      `)}
+                      `))}
                     </div>
                     <p class="text-[11px] ${isSelected ? 'text-white/80' : 'text-on-surface-variant'}">${s.hours}</p>
                   </div>
 
                   <div class="pt-2.5 mt-2 border-t ${isSelected ? 'border-white/20' : 'border-outline'} flex items-center justify-between">
                     <div>
-                      <div class="text-[10px] ${isSelected ? 'text-white/80' : 'text-on-surface-variant'} uppercase font-bold">Tariff</div>
+                      <div class="text-[10px] ${isSelected ? 'text-white/80' : 'text-on-surface-variant'} uppercase font-bold flex items-center gap-1">
+                        <span>Tariff</span>
+                        ${s.isPeak ? `<span class="px-1 py-0.2 rounded bg-amber-500/20 text-amber-600 dark:text-amber-300 text-[8px] font-black border border-amber-500/30">PEAK</span>` : ''}
+                      </div>
                       <div class="font-bold text-xs ${isSelected ? 'text-white font-extrabold' : 'text-secondary'}">₹${s.price.toLocaleString('en-IN')}</div>
                     </div>
 
@@ -337,11 +353,15 @@ const DetailsView = {
                         <span class="px-2 py-0.5 rounded-full bg-status-pending-bg text-status-pending text-[10px] font-bold border border-status-pending-border">
                           Pending
                         </span>
+                      ` : (s.status === 'blocked' ? `
+                        <span class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-bold border border-slate-300" title="${s.reason || 'Blocked by venue'}">
+                          Blocked
+                        </span>
                       ` : `
                         <span class="px-2 py-0.5 rounded-full bg-status-error-bg text-status-error text-[10px] font-bold border border-status-error-border">
                           Booked
                         </span>
-                      `))}
+                      `)))}
                     </div>
                   </div>
 
@@ -1070,6 +1090,9 @@ const DetailsView = {
       notes,
       amount: this.selectedPrice
     });
+
+    // Immediately refresh calendar so pending slot turns yellow
+    this.refreshCalendar();
 
     // Directly open booking confirmation modal with owner contact details!
     Modals.openBookingSuccessModal(newBooking, hall);

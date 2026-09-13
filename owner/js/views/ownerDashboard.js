@@ -1,7 +1,79 @@
 // Hall Owner Operational Dashboard
-// Refined luxury host workspace with separated overview/operations, responsive stepper, and stacked mobile cards
+// Luxury host workspace with multi-hall switcher, interactive year-round availability calendar,
+// custom date range blockouts, peak surge tariffs, and customer hold approval ledger.
 
 const OwnerDashboardView = {
+  activeHallId: null,
+  calendarYear: new Date().getFullYear(),
+  calendarMonth: new Date().getMonth(),
+  selectedDate: new Date().toISOString().split('T')[0],
+  bookingFilter: 'all', // 'all' or 'active'
+
+  switchActiveHall(hallId) {
+    this.activeHallId = hallId;
+    const container = document.getElementById('app-content');
+    if (container) container.innerHTML = this.render();
+  },
+
+  changeMonth(delta) {
+    this.calendarMonth += delta;
+    if (this.calendarMonth < 0) {
+      this.calendarMonth = 11;
+      this.calendarYear -= 1;
+    } else if (this.calendarMonth > 11) {
+      this.calendarMonth = 0;
+      this.calendarYear += 1;
+    }
+    const container = document.getElementById('app-content');
+    if (container) container.innerHTML = this.render();
+  },
+
+  setMonthYear(month, year) {
+    this.calendarMonth = parseInt(month, 10);
+    this.calendarYear = parseInt(year, 10);
+    const container = document.getElementById('app-content');
+    if (container) container.innerHTML = this.render();
+  },
+
+  selectDate(dateStr) {
+    this.selectedDate = dateStr;
+    const container = document.getElementById('app-content');
+    if (container) container.innerHTML = this.render();
+  },
+
+  jumpToDate(dateStr) {
+    if (!dateStr) return;
+    this.selectedDate = dateStr;
+    const d = new Date(dateStr + 'T00:00:00');
+    if (!isNaN(d.getTime())) {
+      this.calendarYear = d.getFullYear();
+      this.calendarMonth = d.getMonth();
+    }
+    const container = document.getElementById('app-content');
+    if (container) container.innerHTML = this.render();
+  },
+
+  toggleShift(dateStr, shiftKey) {
+    const currentStatus = window.appStore.toggleSlotMaintenance(dateStr, shiftKey, this.activeHallId);
+    Toast.info('Shift Updated', `${shiftKey} on ${dateStr} is now ${currentStatus.toUpperCase()}.`);
+    const container = document.getElementById('app-content');
+    if (container) container.innerHTML = this.render();
+  },
+
+  saveShiftTariff(dateStr, shiftKey) {
+    const inputEl = document.getElementById(`tariff-input-${shiftKey}`);
+    if (!inputEl) return;
+    const newPrice = Number(inputEl.value);
+    if (!newPrice || newPrice <= 0) {
+      Toast.error('Invalid Tariff', 'Please enter a valid price amount in ₹.');
+      return;
+    }
+    window.appStore.setCustomSlotPrice(dateStr, shiftKey, newPrice, this.activeHallId);
+    Toast.success('Tariff Updated', `Set ${shiftKey} tariff to ₹${newPrice.toLocaleString('en-IN')} on ${dateStr}.`);
+    const container = document.getElementById('app-content');
+    if (container) container.innerHTML = this.render();
+  },
+
   render() {
     const currentUser = (window.Auth && window.Auth.getCurrentUser()) || window.appStore.getOwnerUser();
     const halls = window.appStore.getHalls();
@@ -13,15 +85,23 @@ const OwnerDashboardView = {
       myHalls = halls.filter(h => h.owner_id === 'owner-1' || !h.owner_id);
     }
 
-    const bookings = window.appStore.getBookings();
+    if (!this.activeHallId || !myHalls.some(h => h.id === this.activeHallId)) {
+      this.activeHallId = myHalls[0]?.id || 'hall-1';
+    }
+    const currentHall = myHalls.find(h => h.id === this.activeHallId) || myHalls[0] || {};
+
+    const allBookings = window.appStore.getBookings();
+    const myBookings = allBookings.filter(b => myHalls.some(h => h.id === b.hall_id));
+    const activeHallBookings = allBookings.filter(b => b.hall_id === currentHall.id);
+    const displayedBookings = (this.bookingFilter === 'active') ? activeHallBookings : myBookings;
+
     const liveHalls = myHalls.filter(h => h.status === 'LIVE');
     const pendingHalls = myHalls.filter(h => h.status === 'PENDING_APPROVAL');
-    const pendingBookings = bookings.filter(b => b.status === 'PENDING');
-    const approvedBookings = bookings.filter(b => b.status === 'APPROVED' || b.status === 'CONFIRMED');
+    const pendingBookings = myBookings.filter(b => b.status === 'PENDING');
+    const approvedBookings = myBookings.filter(b => b.status === 'APPROVED' || b.status === 'CONFIRMED');
     const totalGross = approvedBookings.reduce((sum, b) => sum + (b.amount || 75000), 0);
-    const firstHall = myHalls[0] || {};
 
-    // Build a set of already-approved hall+date+slot combos for conflict detection
+    // Conflict detection helper
     const approvedSlotKeys = new Set(
       approvedBookings.map(b => `${b.hall_id}__${b.date}__${b.slot}`)
     );
@@ -29,41 +109,82 @@ const OwnerDashboardView = {
 
     const displayName = currentUser.business_name || (currentUser.name ? `${currentUser.name}'s Host Portfolio` : 'Regal Horizons Hospitality Group');
 
+    // Calendar Calculations
+    const year = this.calendarYear;
+    const month = this.calendarMonth;
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const monthName = monthNames[month];
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    // Selected Date Details
+    const selectedDateObj = new Date(this.selectedDate + 'T00:00:00');
+    const selectedDateFormatted = isNaN(selectedDateObj.getTime()) ? this.selectedDate : selectedDateObj.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    const dateMatrix = window.appStore.getHallDateMatrix(currentHall.id, this.selectedDate);
+    const shiftDefs = [
+      { key: 'Morning', name: 'Morning (7AM - 2PM)', short: 'Morning', hours: '7:00 AM – 2:00 PM' },
+      { key: 'Afternoon', name: 'Afternoon (12PM - 4PM)', short: 'Afternoon', hours: '12:00 PM – 4:00 PM' },
+      { key: 'Evening', name: 'Evening (4PM - 11PM)', short: 'Evening', hours: '4:00 PM – 11:00 PM' },
+      { key: 'Night', name: 'Night (7PM - 1AM)', short: 'Night', hours: '7:00 PM – 1:00 AM' },
+      { key: 'Full Day', name: 'Full Day (24 Hours)', short: 'Full Day', hours: '24 Hours Venue Hold' }
+    ];
+
     return `
       <div class="flex flex-col w-full min-h-[calc(100vh-5rem)] bg-surface py-6 md:py-8">
         <div class="max-w-[1360px] mx-auto px-gutter-mobile md:px-gutter-desktop w-full space-y-6 md:space-y-8">
           
-          <!-- SECTION 1: OVERVIEW & HEADER -->
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-lowest p-6 rounded-xl border border-outline shadow-sm">
+          <!-- SECTION 1: HEADER & MULTI-HALL SWITCHER -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-lowest p-6 rounded-2xl border border-outline shadow-sm">
             <div class="space-y-1">
               <div class="flex items-center gap-2">
                 <span class="font-label-sm text-xs uppercase tracking-widest text-secondary font-bold">Owner Workspace</span>
-                <span class="text-xs text-on-surface-variant">• Verified Host</span>
+                <span class="text-xs text-on-surface-variant">• Verified Host Portfolio</span>
               </div>
               <h1 class="font-headline-lg text-2xl md:text-3xl text-on-surface tracking-tight font-serif font-bold">
                 ${displayName}
               </h1>
               <p class="font-body-md text-xs md:text-sm text-on-surface-variant max-w-2xl leading-relaxed">
-                Manage your banquet halls, calendar availability, shift tariffs, and incoming customer booking requests.
+                Central command for managing banquets, full-year calendar availability, seasonal tariffs, and customer booking approvals.
               </p>
             </div>
 
-            <div class="flex items-center gap-2.5 flex-wrap">
-              <button class="flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-label-md text-xs uppercase tracking-wider rounded-lg hover:bg-inverse-surface shadow-sm transition-all font-bold" onclick="Modals.openAddHallWizard()">
-                <span class="material-symbols-outlined text-[18px]">add_circle</span>
-                <span>Add New Hall</span>
+            <!-- Multi-Hall Switcher & Actions -->
+            <div class="flex items-center gap-3 flex-wrap">
+              
+              <!-- Luxury Venue Switcher -->
+              <div class="flex items-center gap-2 bg-surface-container-low p-1.5 rounded-xl border border-outline shadow-inner">
+                <span class="material-symbols-outlined text-[18px] text-secondary pl-1.5">apartment</span>
+                <span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider hidden sm:inline">Active Venue:</span>
+                <select onchange="OwnerDashboardView.switchActiveHall(this.value)" class="bg-surface-container-lowest text-xs font-bold text-on-surface py-1.5 px-3 rounded-lg border border-outline cursor-pointer shadow-sm outline-none focus:border-secondary">
+                  ${myHalls.map(h => `
+                    <option value="${h.id}" ${h.id === currentHall.id ? 'selected' : ''}>
+                      ${h.name} • ${h.status === 'LIVE' ? '🟢 Live' : '🟡 Audit'}
+                    </option>
+                  `).join('')}
+                </select>
+              </div>
+
+              <button class="flex items-center gap-1.5 px-4 py-2.5 bg-primary text-white font-label-md text-xs uppercase tracking-wider rounded-xl hover:bg-inverse-surface shadow-sm transition-all font-bold" onclick="Modals.openAddHallWizard()">
+                <span class="material-symbols-outlined text-[17px]">add_circle</span>
+                <span>Add Venue</span>
               </button>
-              <a href="/admin/" class="flex items-center gap-2 px-3.5 py-2.5 bg-surface-container text-on-surface font-label-md text-xs uppercase tracking-wider rounded-lg border border-outline hover:bg-surface-container-high transition-all font-semibold no-underline">
-                <span class="material-symbols-outlined text-[16px]">admin_panel_settings</span>
-                <span>Admin Panel</span>
-              </a>
             </div>
           </div>
 
-          <!-- KPI Metric Cards: Actionable Items Highlighted -->
+          <!-- KPI Metric Cards -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             
-            <!-- Actionable: New Requests -->
+            <!-- Actionable: Pending Holds -->
             <div class="bg-secondary-fixed p-4 md:p-5 rounded-xl border border-secondary/20 shadow-sm flex flex-col justify-between">
               <div class="flex items-center justify-between text-on-secondary-fixed mb-2">
                 <span class="font-label-sm text-[11px] uppercase tracking-wider font-bold">Action Needed: New Holds</span>
@@ -71,114 +192,343 @@ const OwnerDashboardView = {
               </div>
               <div>
                 <div class="font-display-lg text-2xl md:text-3xl font-bold text-on-secondary-fixed">${pendingBookings.length}</div>
-                <p class="font-body-sm text-xs text-on-secondary-fixed font-medium mt-0.5">Customer holds waiting for review</p>
+                <p class="font-body-sm text-xs text-on-secondary-fixed font-medium mt-0.5">Awaiting host approval</p>
               </div>
             </div>
 
-            <!-- Actionable: Under Review -->
-            <div class="bg-status-pending-bg p-4 md:p-5 rounded-xl border border-status-pending-border shadow-sm flex flex-col justify-between">
-              <div class="flex items-center justify-between text-status-pending mb-2">
-                <span class="font-label-sm text-[11px] uppercase tracking-wider font-bold">Under Review</span>
-                <span class="material-symbols-outlined text-[20px]">hourglass_top</span>
-              </div>
-              <div>
-                <div class="font-display-lg text-2xl md:text-3xl font-bold text-status-pending">${pendingHalls.length}</div>
-                <p class="font-body-sm text-xs text-status-pending font-medium mt-0.5">Pending admin audit</p>
-              </div>
-            </div>
-
-            <!-- Live Halls -->
+            <!-- Published Properties -->
             <div class="bg-surface-container-lowest p-4 md:p-5 rounded-xl border border-outline shadow-sm flex flex-col justify-between">
               <div class="flex items-center justify-between text-on-surface-variant mb-2">
-                <span class="font-label-sm text-[11px] uppercase tracking-wider font-bold">Published Halls</span>
+                <span class="font-label-sm text-[11px] uppercase tracking-wider font-bold">Published Venues</span>
                 <span class="material-symbols-outlined text-[20px] text-tertiary">check_circle</span>
               </div>
               <div>
-                <div class="font-display-lg text-2xl md:text-3xl font-bold text-on-surface">${liveHalls.length}</div>
-                <p class="font-body-sm text-xs text-on-surface-variant mt-0.5">${myHalls.length} Total registered properties</p>
+                <div class="font-display-lg text-2xl md:text-3xl font-bold text-on-surface">${liveHalls.length} / ${myHalls.length}</div>
+                <p class="font-body-sm text-xs text-on-surface-variant mt-0.5">Live on customer marketplace</p>
               </div>
             </div>
 
-            <!-- Confirmed Revenue -->
+            <!-- Confirmed Gross Revenue -->
             <div class="bg-surface-container-lowest p-4 md:p-5 rounded-xl border border-outline shadow-sm flex flex-col justify-between">
               <div class="flex items-center justify-between text-on-surface-variant mb-2">
-                <span class="font-label-sm text-[11px] uppercase tracking-wider font-bold">Approved Bookings</span>
+                <span class="font-label-sm text-[11px] uppercase tracking-wider font-bold">Confirmed Gross</span>
                 <span class="material-symbols-outlined text-[20px] text-secondary">trending_up</span>
               </div>
               <div>
                 <div class="font-display-lg text-2xl md:text-3xl font-bold text-on-surface">₹${Math.round(totalGross / 1000)}k</div>
-                <p class="font-body-sm text-xs text-on-surface-variant mt-0.5">${approvedBookings.length} Approved reservations</p>
+                <p class="font-body-sm text-xs text-on-surface-variant mt-0.5">${approvedBookings.length} Approved holds</p>
               </div>
             </div>
 
-          </div>
-
-          <!-- SECTION 2: OPERATIONS & ONBOARDING STEPPER -->
-          <div class="bg-surface-container-lowest p-5 md:p-6 rounded-xl border border-outline shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-outline">
-              <div>
-                <span class="font-label-sm text-xs uppercase tracking-wider text-secondary font-bold">Listing Status</span>
-                <h2 class="font-title-lg text-sm md:text-base font-bold text-on-surface">Hall Listing Progress</h2>
+            <!-- Active Venue Public Calendar Status -->
+            <div class="bg-surface-container-lowest p-4 md:p-5 rounded-xl border border-outline shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between text-on-surface-variant mb-2">
+                <span class="font-label-sm text-[11px] uppercase tracking-wider font-bold">${currentHall.name ? currentHall.name.substring(0, 16) + '...' : 'Venue'}</span>
+                <span class="material-symbols-outlined text-[20px] ${currentHall.public_availability ? 'text-status-available' : 'text-slate-400'}">event_available</span>
               </div>
-              <span class="text-xs text-on-surface-variant">Active Property: <strong>${firstHall.name || 'The Grand Monarch Palace'}</strong></span>
-            </div>
-
-            <!-- Responsive Step Indicator -->
-            <div class="overflow-x-auto pb-2 no-scrollbar">
-              <div class="flex items-center min-w-[700px] justify-between relative py-2">
-                <div class="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 w-full bg-surface-container z-0"></div>
-                ${[
-                  { step: 1, name: 'Basic Info', done: true },
-                  { step: 2, name: 'Dimensions', done: true },
-                  { step: 3, name: 'Facilities', done: true },
-                  { step: 4, name: 'Tariffs', done: true },
-                  { step: 5, name: 'Photos', done: true },
-                  { step: 6, name: 'Map Pin', done: true },
-                  { step: 7, name: 'Contact', done: true },
-                  { step: 8, name: 'Visibility', active: true },
-                  { step: 9, name: 'Verification', done: false }
-                ].map(s => `
-                  <div class="relative z-10 flex flex-col items-center cursor-pointer" onclick="Modals.openAddHallWizard()">
-                    <div class="w-7 h-7 rounded-full ${s.done ? 'bg-primary text-white' : (s.active ? 'bg-secondary text-white ring-4 ring-secondary-fixed' : 'bg-surface-container text-on-surface-variant')} flex items-center justify-center font-label-sm text-xs font-bold shadow-sm">
-                      ${s.done ? '<span class="material-symbols-outlined text-[14px]">check</span>' : s.step}
-                    </div>
-                    <span class="mt-1 font-label-sm text-[11px] font-semibold ${s.active ? 'text-secondary font-bold' : 'text-on-surface'}">${s.name}</span>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-
-            <!-- Public Availability Toggle Card (Clear Impact Explanation) -->
-            <div class="bg-surface-container-low p-4 rounded-xl border border-outline flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div class="space-y-0.5">
-                <p class="font-title-md text-xs md:text-sm font-bold text-on-surface">Show Public Availability Calendar</p>
-                <p class="font-body-sm text-xs text-on-surface-variant max-w-xl">
-                  When enabled, prospective guests can see open shifts and request instant holds. When disabled, dates are hidden and visitors must contact you directly.
-                </p>
-              </div>
-              <div class="shrink-0">
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" id="owner-public-toggle" class="sr-only peer" ${firstHall.public_availability ? 'checked' : ''} onchange="OwnerDashboardView.toggleHallPublicAvailability(this.checked)">
-                  <div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="font-bold text-sm text-on-surface">${currentHall.public_availability ? 'Public Calendar' : 'Private Calendar'}</div>
+                  <p class="text-[11px] text-on-surface-variant mt-0.5">${currentHall.public_availability ? 'Guests can hold slots' : 'Direct contact only'}</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input type="checkbox" class="sr-only peer" ${currentHall.public_availability ? 'checked' : ''} onchange="OwnerDashboardView.toggleHallPublicAvailability(this.checked, '${currentHall.id}')">
+                  <div class="w-10 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-secondary"></div>
                 </label>
               </div>
             </div>
+
           </div>
 
-          <!-- SECTION 3: INCOMING CUSTOMER REQUESTS -->
-          <div class="bg-surface-container-lowest p-5 md:p-6 rounded-xl border border-outline shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-outline">
+          <!-- SECTION 2: INTERACTIVE AVAILABILITY CALENDAR & TARIFF CONTROLS -->
+          <div class="bg-surface-container-lowest p-5 md:p-6 rounded-2xl border border-outline shadow-sm space-y-5" id="owner-calendar-section">
+            
+            <!-- Section Header & Venue Label -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-3 border-b border-outline">
               <div>
-                <span class="font-label-sm text-xs uppercase tracking-wider text-secondary font-bold">Booking Requests</span>
-                <h2 class="font-title-lg text-sm md:text-base font-bold text-on-surface">Customer Reservation Ledger</h2>
+                <div class="flex items-center gap-2">
+                  <span class="font-label-sm text-xs uppercase tracking-wider text-secondary font-bold">Venue Schedule & Tariffs</span>
+                  <span class="px-2 py-0.5 rounded-md bg-secondary-fixed/50 text-secondary text-[11px] font-bold">
+                    Managing: ${currentHall.name}
+                  </span>
+                </div>
+                <h2 class="font-headline-sm text-lg md:text-xl font-bold text-on-surface font-serif mt-0.5">
+                  Year-Round Availability & Rate Controls
+                </h2>
               </div>
-              <span class="text-xs text-on-surface-variant font-medium">${bookings.length} Total requests</span>
+
+              <!-- Quick Action Buttons -->
+              <div class="flex items-center gap-2 flex-wrap">
+                <button onclick="Modals.openBlockRangeModal('${currentHall.id}', '${this.selectedDate}')" class="px-3.5 py-2 bg-error/10 text-error hover:bg-error/20 border border-error/20 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all">
+                  <span class="material-symbols-outlined text-[16px]">lock</span>
+                  <span>Block Date Range</span>
+                </button>
+
+                <button onclick="Modals.openPeakPricingModal('${currentHall.id}', '${this.selectedDate}')" class="px-3.5 py-2 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 border border-amber-500/30 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all">
+                  <span class="material-symbols-outlined text-[16px]">trending_up</span>
+                  <span>Set Peak Tariff</span>
+                </button>
+
+                <button onclick="Modals.openUnblockRangeModal('${currentHall.id}', '${this.selectedDate}')" class="px-3 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all">
+                  <span class="material-symbols-outlined text-[16px]">lock_open</span>
+                  <span>Restore Range</span>
+                </button>
+              </div>
             </div>
 
-            ${bookings.length === 0 ? `
+            <!-- Calendar Navigation Toolbar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-container-low p-3.5 rounded-xl border border-outline">
+              <div class="flex items-center gap-2">
+                <button onclick="OwnerDashboardView.changeMonth(-1)" class="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline flex items-center justify-center text-on-surface hover:text-secondary transition-colors" title="Previous Month">
+                  <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                </button>
+                <div class="flex items-center gap-1.5">
+                  <select onchange="OwnerDashboardView.setMonthYear(this.value, ${year})" class="font-headline-sm text-sm font-bold text-on-surface bg-surface-container-lowest border border-outline rounded-lg py-1 px-2.5 cursor-pointer outline-none shadow-sm">
+                    ${monthNames.map((m, idx) => `
+                      <option value="${idx}" ${idx === month ? 'selected' : ''}>${m}</option>
+                    `).join('')}
+                  </select>
+                  <select onchange="OwnerDashboardView.setMonthYear(${month}, this.value)" class="font-headline-sm text-sm font-bold text-secondary bg-surface-container-lowest border border-outline rounded-lg py-1 px-2.5 cursor-pointer outline-none shadow-sm">
+                    ${[year - 1, year, year + 1, year + 2].map(y => `
+                      <option value="${y}" ${y === year ? 'selected' : ''}>${y}</option>
+                    `).join('')}
+                  </select>
+                </div>
+                <button onclick="OwnerDashboardView.changeMonth(1)" class="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline flex items-center justify-center text-on-surface hover:text-secondary transition-colors" title="Next Month">
+                  <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                </button>
+              </div>
+
+              <!-- Quick Jump & Legend -->
+              <div class="flex items-center gap-3 flex-wrap justify-between sm:justify-end">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider hidden md:inline">Jump:</span>
+                  <input type="date" value="${this.selectedDate}" onchange="OwnerDashboardView.jumpToDate(this.value)" class="text-xs p-1.5 rounded-lg border border-outline bg-surface-container-lowest text-on-surface font-semibold focus:border-secondary outline-none shadow-sm cursor-pointer" title="Pick any date across the whole year">
+                </div>
+                <div class="flex items-center gap-2 text-[11px]">
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-status-available"></span> Open</span>
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-status-pending"></span> Pending</span>
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-status-error"></span> Approved</span>
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span> Blocked</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Month Calendar Grid -->
+            <div class="bg-surface-container-lowest p-3 sm:p-4 rounded-xl border border-outline overflow-hidden shadow-sm">
+              <!-- Weekday Headers -->
+              <div class="grid grid-cols-7 gap-1 text-center font-bold text-[11px] text-on-surface-variant pb-2 border-b border-outline uppercase tracking-wider">
+                <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+              </div>
+
+              <!-- Day Cells -->
+              <div class="grid grid-cols-7 gap-1 pt-2">
+                ${Array.from({ length: firstDayIndex }).map(() => `
+                  <div class="min-h-[55px] sm:min-h-[65px] p-1 bg-surface-container-low/20 rounded-lg border border-transparent opacity-30"></div>
+                `).join('')}
+
+                ${Array.from({ length: daysInMonth }).map((_, idx) => {
+                  const dayNum = idx + 1;
+                  const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                  const isSelected = (this.selectedDate === dateStr);
+                  const isToday = (dateStr === todayStr);
+
+                  const dayMatrix = window.appStore.getHallDateMatrix(currentHall.id, dateStr);
+                  const dayBookings = allBookings.filter(b => b.hall_id === currentHall.id && b.date === dateStr && b.status !== 'CANCELLED' && b.status !== 'REJECTED');
+                  
+                  let blockedCount = 0;
+                  let bookedCount = 0;
+                  let pendingCount = 0;
+                  let hasPeak = false;
+
+                  shiftDefs.forEach(s => {
+                    const match = dayBookings.find(b => b.slot && (b.slot === s.name || b.slot.toLowerCase().startsWith(s.key.toLowerCase())));
+                    if (match) {
+                      if (match.status === 'APPROVED' || match.status === 'CONFIRMED') bookedCount++;
+                      else if (match.status === 'PENDING') pendingCount++;
+                    } else if (dayMatrix[s.key]?.status === 'blocked') {
+                      blockedCount++;
+                    }
+                    if (dayMatrix[s.key]?.isPeak) hasPeak = true;
+                  });
+
+                  const availCount = Math.max(0, 5 - (blockedCount + bookedCount + pendingCount));
+
+                  let statusBadge = '';
+                  let dotClass = 'bg-status-available';
+
+                  if (blockedCount === 5) {
+                    statusBadge = `<span class="hidden sm:inline-block px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-slate-200 text-slate-700 border border-slate-300">Blocked</span>`;
+                    dotClass = 'bg-slate-400';
+                  } else if (pendingCount > 0) {
+                    statusBadge = `<span class="hidden sm:inline-block px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-status-pending-bg text-status-pending border border-status-pending-border">${pendingCount} Pending</span>`;
+                    dotClass = 'bg-status-pending';
+                  } else if (availCount === 0) {
+                    statusBadge = `<span class="hidden sm:inline-block px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-status-error-bg text-status-error border border-status-error-border">Full</span>`;
+                    dotClass = 'bg-status-error';
+                  } else {
+                    statusBadge = `<span class="hidden sm:inline-block px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-status-available-bg text-status-available border border-status-available-border">${availCount} Open</span>`;
+                    dotClass = 'bg-status-available';
+                  }
+
+                  return `
+                    <div 
+                      onclick="OwnerDashboardView.selectDate('${dateStr}')" 
+                      class="min-h-[55px] sm:min-h-[65px] p-1.5 rounded-lg border transition-all cursor-pointer flex flex-col justify-between ${
+                        isSelected 
+                          ? 'bg-secondary-fixed/50 border-secondary ring-2 ring-secondary shadow-md scale-[1.02] z-10' 
+                          : 'bg-surface-container-low hover:bg-surface-container border-outline/70 hover:border-outline'
+                      }">
+                      <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold ${isSelected ? 'text-secondary font-black' : (isToday ? 'text-primary underline font-black' : 'text-on-surface')}">
+                          ${dayNum}
+                        </span>
+                        <div class="flex items-center gap-1">
+                          ${hasPeak ? `<span class="text-[8px] font-bold text-amber-600 bg-amber-100 px-1 rounded">P</span>` : ''}
+                          <span class="w-1.5 h-1.5 rounded-full ${dotClass}"></span>
+                        </div>
+                      </div>
+                      <div class="mt-0.5">
+                        ${statusBadge}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- Shift Inspector & Rate Editor for Selected Date -->
+            <div class="bg-surface-container-low p-5 rounded-xl border border-outline space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-outline">
+                <div>
+                  <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Shift Inspector & Rate Editor</span>
+                  <h3 class="font-headline-sm text-base font-bold text-on-surface font-serif">
+                    ${selectedDateFormatted}
+                  </h3>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="Modals.openBlockRangeModal('${currentHall.id}', '${this.selectedDate}')" class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-xs font-bold rounded-lg border border-outline">
+                    Block Full Day
+                  </button>
+                </div>
+              </div>
+
+              <!-- 5 Shifts List with Live Toggle and Custom Price Input -->
+              <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                ${shiftDefs.map(s => {
+                  const dayBookings = allBookings.filter(b => b.hall_id === currentHall.id && b.date === this.selectedDate && b.status !== 'CANCELLED' && b.status !== 'REJECTED');
+                  const bookingMatch = dayBookings.find(b => b.slot && (b.slot === s.name || b.slot.toLowerCase().startsWith(s.key.toLowerCase())));
+                  
+                  const slotConfig = dateMatrix[s.key] || { status: 'available', price: 75000 };
+                  let effectiveStatus = slotConfig.status;
+                  if (bookingMatch) {
+                    effectiveStatus = (bookingMatch.status === 'APPROVED' || bookingMatch.status === 'CONFIRMED') ? 'booked' : 'pending';
+                  }
+
+                  const isBlocked = (effectiveStatus === 'blocked');
+                  const isBooked = (effectiveStatus === 'booked');
+                  const isPending = (effectiveStatus === 'pending');
+                  const isAvail = (effectiveStatus === 'available');
+
+                  return `
+                    <div class="p-3.5 bg-surface-container-lowest rounded-xl border border-outline flex flex-col justify-between space-y-3 shadow-sm">
+                      <div>
+                        <div class="flex items-center justify-between mb-1">
+                          <span class="font-bold text-xs uppercase tracking-wider text-on-surface">${s.short}</span>
+                          ${isAvail ? `
+                            <span class="px-2 py-0.5 rounded-full bg-status-available-bg text-status-available text-[10px] font-bold">Open</span>
+                          ` : (isPending ? `
+                            <span class="px-2 py-0.5 rounded-full bg-status-pending-bg text-status-pending text-[10px] font-bold animate-pulse">Pending</span>
+                          ` : (isBooked ? `
+                            <span class="px-2 py-0.5 rounded-full bg-status-error-bg text-status-error text-[10px] font-bold">Approved</span>
+                          ` : `
+                            <span class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-bold">Blocked</span>
+                          `))}
+                        </div>
+                        <p class="text-[11px] text-on-surface-variant">${s.hours}</p>
+
+                        <!-- Pending / Approved Booking Info Box -->
+                        ${bookingMatch ? `
+                          <div class="mt-2 p-2 bg-secondary-fixed/30 rounded-lg border border-secondary/20 text-[11px] space-y-1">
+                            <div class="font-bold text-on-surface flex items-center justify-between">
+                              <span>${bookingMatch.customer_name}</span>
+                              <a href="https://wa.me/${bookingMatch.customer_phone ? bookingMatch.customer_phone.replace(/[^0-9]/g, '') : ''}" target="_blank" class="text-secondary hover:underline flex items-center gap-0.5">
+                                <span class="material-symbols-outlined text-[13px]">chat</span>
+                              </a>
+                            </div>
+                            <div class="text-on-surface-variant">${bookingMatch.guests} guests • ${bookingMatch.event_type}</div>
+                            ${isPending ? `
+                              <div class="pt-1 flex items-center gap-1.5">
+                                <button onclick="OwnerDashboardView.approveBooking('${bookingMatch.id}')" class="w-full py-1 bg-tertiary text-white font-bold text-[10px] rounded hover:bg-tertiary/90">
+                                  Approve
+                                </button>
+                                <button onclick="OwnerDashboardView.rejectBooking('${bookingMatch.id}')" class="w-full py-1 bg-surface-container text-error font-bold text-[10px] rounded hover:bg-error-container">
+                                  Reject
+                                </button>
+                              </div>
+                            ` : ''}
+                          </div>
+                        ` : ''}
+                      </div>
+
+                      <!-- Shift Tariff Editor -->
+                      <div class="space-y-2 pt-2 border-t border-outline">
+                        <div>
+                          <div class="flex items-center justify-between text-[10px] text-on-surface-variant uppercase font-bold mb-1">
+                            <span>Shift Tariff</span>
+                            ${slotConfig.isPeak ? `<span class="text-amber-700 font-extrabold">+${Math.round(((slotConfig.surgeMultiplier || 1.25) - 1) * 100)}% Surge</span>` : ''}
+                          </div>
+                          <div class="flex items-center gap-1">
+                            <span class="text-xs font-bold text-on-surface">₹</span>
+                            <input type="number" id="tariff-input-${s.key}" value="${slotConfig.price || 75000}" step="1000" min="10000" class="w-full text-xs font-bold p-1 rounded border border-outline bg-surface-container-low text-on-surface outline-none focus:border-secondary">
+                            <button onclick="OwnerDashboardView.saveShiftTariff('${this.selectedDate}', '${s.key}')" class="p-1 rounded bg-secondary text-white hover:bg-secondary/90 text-[10px] font-bold" title="Save Tariff">
+                              <span class="material-symbols-outlined text-[14px]">save</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Toggle Shift Block/Unblock -->
+                        ${!isBooked && !isPending ? `
+                          <button onclick="OwnerDashboardView.toggleShift('${this.selectedDate}', '${s.key}')" class="w-full py-1.5 text-xs font-bold rounded-lg border transition-all ${
+                            isBlocked 
+                              ? 'bg-status-available-bg text-status-available border-status-available-border hover:bg-status-available-bg/80' 
+                              : 'bg-surface-container text-error border-outline hover:bg-error/10'
+                          }">
+                            ${isBlocked ? '🔓 Restore Shift' : '⛔ Block Shift'}
+                          </button>
+                        ` : ''}
+                      </div>
+
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SECTION 3: INCOMING CUSTOMER REQUESTS & HOLD APPROVALS -->
+          <div class="bg-surface-container-lowest p-5 md:p-6 rounded-2xl border border-outline shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-outline">
+              <div>
+                <span class="font-label-sm text-xs uppercase tracking-wider text-secondary font-bold">Booking Approvals</span>
+                <h2 class="font-headline-sm text-base md:text-lg font-bold text-on-surface">Customer Hold Requests</h2>
+              </div>
+              
+              <!-- Filter Dropdown -->
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-on-surface-variant font-medium">Filter:</span>
+                <select onchange="OwnerDashboardView.bookingFilter = this.value; const c = document.getElementById('app-content'); if(c) c.innerHTML = OwnerDashboardView.render();" class="text-xs font-bold p-1.5 rounded-lg border border-outline bg-surface-container-low text-on-surface outline-none">
+                  <option value="all" ${this.bookingFilter === 'all' ? 'selected' : ''}>All My Venues (${myBookings.length})</option>
+                  <option value="active" ${this.bookingFilter === 'active' ? 'selected' : ''}>Current: ${currentHall.name} (${activeHallBookings.length})</option>
+                </select>
+              </div>
+            </div>
+
+            ${displayedBookings.length === 0 ? `
               <div class="py-12 text-center bg-surface-container rounded-xl border border-dashed border-outline">
                 <span class="material-symbols-outlined text-[40px] text-on-surface-variant/40 mb-2 block">inbox</span>
-                <p class="text-xs text-on-surface-variant">No booking requests yet. They'll appear here when customers submit requests.</p>
+                <p class="text-xs text-on-surface-variant">No customer hold requests found for this filter. They'll appear here immediately when visitors hold slots.</p>
               </div>
             ` : `
               <!-- Desktop Table -->
@@ -188,15 +538,15 @@ const OwnerDashboardView = {
                     <tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-[11px] uppercase">
                       <th class="p-3 rounded-l-lg">Customer</th>
                       <th class="p-3">Venue</th>
-                      <th class="p-3">Event</th>
-                      <th class="p-3">Date & Shift</th>
-                      <th class="p-3">Guests</th>
+                      <th class="p-3">Event &amp; Guests</th>
+                      <th class="p-3">Date &amp; Shift</th>
+                      <th class="p-3">Tariff</th>
                       <th class="p-3">Status</th>
                       <th class="p-3 text-right rounded-r-lg">Actions</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-outline">
-                    ${bookings.map(b => {
+                    ${displayedBookings.map(b => {
                       const conflict = isConflict(b);
                       return `
                       <tr class="hover:bg-surface-container-low/50 transition-colors ${conflict ? 'bg-status-error-bg/20' : ''}">
@@ -214,9 +564,9 @@ const OwnerDashboardView = {
                           <div class="font-bold text-on-surface">${b.date}</div>
                           <div class="text-[11px] text-secondary font-semibold">${b.slot}</div>
                         </td>
-                        <td class="p-3 font-bold text-on-surface">${b.guests}</td>
+                        <td class="p-3 font-bold text-on-surface">₹${(b.amount || 75000).toLocaleString('en-IN')}</td>
                         <td class="p-3">
-                          ${conflict ? `<div class="mb-1 px-2 py-0.5 rounded-full bg-status-error-bg text-status-error text-[10px] font-bold border border-status-error-border flex items-center gap-1 w-max">⚠️ Slot Conflict</div>` : ''}
+                          ${conflict ? `<div class="mb-1 px-2 py-0.5 rounded-full bg-status-error-bg text-status-error text-[10px] font-bold border border-status-error-border flex items-center gap-1 w-max">⚠️ Conflict</div>` : ''}
                           ${b.status === 'APPROVED' || b.status === 'CONFIRMED' ? `
                             <span class="px-2.5 py-0.5 rounded-full bg-status-available-bg text-status-available text-[10px] font-bold flex items-center gap-1 w-max border border-status-available-border">
                               <span class="w-1.5 h-1.5 rounded-full bg-status-available"></span> Approved
@@ -226,8 +576,8 @@ const OwnerDashboardView = {
                               <span class="w-1.5 h-1.5 rounded-full bg-status-error"></span> Rejected
                             </span>
                           ` : `
-                            <span class="px-2.5 py-0.5 rounded-full bg-status-pending-bg text-status-pending text-[10px] font-bold flex items-center gap-1 w-max border border-status-pending-border">
-                              <span class="w-1.5 h-1.5 rounded-full bg-status-pending"></span> Pending
+                            <span class="px-2.5 py-0.5 rounded-full bg-status-pending-bg text-status-pending text-[10px] font-bold flex items-center gap-1 w-max border border-status-pending-border animate-pulse">
+                              <span class="w-1.5 h-1.5 rounded-full bg-status-pending"></span> Pending Approval
                             </span>
                           `)}
                         </td>
@@ -238,10 +588,10 @@ const OwnerDashboardView = {
                             </a>
 
                             ${b.status === 'PENDING' ? `
-                              <button class="px-3 py-1.5 bg-tertiary text-white rounded text-xs font-bold hover:bg-tertiary/90 transition-colors" onclick="OwnerDashboardView.approveBooking('${b.id}', ${conflict})">
-                                Approve
+                              <button class="px-3 py-1.5 bg-tertiary text-white rounded-lg text-xs font-bold hover:bg-tertiary/90 transition-colors shadow-sm" onclick="OwnerDashboardView.approveBooking('${b.id}', ${conflict})">
+                                Approve Hold
                               </button>
-                              <button class="px-2.5 py-1.5 bg-surface-container text-error hover:bg-error-container rounded text-xs font-bold transition-colors" onclick="OwnerDashboardView.rejectBooking('${b.id}')">
+                              <button class="px-2.5 py-1.5 bg-surface-container text-error hover:bg-error-container rounded-lg text-xs font-bold transition-colors" onclick="OwnerDashboardView.rejectBooking('${b.id}')">
                                 Reject
                               </button>
                             ` : `
@@ -255,9 +605,9 @@ const OwnerDashboardView = {
                 </table>
               </div>
 
-              <!-- Mobile Stacked Request Cards -->
+              <!-- Mobile Cards -->
               <div class="md:hidden space-y-3">
-                ${bookings.map(b => {
+                ${displayedBookings.map(b => {
                   const conflict = isConflict(b);
                   return `
                   <div class="p-4 rounded-xl border ${conflict ? 'border-status-error-border bg-status-error-bg/10' : 'border-outline bg-surface-container-low'} space-y-2.5">
@@ -281,16 +631,11 @@ const OwnerDashboardView = {
 
                     <div class="text-xs text-on-surface-variant space-y-1">
                       <div><strong>Venue:</strong> ${b.hall_name}</div>
-                      <div><strong>Date & Shift:</strong> ${b.date} • ${b.slot}</div>
+                      <div><strong>Date &amp; Shift:</strong> ${b.date} • ${b.slot}</div>
+                      <div><strong>Tariff:</strong> ₹${(b.amount || 75000).toLocaleString('en-IN')}</div>
                       <div><strong>Event:</strong> ${b.event_type} (${b.guests} guests)</div>
                       ${b.notes ? `<div><strong>Notes:</strong> ${b.notes}</div>` : ''}
                     </div>
-
-                    ${conflict && b.status === 'PENDING' ? `
-                      <div class="p-2 bg-status-error-bg rounded-lg border border-status-error-border text-[11px] text-status-error">
-                        ⚠️ This slot (${b.slot}, ${b.date}) is already approved for another customer. Proceeding will double-book this slot.
-                      </div>
-                    ` : ''}
 
                     <div class="pt-2 border-t border-outline flex items-center justify-between gap-2">
                       <a href="https://wa.me/${b.customer_phone ? b.customer_phone.replace(/[^0-9]/g, '') : ''}" target="_blank" class="p-2 rounded-lg bg-surface-container-lowest border border-outline text-on-surface flex items-center gap-1 text-xs font-semibold">
@@ -317,11 +662,11 @@ const OwnerDashboardView = {
           </div>
 
           <!-- SECTION 4: PROPERTY PORTFOLIO -->
-          <div class="bg-surface-container-lowest p-5 md:p-6 rounded-xl border border-outline shadow-sm space-y-4">
+          <div class="bg-surface-container-lowest p-5 md:p-6 rounded-2xl border border-outline shadow-sm space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-outline">
               <div>
-                <span class="font-label-sm text-xs uppercase tracking-wider text-secondary font-bold">Properties</span>
-                <h2 class="font-title-lg text-sm md:text-base font-bold text-on-surface">Registered Venue Holdings</h2>
+                <span class="font-label-sm text-xs uppercase tracking-wider text-secondary font-bold">Portfolio</span>
+                <h2 class="font-title-lg text-base md:text-lg font-bold text-on-surface">Your Registered Venues</h2>
               </div>
               <button class="px-3.5 py-2 bg-primary text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-inverse-surface" onclick="Modals.openAddHallWizard()">
                 + Register Another Venue
@@ -331,14 +676,21 @@ const OwnerDashboardView = {
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               ${myHalls.map(hall => {
                 const fallbackUrl = window.appStore.getPlaceholderImage(hall.name);
+                const isCurrent = (hall.id === currentHall.id);
+
                 return `
-                  <div class="p-4 rounded-xl border border-outline bg-surface-container-low space-y-3 flex flex-col justify-between">
+                  <div class="p-4 rounded-xl border transition-all ${isCurrent ? 'border-secondary ring-2 ring-secondary/40 bg-secondary-fixed/20' : 'border-outline bg-surface-container-low'} space-y-3 flex flex-col justify-between">
                     <div class="space-y-2">
                       <div class="relative aspect-video rounded-lg overflow-hidden bg-surface-container">
                         <img src="${hall.cover_image}" alt="${hall.name}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='${fallbackUrl}'" loading="lazy">
                         <span class="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold ${hall.status === 'LIVE' ? 'bg-status-available-bg text-status-available border border-status-available-border' : (hall.status === 'PENDING_APPROVAL' ? 'bg-status-pending-bg text-status-pending border border-status-pending-border' : 'bg-slate-700 text-white')}">
                           ${hall.status}
                         </span>
+                        ${isCurrent ? `
+                          <span class="absolute top-2 right-2 px-2 py-0.5 rounded bg-secondary text-white text-[10px] font-black shadow">
+                            Active
+                          </span>
+                        ` : ''}
                       </div>
 
                       <h3 class="font-title-md text-sm font-bold text-on-surface line-clamp-1">${hall.name}</h3>
@@ -353,11 +705,12 @@ const OwnerDashboardView = {
                     </div>
 
                     <div class="pt-2 flex items-center justify-between gap-2 border-t border-outline">
-                      <a href="#/hall/${hall.id}" class="text-xs text-primary font-bold hover:underline">
-                        View Public Page
+                      <a href="/customer/#/hall/${hall.id}" target="_blank" class="text-xs text-primary font-bold hover:underline flex items-center gap-0.5">
+                        <span>Customer View</span>
+                        <span class="material-symbols-outlined text-[14px]">open_in_new</span>
                       </a>
-                      <button class="px-3 py-1 bg-surface-container hover:bg-surface-container-high text-on-surface rounded text-xs font-bold" onclick="Modals.openAddHallWizard()">
-                        Edit Specs
+                      <button class="px-3 py-1 bg-surface-container hover:bg-surface-container-high text-on-surface rounded text-xs font-bold" onclick="OwnerDashboardView.switchActiveHall('${hall.id}')">
+                        ${isCurrent ? 'Selected' : 'Manage Calendar'}
                       </button>
                     </div>
                   </div>
@@ -399,12 +752,12 @@ const OwnerDashboardView = {
     if (container) container.innerHTML = this.render();
   },
 
-  toggleHallPublicAvailability(isPublic) {
-    const halls = window.appStore.getHalls();
-    const hall = halls[0];
-    if (hall) {
-      window.appStore.updateHall(hall.id, { public_availability: isPublic });
-      Toast.info('Visibility Updated', `Public calendar for "${hall.name}" is now ${isPublic ? 'PUBLIC' : 'PRIVATE'}.`);
+  toggleHallPublicAvailability(isPublic, hallId = null) {
+    const targetId = hallId || this.activeHallId;
+    if (targetId) {
+      window.appStore.updateHall(targetId, { public_availability: isPublic });
+      const hall = window.appStore.getHallById(targetId);
+      Toast.info('Visibility Updated', `Public calendar for "${hall?.name || 'Venue'}" is now ${isPublic ? 'PUBLIC' : 'PRIVATE'}.`);
     }
   }
 };
