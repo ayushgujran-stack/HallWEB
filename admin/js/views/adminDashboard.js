@@ -12,7 +12,8 @@ const AdminDashboardView = {
     const bookings = window.appStore.getBookings();
     const users = window.appStore.getUsers();
     const auditLogs = window.appStore.getAuditLogs();
-    const allReports = window.appStore.getReports();
+    const reports = window.appStore.getReports();
+    const allReports = reports;
     const openReports = allReports.filter(r => r.status !== 'RESOLVED');
     const resolvedReports = allReports.filter(r => r.status === 'RESOLVED');
 
