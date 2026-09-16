@@ -84,6 +84,23 @@ const Auth = {
     return false;
   },
 
+  async fetchCloudUser(uid, email) {
+    if (!window.fbDb) return null;
+    try {
+      if (uid) {
+        const doc = await window.fbDb.collection('users').doc(uid).get();
+        if (doc.exists) return doc.data();
+      }
+      if (email) {
+        const q = await window.fbDb.collection('users').where('email', '==', email.trim().toLowerCase()).limit(1).get();
+        if (!q.empty) return q.docs[0].data();
+      }
+    } catch (e) {
+      console.warn('[Firestore fetchCloudUser notice]:', e.message);
+    }
+    return null;
+  },
+
   upgradeToOwner(userId) {
     const accounts = this._getAccounts();
     const acc = accounts.find(a => a.id === userId);
@@ -92,7 +109,7 @@ const Auth = {
       this._saveAccounts(accounts);
     }
     const current = this.getCurrentUser();
-    if (current && current.id === userId) {
+    if (current && (current.id === userId || (current.email && acc && current.email.toLowerCase() === acc.email.toLowerCase()))) {
       current.role = 'owner';
       this._setSession(current);
     }
@@ -103,6 +120,17 @@ const Auth = {
         u.role = 'owner';
         localStorage.setItem('venueluxe_users', JSON.stringify(users));
       }
+    }
+    // Persist to Cloud Firestore so any device/browser recognizes this user as owner!
+    if (window.fbDb) {
+      const updateData = { role: 'owner' };
+      if (current?.email) updateData.email = current.email.toLowerCase();
+      if (current?.name) updateData.name = current.name;
+      window.fbDb.collection('users').doc(userId).set(updateData, { merge: true }).then(() => {
+        console.log('[Firestore] Synced owner role to cloud for uid:', userId);
+      }).catch(err => {
+        console.warn('[Firestore] Error syncing owner role:', err.message);
+      });
     }
     return true;
   },
@@ -251,15 +279,20 @@ const Auth = {
         const userCred = await window.fbAuth.signInWithEmailAndPassword(trimmedEmail, password);
         const fbUser = userCred.user;
 
+        const cloudUser = await this.fetchCloudUser(fbUser.uid, trimmedEmail);
         const accounts = this._getAccounts();
         const localAcc = accounts.find(a => a.email.toLowerCase() === trimmedEmail);
-        const isOwner = localAcc?.role === 'owner' || this.isOwnerUser({ id: fbUser.uid, email: trimmedEmail });
-        const isAdmin = localAcc?.role === 'admin' || this.isAdminUser({ id: fbUser.uid, email: trimmedEmail });
+        const isOwner = (cloudUser && cloudUser.role === 'owner') ||
+                        localAcc?.role === 'owner' || 
+                        this.isOwnerUser({ id: fbUser.uid, email: trimmedEmail });
+        const isAdmin = (cloudUser && cloudUser.role === 'admin') ||
+                        localAcc?.role === 'admin' || 
+                        this.isAdminUser({ id: fbUser.uid, email: trimmedEmail });
 
         const sessionUser = {
           id: fbUser.uid,
-          name: fbUser.displayName || (localAcc ? localAcc.name : trimmedEmail.split('@')[0]),
-          phone: fbUser.phoneNumber || (localAcc ? localAcc.phone : '+91 98450 12345'),
+          name: cloudUser?.name || fbUser.displayName || (localAcc ? localAcc.name : trimmedEmail.split('@')[0]),
+          phone: cloudUser?.phone || fbUser.phoneNumber || (localAcc ? localAcc.phone : '+91 98450 12345'),
           email: fbUser.email,
           role: isOwner ? 'owner' : (isAdmin ? 'admin' : 'customer')
         };
@@ -305,16 +338,25 @@ const Auth = {
       const result = await window.fbAuth.signInWithPopup(provider);
       const fbUser = result.user;
 
-      const isOwner = this.isOwnerUser({ id: fbUser.uid, email: fbUser.email });
-      const isAdmin = this.isAdminUser({ id: fbUser.uid, email: fbUser.email });
+      const cloudUser = await this.fetchCloudUser(fbUser.uid, fbUser.email);
+      const accounts = this._getAccounts();
+      const localAcc = accounts.find(a => a.email.toLowerCase() === fbUser.email?.toLowerCase());
 
+      const isOwner = (cloudUser && cloudUser.role === 'owner') ||
+                      localAcc?.role === 'owner' ||
+                      this.isOwnerUser({ id: fbUser.uid, email: fbUser.email });
+      const isAdmin = (cloudUser && cloudUser.role === 'admin') ||
+                      localAcc?.role === 'admin' ||
+                      this.isAdminUser({ id: fbUser.uid, email: fbUser.email });
+
+      const finalRole = isOwner ? 'owner' : (isAdmin ? 'admin' : 'customer');
       const sessionUser = {
         id: fbUser.uid,
-        name: fbUser.displayName || 'Google User',
-        phone: fbUser.phoneNumber || '+91 98000 00000',
+        name: cloudUser?.name || fbUser.displayName || 'Google User',
+        phone: cloudUser?.phone || fbUser.phoneNumber || '+91 98000 00000',
         email: fbUser.email,
         profile_image: fbUser.photoURL || '',
-        role: isOwner ? 'owner' : (isAdmin ? 'admin' : 'customer')
+        role: finalRole
       };
 
       if (window.fbDb) {
@@ -387,7 +429,7 @@ const Auth = {
 if (typeof window !== 'undefined') {
   window.addEventListener('load', () => {
     if (window.fbAuth && window.fbAuth.onAuthStateChanged) {
-      window.fbAuth.onAuthStateChanged((fbUser) => {
+      window.fbAuth.onAuthStateChanged(async (fbUser) => {
         if (fbUser) {
           const current = Auth.getCurrentUser();
           const path = window.location.pathname;
@@ -403,17 +445,32 @@ if (typeof window !== 'undefined') {
             return;
           }
 
-          if (!current || current.id !== fbUser.uid) {
-            const isOwner = Auth.isOwnerUser({ id: fbUser.uid, email: fbUser.email });
-            const isAdmin = Auth.isAdminUser({ id: fbUser.uid, email: fbUser.email });
-            Auth._setSession({
+          if (!current || current.id !== fbUser.uid || current.role !== 'owner') {
+            const cloudUser = await Auth.fetchCloudUser(fbUser.uid, fbUser.email);
+            const accounts = Auth._getAccounts();
+            const localAcc = accounts.find(a => a.email.toLowerCase() === fbUser.email?.toLowerCase());
+
+            const isOwner = (cloudUser && cloudUser.role === 'owner') ||
+                            localAcc?.role === 'owner' ||
+                            Auth.isOwnerUser({ id: fbUser.uid, email: fbUser.email });
+            const isAdmin = (cloudUser && cloudUser.role === 'admin') ||
+                            localAcc?.role === 'admin' ||
+                            Auth.isAdminUser({ id: fbUser.uid, email: fbUser.email });
+
+            const session = Auth._setSession({
               id: fbUser.uid,
-              name: fbUser.displayName || fbUser.email.split('@')[0],
+              name: cloudUser?.name || fbUser.displayName || fbUser.email.split('@')[0],
               email: fbUser.email,
-              phone: fbUser.phoneNumber || (current ? current.phone : '+91 98000 00000'),
+              phone: cloudUser?.phone || fbUser.phoneNumber || (current ? current.phone : '+91 98000 00000'),
               profile_image: fbUser.photoURL || (current ? current.profile_image : ''),
               role: isOwner ? 'owner' : (isAdmin ? 'admin' : 'customer')
             });
+
+            // If auto-logged in user is owner and currently visiting customer portal or root, route to owner dashboard!
+            if (session.role === 'owner' && (path === '/' || path === '/index.html' || path.includes('/customer'))) {
+              console.log('[Auto-Login] Owner detected across device. Directing to Owner Dashboard...');
+              window.location.href = '/owner/';
+            }
           }
         }
       });

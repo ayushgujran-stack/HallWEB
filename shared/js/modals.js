@@ -98,6 +98,16 @@ const Modals = {
   openAddHallWizard() {
     this.currentWizardStep = 1;
 
+    // Check if a saved draft exists from previous session
+    const savedDraft = sessionStorage.getItem('venueluxe_wizard_draft');
+    if (savedDraft) {
+      try {
+        this.wizardData = JSON.parse(savedDraft);
+        this.renderWizard();
+        return;
+      } catch (e) {}
+    }
+
     // Pre-fill contact from the currently signed-in user so the wizard starts with real data
     const authUser = window.Auth && window.Auth.getCurrentUser();
 
@@ -117,6 +127,7 @@ const Modals = {
       maximum_capacity: 1000,
       ac_status: 'Central AC (VRF)',
       indoor_outdoor: 'Indoor Auditorium',
+      catering_policy: 'both', // 'pure_veg', 'both', 'separate_kitchens'
       facilities: [],
       pricing: { morning: 0, afternoon: 0, evening: 0, night: 0, full_day: 0 },
       cover_image: '',
@@ -142,6 +153,18 @@ const Modals = {
     this.renderWizard();
   },
 
+  confirmCloseWizard() {
+    this.saveCurrentStepInputs();
+    const hasData = this.wizardData?.name || this.wizardData?.address || this.wizardData?.city;
+    if (hasData) {
+      if (confirm("Close venue onboarding? Your entered information is safely saved as a draft so you can resume anytime.")) {
+        this.close();
+      }
+    } else {
+      this.close();
+    }
+  },
+
   renderWizard() {
     this.init();
     const container = document.getElementById('modal-container');
@@ -159,19 +182,28 @@ const Modals = {
       'Review & Submit for Verification'
     ];
 
+    // NOTE: Backdrop does NOT close on outer click to prevent accidental dismissal when mouse touches borders
     container.innerHTML = `
-      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop">
         <div class="bg-surface-container-lowest max-w-3xl w-full rounded-2xl shadow-2xl overflow-hidden modal-content border border-surface-container flex flex-col max-h-[90vh]">
           
-          <!-- Stepper Header -->
-          <div class="p-6 bg-surface-container-low border-b border-surface-container shrink-0">
-            <div class="flex items-center justify-between mb-3">
-              <div>
-                <span class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-widest">Venue Onboarding Engine</span>
-                <h2 class="font-headline-sm text-xl font-bold text-on-surface">Step ${step} of 9: ${stepTitles[step - 1]}</h2>
+          <!-- Stepper Header with Top Back Arrow and X Close Mark -->
+          <div class="p-4 sm:p-6 bg-surface-container-low border-b border-surface-container shrink-0">
+            <div class="flex items-center justify-between mb-3 gap-2">
+              <div class="flex items-center gap-2 sm:gap-3">
+                ${step > 1 ? `
+                  <button type="button" onclick="Modals.prevWizardStep()" class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center gap-1 text-xs font-bold transition-all shadow-xs border border-outline/40 cursor-pointer" title="Go back to previous step">
+                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                    <span class="hidden sm:inline">Back</span>
+                  </button>
+                ` : ''}
+                <div>
+                  <span class="font-label-sm text-[10px] sm:text-[11px] font-bold text-secondary uppercase tracking-widest block">Venue Onboarding Engine</span>
+                  <h2 class="font-headline-sm text-base sm:text-xl font-bold text-on-surface">Step ${step} of 9: ${stepTitles[step - 1]}</h2>
+                </div>
               </div>
-              <button onclick="Modals.close()" class="p-1 rounded-full text-on-surface-variant hover:bg-surface-container">
-                <span class="material-symbols-outlined text-[20px]">close</span>
+              <button type="button" onclick="Modals.confirmCloseWizard()" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-surface-container hover:bg-error-container hover:text-error text-on-surface-variant flex items-center justify-center transition-all shadow-xs cursor-pointer" title="Close Wizard">
+                <span class="material-symbols-outlined text-[20px] sm:text-[22px]">close</span>
               </button>
             </div>
 
@@ -313,12 +345,24 @@ const Modals = {
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Indoor / Outdoor Format</label>
                 <select id="wz-indoor-outdoor" class="w-full p-3 rounded-lg bg-surface-container-low border border-surface-container text-on-surface text-sm">
-                  <option>Indoor Auditorium</option>
-                  <option>Both Indoor & Outdoor Lawn</option>
-                  <option>Open-Air Garden Lawn</option>
-                  <option>Covered Pavilion</option>
+                  <option ${d.indoor_outdoor === 'Indoor Auditorium' ? 'selected' : ''}>Indoor Auditorium</option>
+                  <option ${d.indoor_outdoor === 'Both Indoor & Outdoor Lawn' ? 'selected' : ''}>Both Indoor & Outdoor Lawn</option>
+                  <option ${d.indoor_outdoor === 'Open-Air Garden Lawn' ? 'selected' : ''}>Open-Air Garden Lawn</option>
+                  <option ${d.indoor_outdoor === 'Covered Pavilion' ? 'selected' : ''}>Covered Pavilion</option>
                 </select>
               </div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1 flex items-center justify-between">
+                <span>Catering &amp; Food Policy (Veg / Non-Veg) *</span>
+                <span class="text-[10px] text-secondary font-bold">Important for Guests</span>
+              </label>
+              <select id="wz-catering-policy" class="w-full p-3 rounded-lg bg-surface-container-low border border-surface-container text-on-surface text-sm font-semibold">
+                <option value="both" ${d.catering_policy === 'both' ? 'selected' : ''}>🍗 Veg &amp; Non-Veg Allowed (Both Permitted)</option>
+                <option value="pure_veg" ${d.catering_policy === 'pure_veg' ? 'selected' : ''}>🥬 Pure Vegetarian Only (Strictly Veg Kitchen)</option>
+                <option value="separate_kitchens" ${d.catering_policy === 'separate_kitchens' ? 'selected' : ''}>✨ Separate Kitchens (Dedicated Veg &amp; Non-Veg Prep)</option>
+              </select>
+              <p class="text-[11px] text-on-surface-variant mt-1">This badge is displayed directly to customers searching for event halls.</p>
             </div>
           </div>
         `;
@@ -597,6 +641,10 @@ const Modals = {
                 <span>${d.seating_capacity} / ${d.maximum_capacity} Guests</span>
               </div>
               <div class="flex justify-between text-on-surface-variant">
+                <span>Catering &amp; Food Policy:</span>
+                <span class="font-bold text-on-surface">${d.catering_policy === 'pure_veg' ? '🥬 Pure Vegetarian Only' : (d.catering_policy === 'separate_kitchens' ? '✨ Separate Kitchens' : '🍗 Veg &amp; Non-Veg Allowed')}</span>
+              </div>
+              <div class="flex justify-between text-on-surface-variant">
                 <span>Public Availability:</span>
                 <span class="${d.public_availability ? 'text-on-tertiary-container font-bold' : 'text-secondary'}">
                   ${d.public_availability ? 'Public Calendar Active' : 'Private (Contact Owner)'}
@@ -637,6 +685,7 @@ const Modals = {
       const max = document.getElementById('wz-max');
       const ac = document.getElementById('wz-ac');
       const io = document.getElementById('wz-indoor-outdoor');
+      const catering = document.getElementById('wz-catering-policy');
       if (size) this.wizardData.size_sqft = Number(size.value);
       if (length) this.wizardData.length_ft = Number(length.value);
       if (width) this.wizardData.width_ft = Number(width.value);
@@ -644,6 +693,7 @@ const Modals = {
       if (max) this.wizardData.maximum_capacity = Number(max.value);
       if (ac) this.wizardData.ac_status = ac.value;
       if (io) this.wizardData.indoor_outdoor = io.value;
+      if (catering) this.wizardData.catering_policy = catering.value;
     } else if (step === 3) {
       const checkboxes = document.querySelectorAll('.wz-facility:checked');
       const facilities = Array.from(checkboxes).map(cb => cb.value);
@@ -711,6 +761,12 @@ const Modals = {
         show_whatsapp: wa ? wa.checked : true,
         show_email: true
       };
+    }
+
+    try {
+      sessionStorage.setItem('venueluxe_wizard_draft', JSON.stringify(this.wizardData));
+    } catch (e) {
+      console.warn('Could not save wizard draft:', e);
     }
   },
 
@@ -1019,6 +1075,7 @@ const Modals = {
           this.wizardData.contact.phone = user.phone || this.wizardData.contact.phone || '';
 
           const newHall = window.appStore.addHall(this.wizardData);
+          try { sessionStorage.removeItem('venueluxe_wizard_draft'); } catch (e) {}
           this.close();
           Toast.luxury('Venue Listing Submitted!', `"${newHall.name}" was submitted for audit. Redirecting to your Owner Workspace...`);
           setTimeout(() => {
@@ -1042,6 +1099,7 @@ const Modals = {
     this.wizardData.contact.email = currentUser.email || this.wizardData.contact.email;
 
     const newHall = window.appStore.addHall(this.wizardData);
+    try { sessionStorage.removeItem('venueluxe_wizard_draft'); } catch (e) {}
     this.close();
 
     Toast.luxury('Venue Listing Submitted!', `"${newHall.name}" was submitted for audit. Redirecting to your Owner Workspace...`);
@@ -1527,14 +1585,20 @@ const Modals = {
         <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden">
           
           <!-- Success Header -->
-          <div class="p-8 pb-6 text-center bg-gradient-to-b from-surface-container-low to-surface-container-lowest">
-            <div class="w-16 h-16 rounded-2xl bg-tertiary-container text-on-tertiary-container flex items-center justify-center mx-auto mb-4 shadow-md">
+          <div class="p-8 pb-6 text-center bg-gradient-to-b from-emerald-500/10 to-surface-container-lowest">
+            <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center justify-center mx-auto mb-4 shadow-md">
               <span class="material-symbols-outlined text-[36px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
             </div>
-            <h2 class="font-headline-sm text-2xl font-bold text-on-surface">Request Sent!</h2>
-            <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">
-              Your booking request has been sent to the hall owner. They will review and get back to you.
-            </p>
+            <h2 class="font-headline-sm text-2xl font-bold text-on-surface">Request Submitted!</h2>
+            <div class="mt-3 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200">
+              <p class="text-xs font-bold flex items-center justify-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px] text-emerald-600">phone_callback</span>
+                <span>The hall owners will contact you personally!</span>
+              </p>
+              <p class="text-[11px] text-emerald-800 dark:text-emerald-300 mt-1 leading-snug">
+                Your reservation request has been received by the venue host. They will call or message you personally to coordinate offline advances, contracts, and arrangements.
+              </p>
+            </div>
           </div>
 
           <div class="px-6 pb-6 space-y-4">
@@ -1632,6 +1696,66 @@ const Modals = {
     `;
 
     if (window.CustomerHeaderComponent) window.CustomerHeaderComponent.update();
+  },
+
+  openEnquirySuccessModal(enquiry, hall) {
+    this.init();
+    const contact = hall.contact || {};
+    const container = document.getElementById('modal-container');
+    container.innerHTML = `
+      <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md modal-backdrop">
+        <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden">
+          
+          <div class="p-8 pb-6 text-center bg-gradient-to-b from-emerald-500/10 to-surface-container-lowest">
+            <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center justify-center mx-auto mb-4 shadow-md">
+              <span class="material-symbols-outlined text-[36px]" style="font-variation-settings: 'FILL' 1;">mark_email_read</span>
+            </div>
+            <h2 class="font-headline-sm text-2xl font-bold text-on-surface">Enquiry Submitted!</h2>
+            <div class="mt-3 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200">
+              <p class="text-xs font-bold flex items-center justify-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px] text-emerald-600">phone_callback</span>
+                <span>The hall owners will contact you personally!</span>
+              </p>
+              <p class="text-[11px] text-emerald-800 dark:text-emerald-300 mt-1 leading-snug">
+                Your enquiry for "${hall.name}" was delivered. The venue host will reach out to you directly at <strong>${enquiry.customer_phone}</strong> to discuss dates and arrangements.
+              </p>
+            </div>
+          </div>
+
+          <div class="px-6 pb-6 space-y-4">
+            <div class="p-4 bg-surface-container rounded-xl border border-surface-container space-y-2 text-xs">
+              <div class="flex justify-between font-semibold text-on-surface">
+                <span class="text-on-surface-variant">Enquiry ID</span>
+                <span class="font-mono font-bold text-secondary">${enquiry.id}</span>
+              </div>
+              <div class="flex justify-between text-on-surface-variant">
+                <span>Hall</span>
+                <span class="text-on-surface font-semibold text-right max-w-[200px] truncate">${hall.name}</span>
+              </div>
+              <div class="flex justify-between text-on-surface-variant">
+                <span>Target Dates</span>
+                <span class="text-on-surface font-semibold">${enquiry.dates || 'Flexible'}</span>
+              </div>
+            </div>
+
+            <!-- Direct WhatsApp Coordinate Action -->
+            ${contact.whatsapp ? `
+              <a href="https://wa.me/${contact.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello, I sent an enquiry for ${hall.name} on VenueLuxe (Ref: ${enquiry.id}). I'd like to coordinate event dates and offline details.`)}" target="_blank" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all">
+                <span class="material-symbols-outlined text-[18px]">chat</span>
+                <span>Chat with Owner on WhatsApp</span>
+              </a>
+            ` : ''}
+
+            <div class="flex gap-2.5">
+              <button onclick="Modals.close()" class="w-full py-2.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-inverse-surface transition-all">
+                Close
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    `;
   },
 
 

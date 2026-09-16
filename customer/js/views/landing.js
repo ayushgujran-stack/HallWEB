@@ -35,10 +35,6 @@ const LandingView = {
           
           <!-- Hero Text Content -->
           <div class="text-center max-w-2xl mx-auto mb-8 md:mb-12">
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-surface-container rounded-full border border-outline mb-4">
-              <span class="material-symbols-outlined text-secondary text-[16px]">verified</span>
-              <span class="font-label-sm text-xs font-semibold text-on-surface uppercase tracking-wider">Curated & Audited Premier Venues</span>
-            </div>
             <h1 class="font-display-lg text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-on-surface tracking-tight leading-tight font-serif">
               Find the Perfect Hall for Your <span class="text-secondary italic">Perfect Event</span>
             </h1>
@@ -102,10 +98,6 @@ const LandingView = {
                 <button class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors cursor-pointer" onclick="LandingView.setSearchCity('Karkala')" type="button">Karkala</button>
                 <button class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors cursor-pointer" onclick="LandingView.setSearchCity('Bangalore')" type="button">Bangalore</button>
               </div>
-              <div class="flex items-center gap-4 text-xs">
-                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-emerald-600">verified</span>Verified Listings</span>
-                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-secondary">lock_clock</span>Zero Hidden Charges</span>
-              </div>
             </div>
           </div>
         </section>
@@ -132,7 +124,7 @@ const LandingView = {
               </div>
               <div class="mt-4">
                 <h3 class="font-title-md text-sm md:text-base text-on-surface font-bold group-hover:text-secondary transition-colors">Wedding Halls</h3>
-                <p class="font-body-sm text-xs text-on-surface-variant mt-0.5">140+ Grand palaces & mandaps</p>
+                <p class="font-body-sm text-xs text-on-surface-variant mt-0.5">Grand palaces & mandaps</p>
               </div>
             </a>
 
@@ -142,7 +134,7 @@ const LandingView = {
               </div>
               <div class="mt-4">
                 <h3 class="font-title-md text-sm md:text-base text-on-surface font-bold group-hover:text-secondary transition-colors">Reception Banquets</h3>
-                <p class="font-body-sm text-xs text-on-surface-variant mt-0.5">110+ Dedicated dining halls</p>
+                <p class="font-body-sm text-xs text-on-surface-variant mt-0.5">Dedicated dining halls</p>
               </div>
             </a>
 
@@ -152,7 +144,7 @@ const LandingView = {
               </div>
               <div class="mt-4">
                 <h3 class="font-title-md text-sm md:text-base text-on-surface font-bold group-hover:text-secondary transition-colors">Lawns & Resorts</h3>
-                <p class="font-body-sm text-xs text-on-surface-variant mt-0.5">35+ Open-air twilight banquets</p>
+                <p class="font-body-sm text-xs text-on-surface-variant mt-0.5">Open-air twilight banquets</p>
               </div>
             </a>
 
@@ -162,7 +154,7 @@ const LandingView = {
               </div>
               <div class="mt-4">
                 <h3 class="font-title-md text-sm md:text-base text-on-surface font-bold group-hover:text-secondary transition-colors">Convention Centers</h3>
-                <p class="font-body-sm text-xs text-on-surface-variant mt-0.5">28+ Multi-thousand expo spaces</p>
+                <p class="font-body-sm text-xs text-on-surface-variant mt-0.5">Multi-thousand expo spaces</p>
               </div>
             </a>
 
@@ -330,26 +322,6 @@ const LandingView = {
           </div>
         </section>
 
-        <!-- HOST ON VENUELUXE CALLOUT BANNER -->
-        <section class="w-full max-w-[1360px] mx-auto px-gutter-mobile md:px-gutter-desktop py-4">
-          <div class="bg-primary text-white rounded-2xl p-6 md:p-8 border border-stone-800 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-            <div class="space-y-2 max-w-xl z-10">
-              <span class="px-2.5 py-0.5 rounded-full bg-secondary/30 text-secondary-fixed text-[11px] font-bold uppercase tracking-wider">Host On VenueLuxe</span>
-              <h3 class="font-headline-lg text-2xl md:text-3xl font-serif font-bold text-white tracking-tight">
-                Own a Banquet Hall or Wedding Lawn?
-              </h3>
-              <p class="text-xs md:text-sm text-stone-300 leading-relaxed">
-                List your venue to receive verified direct customer booking inquiries, manage shift inventories, and streamline your calendar with zero commission.
-              </p>
-            </div>
-            <div class="z-10 shrink-0">
-              <button onclick="Modals.openAddHallWizard()" class="px-6 py-3 bg-secondary hover:bg-secondary-container text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center gap-2">
-                <span class="material-symbols-outlined text-[18px]">add_business</span>
-                <span>List Your Hall Now</span>
-              </button>
-            </div>
-          </div>
-        </section>
 
         <!-- 6. TESTIMONIALS (3 Clean Cards) -->
         <section class="w-full max-w-[1360px] mx-auto px-gutter-mobile md:px-gutter-desktop py-10 md:py-16">

@@ -18,30 +18,44 @@
 .leaflet-container {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
   z-index: 10;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Override Leaflet's default white box and 1px border for custom div icons */
+.leaflet-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-pin-wrapper {
+  background: transparent !important;
+  border: none !important;
 }
 
 /* Luxury Custom Map Pin */
 .custom-map-pin {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-primary);
+  background: #111827;
   color: #ffffff;
   border: 2px solid #ffffff;
   border-radius: 9999px;
-  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.22);
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.35);
   font-weight: 700;
   font-size: 11px;
-  padding: 4px 10px;
+  padding: 5px 12px;
   white-space: nowrap;
   cursor: pointer;
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.18s ease;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .custom-map-pin:hover, .custom-map-pin.active {
-  background: var(--color-secondary);
+  background: #A65B2B;
   color: #ffffff;
-  transform: scale(1.08);
+  transform: scale(1.1);
+  box-shadow: 0 6px 18px rgba(166, 91, 43, 0.45);
   z-index: 1000 !important;
 }
 

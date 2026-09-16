@@ -371,9 +371,9 @@ const DetailsView = {
           </div>
 
           <div class="p-2.5 bg-surface-container-lowest rounded-lg text-xs text-on-surface-variant flex flex-col sm:flex-row sm:items-center justify-between gap-1 border border-outline">
-            <span class="flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-secondary text-[16px]">info</span>
-              Direct holds reserve this shift for 48 hours upon host confirmation.
+            <span class="flex items-center gap-1.5 font-medium">
+              <span class="material-symbols-outlined text-secondary text-[16px]">event_available</span>
+              Shift availability schedule
             </span>
             <span class="font-bold text-on-surface">Selected: <span class="text-secondary">${this.selectedDate}</span> (${this.selectedSlot || 'None'})</span>
           </div>
@@ -470,13 +470,11 @@ const DetailsView = {
                   </p>
                 </div>
 
-                <div class="shrink-0 p-3 rounded-xl bg-primary text-white border border-outline flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-lg bg-white/10 text-amber-400 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-[20px]">verified</span>
-                  </div>
+                <div class="shrink-0 px-3.5 py-2 rounded-xl bg-surface-container border border-outline flex items-center gap-2.5 text-on-surface">
+                  <span class="material-symbols-outlined text-[18px] text-secondary">menu_book</span>
                   <div>
-                    <div class="text-[10px] uppercase tracking-wider text-amber-300 font-bold">VenueLuxe Certified</div>
-                    <span class="text-xs font-bold text-white">Physical Inspection Passed</span>
+                    <div class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">Directory Listing</div>
+                    <span class="text-xs font-semibold text-on-surface">Direct Inquiry</span>
                   </div>
                 </div>
               </div>
@@ -658,6 +656,7 @@ const DetailsView = {
     const rawWebsite = (hall.website || '').trim();
     const websiteHref = rawWebsite ? (rawWebsite.startsWith('http') ? rawWebsite : 'https://' + rawWebsite) : '';
     const cleanDomain = rawWebsite ? rawWebsite.replace(/^https?:\/\//, '').replace(/\/$/, '') : '';
+    const cateringInfo = window.appStore.getCateringPolicyInfo(hall.catering_policy);
 
     return `
       <div class="flex flex-col w-full bg-surface pb-24 lg:pb-12">
@@ -713,6 +712,10 @@ const DetailsView = {
                   </span>
                   <span class="text-xs text-on-surface-variant">•</span>
                   <span class="text-xs text-on-surface-variant">${hall.indoor_outdoor}</span>
+                  <span class="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-md border ${cateringInfo.color} font-bold">
+                    <span class="material-symbols-outlined text-[14px]">${cateringInfo.icon}</span>
+                    <span>${cateringInfo.label}</span>
+                  </span>
                 </div>
                 <h1 class="font-headline-lg text-2xl md:text-3xl lg:text-4xl text-on-surface tracking-tight font-serif font-bold">
                   ${hall.name}
@@ -753,32 +756,6 @@ const DetailsView = {
         <section class="w-full bg-surface-container-lowest py-4 md:py-6 border-b border-outline">
           <div class="max-w-[1360px] mx-auto px-gutter-mobile md:px-gutter-desktop">
             
-            <!-- Hall Website At The Top, Just Before The Pictures -->
-            ${websiteHref ? `
-              <div class="mb-4 sm:mb-5 p-3.5 sm:p-4 bg-surface-container-low hover:bg-surface-container rounded-2xl border border-secondary/30 flex flex-wrap items-center justify-between gap-3 transition-colors shadow-sm">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-xl bg-secondary/15 text-secondary flex items-center justify-center shrink-0 shadow-sm">
-                    <span class="material-symbols-outlined text-[22px]">language</span>
-                  </div>
-                  <div>
-                    <div class="flex items-center gap-2">
-                      <span class="text-[10px] uppercase font-bold tracking-wider text-secondary">Official Hall Website</span>
-                      <span class="px-1.5 py-0.2 bg-secondary/15 text-secondary text-[9px] font-bold rounded">VERIFIED</span>
-                    </div>
-                    <a href="${websiteHref}" target="_blank" rel="noopener noreferrer" class="text-sm sm:text-base font-bold text-on-surface hover:text-secondary flex items-center gap-1.5 group transition-colors">
-                      <span>${cleanDomain}</span>
-                      <span class="material-symbols-outlined text-[14px] text-secondary group-hover:translate-x-0.5 transition-transform">open_in_new</span>
-                    </a>
-                  </div>
-                </div>
-
-                <a href="${websiteHref}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2.5 bg-secondary text-white font-label-md text-xs font-bold rounded-xl hover:bg-on-secondary-container transition-all shadow-sm">
-                  <span class="material-symbols-outlined text-[17px]">public</span>
-                  <span>Visit Hall Website</span>
-                  <span class="material-symbols-outlined text-[14px]">open_in_new</span>
-                </a>
-              </div>
-            ` : ''}
 
             <!-- Photo Grid -->
             <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-3 h-auto md:h-[440px]">
@@ -832,14 +809,6 @@ const DetailsView = {
                     <div class="relative rounded-xl overflow-hidden group cursor-pointer bg-surface-container" onclick="Modals.openGalleryModal('${hall.id}', ${targetIdx})">
                       <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${item.url}" alt="${item.tag}" onerror="this.onerror=null;this.src='${fallbackUrl}'" loading="lazy">
                       
-                      ${websiteHref ? `
-                        <!-- Website badge with picture -->
-                        <a href="${websiteHref}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="absolute top-2 right-2 z-10 px-2 py-0.5 bg-black/70 hover:bg-secondary text-white rounded text-[10px] font-bold backdrop-blur-sm border border-white/20 transition-colors flex items-center gap-1" title="Visit Website">
-                          <span class="material-symbols-outlined text-[12px] text-secondary">language</span>
-                          <span class="material-symbols-outlined text-[10px]">open_in_new</span>
-                        </a>
-                      ` : ''}
-
                       <!-- Custom picture tag given by user -->
                       <div class="absolute bottom-2 left-2 px-2 py-0.5 bg-black/70 text-white text-[10px] font-bold rounded backdrop-blur-sm truncate max-w-[80%]">
                         ${item.tag}
@@ -849,7 +818,6 @@ const DetailsView = {
                         <div class="absolute inset-0 bg-primary/75 backdrop-blur-[2px] flex flex-col items-center justify-center text-white group-hover:bg-primary/65 transition-colors">
                           <span class="material-symbols-outlined text-[24px]">photo_library</span>
                           <span class="font-title-md text-xs font-bold mt-1">View All ${totalImages} Photos</span>
-                          ${websiteHref ? `<span class="text-[10px] text-secondary-fixed mt-0.5 underline">Includes Hall Website</span>` : ''}
                         </div>
                       ` : ''}
                     </div>
@@ -864,7 +832,7 @@ const DetailsView = {
         <!-- Specifications Strip -->
         <section class="w-full bg-surface-container border-b border-outline">
           <div class="max-w-[1360px] mx-auto px-gutter-mobile md:px-gutter-desktop py-3">
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-left">
               <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-secondary shrink-0 shadow-sm">
                   <span class="material-symbols-outlined text-[18px]">groups</span>
@@ -902,6 +870,16 @@ const DetailsView = {
                 <div>
                   <span class="text-[10px] text-on-surface-variant uppercase tracking-wider font-bold block">Parking</span>
                   <span class="text-xs font-bold text-on-surface">${hall.parking_cars}+ Cars & Valet</span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2.5 col-span-2 sm:col-span-1">
+                <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-secondary shrink-0 shadow-sm">
+                  <span class="material-symbols-outlined text-[18px]">${cateringInfo.icon}</span>
+                </div>
+                <div>
+                  <span class="text-[10px] text-on-surface-variant uppercase tracking-wider font-bold block">Food & Catering</span>
+                  <span class="text-xs font-bold text-on-surface">${cateringInfo.label}</span>
                 </div>
               </div>
             </div>
@@ -950,7 +928,6 @@ const DetailsView = {
                 
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-outline gap-2">
                   <div>
-                    <span class="text-[11px] font-bold text-secondary uppercase tracking-widest">Master Ledger</span>
                     <h3 class="font-headline-sm text-lg md:text-xl font-bold text-on-surface font-serif">Shift Availability Schedule</h3>
                   </div>
 
@@ -1414,8 +1391,11 @@ const DetailsView = {
     // Immediately refresh calendar so pending slot turns yellow
     this.refreshCalendar();
 
-    // Directly open booking confirmation modal with owner contact details!
+    // Directly open booking confirmation modal stating hall owners will contact you personally
     Modals.openBookingSuccessModal(newBooking, hall);
+    if (typeof Toast !== 'undefined') {
+      Toast.luxury('Hold Request Sent!', 'The hall owners will contact you personally to coordinate offline booking.');
+    }
   },
 
   submitEnquiry() {
@@ -1455,8 +1435,11 @@ const DetailsView = {
       '#/owner'
     );
 
-    Toast.success('Enquiry Sent', `Your enquiry has been transmitted to ${hall.contact?.owner_name || 'the hall owner'}.`);
-    window.location.hash = '#/customer';
+    // Open enquiry confirmation modal reassuring the user that the owner will contact them personally!
+    Modals.openEnquirySuccessModal(enquiryData, hall);
+    if (typeof Toast !== 'undefined') {
+      Toast.luxury('Enquiry Delivered!', 'The hall owners will contact you personally to coordinate dates.');
+    }
   },
 
   updateFavoriteState() {

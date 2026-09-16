@@ -654,47 +654,17 @@ const INITIAL_REPORTS = [
 ];
 
 // Slot Availability Matrix Builder
-// Generates shift status for dates
+// Generates shift status for dates scoped per hall
 function getInitialSlotMatrix() {
-  const dates = ['2025-11-17', '2025-11-18', '2025-11-19', '2025-11-20', '2025-11-21', '2025-11-22', '2025-11-23'];
-  const slots = ['Morning', 'Afternoon', 'Evening', 'Night', 'Full Day'];
   const matrix = {};
-
-  // default slot statuses
-  dates.forEach(d => {
-    matrix[d] = {
-      'Morning': { status: 'available', price: 85000 },
-      'Afternoon': { status: 'available', price: 60000 },
-      'Evening': { status: 'available', price: 95000 },
-      'Night': { status: 'available', price: 75000 },
-      'Full Day': { status: 'available', price: 210000 }
-    };
-  });
-
-  // some realistic overrides
-  if (matrix['2025-11-17']) {
-    matrix['2025-11-17']['Morning'].status = 'booked';
-    matrix['2025-11-17']['Afternoon'].status = 'booked';
-    matrix['2025-11-17']['Full Day'].status = 'blocked';
-  }
-  if (matrix['2025-11-19']) {
-    matrix['2025-11-19']['Morning'].status = 'booked';
-    matrix['2025-11-19']['Afternoon'].status = 'booked';
-    matrix['2025-11-19']['Evening'].status = 'booked';
-    matrix['2025-11-19']['Night'].status = 'booked';
-    matrix['2025-11-19']['Full Day'].status = 'booked';
-  }
-  if (matrix['2025-11-20']) {
-    matrix['2025-11-20']['Evening'].status = 'pending';
-  }
-  if (matrix['2025-11-22']) {
-    matrix['2025-11-22']['Morning'].status = 'booked';
-    matrix['2025-11-22']['Afternoon'].status = 'booked';
-    matrix['2025-11-22']['Evening'].status = 'booked';
-    matrix['2025-11-22']['Night'].status = 'booked';
-    matrix['2025-11-22']['Full Day'].status = 'booked';
-  }
-
+  // Hall-specific sample override for demo
+  matrix['hall-grand-monarch__2025-11-20'] = {
+    'Morning': { status: 'available', price: 85000 },
+    'Afternoon': { status: 'available', price: 60000 },
+    'Evening': { status: 'pending', price: 95000 },
+    'Night': { status: 'available', price: 75000 },
+    'Full Day': { status: 'available', price: 210000 }
+  };
   return matrix;
 }
 
@@ -704,6 +674,26 @@ class Store {
   }
 
   init() {
+    // Sanitize any legacy un-scoped global date keys that might bleed across halls
+    try {
+      const rawMatrix = localStorage.getItem('venueluxe_slot_matrix');
+      if (rawMatrix) {
+        const parsed = JSON.parse(rawMatrix);
+        let changed = false;
+        Object.keys(parsed).forEach(k => {
+          if (!k.includes('__')) {
+            delete parsed[k];
+            changed = true;
+          }
+        });
+        if (changed) {
+          localStorage.setItem('venueluxe_slot_matrix', JSON.stringify(parsed));
+        }
+      }
+    } catch (e) {
+      console.warn('Could not sanitize slot matrix:', e);
+    }
+
     const cachedHalls = localStorage.getItem(STORAGE_KEYS.HALLS);
     if (!cachedHalls) {
       this.resetToDefaults();
@@ -855,8 +845,20 @@ class Store {
     let halls = raw ? JSON.parse(raw) : INITIAL_HALLS;
     return halls.map(h => {
       const isPaid = (h.listing_fee_paid === true || h.listing_tier === 'PREMIUM');
+      // Assign default catering policy if not explicitly set
+      let policy = h.catering_policy;
+      if (!policy) {
+        if (h.id === 'hall-heritage-crystal-lawn' || h.id === 'hall-golden-palm-community') {
+          policy = 'pure_veg';
+        } else if (h.id === 'hall-grand-monarch' || h.id === 'hall-crystal-atrium-pending') {
+          policy = 'separate_kitchens';
+        } else {
+          policy = 'both';
+        }
+      }
       return {
         ...h,
+        catering_policy: policy,
         listing_tier: isPaid ? 'PREMIUM' : (h.listing_tier || 'BASIC'),
         listing_fee_paid: isPaid,
         // Preserve hall website for display in gallery and details
@@ -864,6 +866,39 @@ class Store {
         website_verified: isPaid ? Boolean(h.website_verified) : Boolean(h.website_verified)
       };
     });
+  }
+
+  getCateringPolicyInfo(policy) {
+    switch (policy) {
+      case 'pure_veg':
+        return {
+          id: 'pure_veg',
+          label: 'Pure Vegetarian Only',
+          badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+          icon: 'eco',
+          tag: 'Pure Veg',
+          description: 'Strictly vegetarian kitchen. No non-vegetarian cuisine permitted on premises.'
+        };
+      case 'separate_kitchens':
+        return {
+          id: 'separate_kitchens',
+          label: 'Separate Veg & Non-Veg Kitchens',
+          badgeClass: 'bg-teal-50 text-teal-800 border-teal-200',
+          icon: 'soup_kitchen',
+          tag: 'Separate Kitchens',
+          description: 'Dedicated separate prep kitchens, utensils, and dining zones for pure veg and non-veg.'
+        };
+      case 'both':
+      default:
+        return {
+          id: 'both',
+          label: 'Veg & Non-Veg Allowed',
+          badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+          icon: 'restaurant',
+          tag: 'Veg & Non-Veg',
+          description: 'Both vegetarian and non-vegetarian catering and dining permitted.'
+        };
+    }
   }
 
   // Only approved + live halls for public customer view (Requirement #25)
@@ -1365,9 +1400,12 @@ class Store {
 
   createBooking(bookingData) {
     const bookings = this.getBookings();
+    const hall = this.getHallById(bookingData.hall_id);
     const newBooking = {
       ...bookingData,
       id: 'BK-' + Math.floor(10000 + Math.random() * 90000),
+      owner_id: hall?.owner_id || bookingData.owner_id || 'owner-1',
+      hall_owner_email: hall?.contact?.email || bookingData.hall_owner_email || '',
       status: 'PENDING',
       created_at: new Date().toISOString().split('T')[0]
     };
@@ -1381,9 +1419,9 @@ class Store {
       });
     }
 
-    // Update slot matrix to pending
+    // Update slot matrix to pending for this specific hall
     if (bookingData.date && bookingData.slot) {
-      this.updateSlotStatus(bookingData.date, bookingData.slot, 'pending');
+      this.updateSlotStatus(bookingData.date, bookingData.slot, 'pending', bookingData.hall_id);
     }
 
     // Notify owner
@@ -1423,9 +1461,9 @@ class Store {
       }).catch(err => console.warn('[Firestore] Notice updating approval:', err.message));
     }
 
-    // Lock slot in calendar
+    // Lock slot in calendar for this specific hall
     if (b.date && b.slot) {
-      this.updateSlotStatus(b.date, b.slot, 'booked');
+      this.updateSlotStatus(b.date, b.slot, 'booked', b.hall_id);
     }
 
     // Notify customer
@@ -1458,13 +1496,13 @@ class Store {
       }).catch(err => console.warn('[Firestore] Notice updating rejection:', err.message));
     }
 
-    // Free slot if no other approved booking holds it
+    // Free slot if no other approved booking holds it for this hall
     if (b.date && b.slot) {
       const stillBooked = bookings.some(
         x => x.id !== id && x.status === 'APPROVED' && x.hall_id === b.hall_id && x.date === b.date && x.slot === b.slot
       );
       if (!stillBooked) {
-        this.updateSlotStatus(b.date, b.slot, 'available');
+        this.updateSlotStatus(b.date, b.slot, 'available', b.hall_id);
       }
     }
 
@@ -1544,9 +1582,11 @@ class Store {
       b.status = newStatus;
       this.saveBookings(bookings);
 
-      // If Confirmed, lock the slot in calendar! (Requirement #33)
-      if (newStatus === 'CONFIRMED' && b.date && b.slot) {
-        this.updateSlotStatus(b.date, b.slot, 'booked');
+      // If Confirmed or Approved, lock the slot in calendar for this hall
+      if ((newStatus === 'CONFIRMED' || newStatus === 'APPROVED') && b.date && b.slot) {
+        this.updateSlotStatus(b.date, b.slot, 'booked', b.hall_id);
+      } else if ((newStatus === 'CANCELLED' || newStatus === 'REJECTED') && b.date && b.slot) {
+        this.updateSlotStatus(b.date, b.slot, 'available', b.hall_id);
       }
 
       this.addNotification(
@@ -1572,9 +1612,6 @@ class Store {
     const hallKey = hallId ? `${hallId}__${date}` : null;
     if (hallKey && matrix[hallKey]) {
       return matrix[hallKey];
-    }
-    if (matrix[date]) {
-      return matrix[date];
     }
     const hall = hallId ? this.getHallById(hallId) : null;
     const p = hall?.pricing || { morning: 85000, afternoon: 60000, evening: 95000, night: 75000, full_day: 210000 };

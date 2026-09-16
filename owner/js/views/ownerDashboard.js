@@ -86,14 +86,23 @@ const OwnerDashboardView = {
     }
 
     if (!this.activeHallId || !myHalls.some(h => h.id === this.activeHallId)) {
-      this.activeHallId = myHalls[0]?.id || 'hall-1';
+      this.activeHallId = myHalls[0]?.id || 'hall-grand-monarch';
     }
     const currentHall = myHalls.find(h => h.id === this.activeHallId) || myHalls[0] || {};
 
     const allBookings = window.appStore.getBookings();
-    const myBookings = allBookings.filter(b => myHalls.some(h => h.id === b.hall_id));
+    const myBookings = allBookings.filter(b => 
+      myHalls.some(h => h.id === b.hall_id) || 
+      (currentUser && (b.owner_id === currentUser.id || b.ownerId === currentUser.id)) ||
+      (currentUser?.email && b.hall_owner_email && b.hall_owner_email.toLowerCase() === currentUser.email.toLowerCase())
+    );
     const activeHallBookings = allBookings.filter(b => b.hall_id === currentHall.id);
-    const displayedBookings = (this.bookingFilter === 'active') ? activeHallBookings : myBookings;
+
+    // Default to 'all' so new requests are immediately visible to the owner
+    if (!this.bookingFilter) {
+      this.bookingFilter = 'all';
+    }
+    const displayedBookings = (this.bookingFilter === 'active' && activeHallBookings.length > 0) ? activeHallBookings : myBookings;
 
     const liveHalls = myHalls.filter(h => h.status === 'LIVE');
     const pendingHalls = myHalls.filter(h => h.status === 'PENDING_APPROVAL');
@@ -153,9 +162,6 @@ const OwnerDashboardView = {
               <h1 class="font-headline-lg text-2xl md:text-3xl text-on-surface tracking-tight font-serif font-bold">
                 ${displayName}
               </h1>
-              <p class="font-body-md text-xs md:text-sm text-on-surface-variant max-w-2xl leading-relaxed">
-                Central command for managing banquets, full-year calendar availability, seasonal tariffs, and customer booking approvals.
-              </p>
             </div>
 
             <!-- Multi-Hall Switcher & Actions -->
@@ -283,7 +289,7 @@ const OwnerDashboardView = {
                 <p class="text-xs text-on-surface-variant leading-tight">
                   ${currentHall.physical_inspection_status === 'VERIFIED' 
                     ? `Site audited by ${currentHall.inspected_by || 'Field Team'}.`
-                    : 'A field representative from our side will visit your hall location to check premises and amenities.'}
+                    : 'Field agent visit scheduled.'}
                 </p>
               </div>
 

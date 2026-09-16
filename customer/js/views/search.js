@@ -112,6 +112,7 @@ const SearchView = {
     publicOnly: false,
     capacityRange: 'all',
     acType: 'all',
+    cateringPolicy: 'all',
     maxPrice: 300000,
     sortBy: 'nearest'
   },
@@ -123,6 +124,7 @@ const SearchView = {
     if (this.filters.publicOnly) count++;
     if (this.filters.capacityRange !== 'all') count++;
     if (this.filters.acType !== 'all') count++;
+    if (this.filters.cateringPolicy !== 'all') count++;
     if (this.filters.maxPrice < 300000) count++;
     return count;
   },
@@ -154,7 +156,7 @@ const SearchView = {
               </div>
               <div class="flex items-center gap-2 text-xs font-semibold text-on-surface shrink-0">
                 <span class="inline-block w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
-                <span id="search-results-count">${filteredHalls.length} venues found</span>
+                <span id="search-results-count-header">${filteredHalls.length} venues found</span>
               </div>
             </div>
 
@@ -213,14 +215,13 @@ const SearchView = {
               <!-- Results Count & Active Layout Badge -->
               <div class="flex items-center justify-between">
                 <span class="font-bold text-sm text-on-surface" id="search-results-count">${filteredHalls.length} venues found</span>
-                <span class="text-xs text-on-surface-variant font-medium">Sorted by: <strong class="capitalize text-secondary">${this.filters.sortBy.replace('_', ' ')}</strong></span>
               </div>
 
               <!-- Content Area: Split View vs Grid View -->
-              <div class="grid grid-cols-1 xl:grid-cols-12 gap-4">
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                 
                 <!-- Cards List (7 Cols in Split Mode, 12 in Grid Mode) -->
-                <div class="${this.currentLayout === 'split' ? 'xl:col-span-7' : 'xl:col-span-12'}">
+                <div class="${this.currentLayout === 'split' ? 'lg:col-span-6 xl:col-span-7' : 'col-span-12'}">
                   <div class="grid grid-cols-1 ${this.currentLayout === 'grid' ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'} gap-4" id="search-cards-list">
                     ${this.renderHallCards()}
                   </div>
@@ -228,8 +229,8 @@ const SearchView = {
 
                 <!-- Interactive Desktop Map (5 Cols in Split Mode, Hidden in Grid Mode) -->
                 ${this.currentLayout === 'split' ? `
-                  <div class="hidden xl:block xl:col-span-5 h-[calc(100vh-14rem)] sticky top-48 rounded-xl overflow-hidden shadow-sm border border-outline bg-surface-container relative">
-                    <div id="leaflet-search-map" class="w-full h-full z-0"></div>
+                  <div class="hidden lg:block lg:col-span-6 xl:col-span-5 h-[calc(100vh-14rem)] min-h-[520px] sticky top-48 rounded-xl overflow-hidden shadow-sm border border-outline bg-surface-container relative z-0">
+                    <div id="leaflet-search-map" class="w-full h-full min-h-[520px] z-0"></div>
                   </div>
                 ` : ''}
 
@@ -432,6 +433,20 @@ const SearchView = {
           </select>
         </div>
 
+        <!-- Food & Catering Policy (Veg / Non-Veg) -->
+        <div class="space-y-1">
+          <label class="font-label-sm text-[11px] uppercase tracking-wider text-on-surface font-bold flex items-center justify-between">
+            <span>Catering & Food Policy</span>
+            <span class="text-[10px] text-secondary font-semibold">Veg / Non-Veg</span>
+          </label>
+          <select class="w-full p-2 rounded-lg bg-surface-container-low border border-outline text-xs text-on-surface font-semibold focus:outline-none focus:border-secondary" onchange="SearchView.updateFilter('cateringPolicy', this.value)">
+            <option value="all" ${this.filters.cateringPolicy === 'all' ? 'selected' : ''}>All Catering Policies</option>
+            <option value="pure_veg" ${this.filters.cateringPolicy === 'pure_veg' ? 'selected' : ''}>🥬 Pure Vegetarian Only</option>
+            <option value="both" ${this.filters.cateringPolicy === 'both' ? 'selected' : ''}>🍗 Veg & Non-Veg Allowed</option>
+            <option value="separate_kitchens" ${this.filters.cateringPolicy === 'separate_kitchens' ? 'selected' : ''}>✨ Separate Kitchens (Veg & Non-Veg)</option>
+          </select>
+        </div>
+
         <!-- Max Price Slider -->
         <div class="space-y-1">
           <div class="flex items-center justify-between">
@@ -494,6 +509,10 @@ const SearchView = {
       halls = halls.filter(h => h.ac_status.toLowerCase().includes(this.filters.acType.toLowerCase()));
     }
 
+    if (this.filters.cateringPolicy && this.filters.cateringPolicy !== 'all') {
+      halls = halls.filter(h => h.catering_policy === this.filters.cateringPolicy);
+    }
+
     if (this.filters.maxPrice) {
       halls = halls.filter(h => (h.pricing?.evening || 0) <= this.filters.maxPrice);
     }
@@ -546,6 +565,7 @@ const SearchView = {
       const isFav = window.appStore.isFavorite(hall.id);
       const fallbackUrl = window.appStore.getPlaceholderImage(hall.name);
       const isBasic = (hall.listing_tier === 'BASIC' || !hall.listing_fee_paid);
+      const cateringInfo = window.appStore.getCateringPolicyInfo(hall.catering_policy);
 
       if (isBasic) {
         // Non-paying halls: Display Company Logo instead of venue photos, no external website link
@@ -587,6 +607,13 @@ const SearchView = {
                 <p class="font-body-sm text-xs text-on-surface-variant">
                   Seats ${hall.seating_capacity} • Max ${hall.maximum_capacity} Pax
                 </p>
+
+                <div class="pt-1 flex flex-wrap gap-1">
+                  <span class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded border ${cateringInfo.color} font-medium">
+                    <span class="material-symbols-outlined text-[12px]">${cateringInfo.icon}</span>
+                    ${cateringInfo.label}
+                  </span>
+                </div>
 
                 <div class="pt-1 flex items-center gap-1 text-[11px] text-amber-900 dark:text-amber-300 font-semibold">
                   <span class="material-symbols-outlined text-[14px]">handshake</span>
@@ -666,9 +693,13 @@ const SearchView = {
                 Seats ${hall.seating_capacity} • Max ${hall.maximum_capacity} Pax
               </p>
 
-              <div class="pt-1 flex flex-wrap gap-1">
+              <div class="pt-1 flex flex-wrap items-center gap-1">
                 <span class="text-[10px] px-2 py-0.5 rounded bg-surface-container text-on-surface">${hall.hall_type.split('&')[0].trim()}</span>
                 <span class="text-[10px] px-2 py-0.5 rounded bg-surface-container text-on-surface">${hall.indoor_outdoor}</span>
+                <span class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded border ${cateringInfo.color} font-medium">
+                  <span class="material-symbols-outlined text-[12px]">${cateringInfo.icon}</span>
+                  ${cateringInfo.label}
+                </span>
               </div>
             </div>
 
@@ -837,6 +868,10 @@ const SearchView = {
     const count = document.getElementById('search-results-count');
     if (count) {
       count.innerText = `${this.getFilteredHalls().length} venues found`;
+    }
+    const countHeader = document.getElementById('search-results-count-header');
+    if (countHeader) {
+      countHeader.innerText = `${this.getFilteredHalls().length} venues found`;
     }
     if (this.currentLayout === 'split') {
       this.renderMapMarkers();

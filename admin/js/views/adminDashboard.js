@@ -37,13 +37,6 @@ const AdminDashboardView = {
                 Review submitted venues, audit capacity certifications and safety compliance, manage live listings, and address safety reports.
               </p>
             </div>
-
-            <div class="flex items-center gap-3 flex-wrap">
-              <span class="px-3 py-1.5 rounded-lg bg-emerald-950/80 text-emerald-300 text-xs flex items-center gap-2 font-medium border border-emerald-800/40">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                Auditing Engine Active
-              </span>
-            </div>
           </div>
 
           <!-- Urgent Governance Action Bar (if items pending) -->
@@ -83,8 +76,8 @@ const AdminDashboardView = {
                 <span class="text-[11px] font-bold uppercase tracking-wider">Total Users</span>
                 <span class="material-symbols-outlined text-[18px]">group</span>
               </div>
-              <div class="font-display text-2xl font-bold text-stone-900">${users.length + 1420}</div>
-              <p class="text-[11px] text-stone-500 mt-0.5">+64 active this week</p>
+              <div class="font-display text-2xl font-bold text-stone-900">${users.length}</div>
+              <p class="text-[11px] text-stone-500 mt-0.5">Registered accounts</p>
             </div>
 
             <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
@@ -92,8 +85,8 @@ const AdminDashboardView = {
                 <span class="text-[11px] font-bold uppercase tracking-wider">Hall Hosts</span>
                 <span class="material-symbols-outlined text-[18px]">badge</span>
               </div>
-              <div class="font-display text-2xl font-bold text-stone-900">210</div>
-              <p class="text-[11px] text-stone-500 mt-0.5">Verified proprietors</p>
+              <div class="font-display text-2xl font-bold text-stone-900">${new Set(halls.map(h => h.owner_id || h.ownerId).filter(Boolean)).size || 1}</div>
+              <p class="text-[11px] text-stone-500 mt-0.5">Active proprietors</p>
             </div>
 
             <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
@@ -120,7 +113,7 @@ const AdminDashboardView = {
                 <span class="material-symbols-outlined text-[18px]">calendar_today</span>
               </div>
               <div class="font-display text-2xl font-bold text-stone-900">${bookings.length}</div>
-              <p class="text-[11px] text-emerald-700 font-semibold mt-0.5">99.4% fulfillment</p>
+              <p class="text-[11px] text-emerald-700 font-semibold mt-0.5">${bookings.filter(b => b.status === 'CONFIRMED' || b.status === 'APPROVED').length} active holds</p>
             </div>
 
             <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
@@ -129,7 +122,7 @@ const AdminDashboardView = {
                 <span class="material-symbols-outlined text-[18px]">report</span>
               </div>
               <div class="font-display text-2xl font-bold text-rose-700">${reports.length}</div>
-              <p class="text-[11px] text-stone-500 mt-0.5">${reports.length === 0 ? 'No flags' : 'Requires review'}</p>
+              <p class="text-[11px] text-stone-500 mt-0.5">${reports.length === 0 ? 'All clear' : 'Requires review'}</p>
             </div>
 
           </div>
