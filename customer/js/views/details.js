@@ -120,14 +120,16 @@ const DetailsView = {
     ];
 
     return standardSlots.map(s => {
-      const bookingMatch = hallBookings.find(b => b.slot && (b.slot === s.name || b.slot.toLowerCase().startsWith(s.key.toLowerCase())));
+      const approvedBooking = hallBookings.find(b => b.slot && (b.slot === s.name || b.slot.toLowerCase().startsWith(s.key.toLowerCase())) && (b.status === 'APPROVED' || b.status === 'CONFIRMED'));
+      const pendingBookings = hallBookings.filter(b => b.slot && (b.slot === s.name || b.slot.toLowerCase().startsWith(s.key.toLowerCase())) && b.status === 'PENDING');
+
       let status = 'available';
       let reason = '';
-      if (bookingMatch) {
-        status = (bookingMatch.status === 'APPROVED' || bookingMatch.status === 'CONFIRMED') ? 'booked' : 'pending';
-      } else if (dateMatrix[s.key] && dateMatrix[s.key].status) {
-        status = dateMatrix[s.key].status;
-        reason = dateMatrix[s.key].reason || '';
+      if (approvedBooking) {
+        status = 'booked';
+      } else if (dateMatrix[s.key] && dateMatrix[s.key].status === 'blocked') {
+        status = 'blocked';
+        reason = dateMatrix[s.key].reason || 'Owner Maintenance';
       }
 
       const price = (dateMatrix[s.key] && dateMatrix[s.key].price) || s.defaultPrice;
@@ -142,7 +144,8 @@ const DetailsView = {
         status,
         reason,
         isPeak,
-        booking: bookingMatch || null
+        pendingRequestsCount: pendingBookings.length,
+        booking: approvedBooking || (pendingBookings[0] || null)
       };
     });
   },
@@ -319,14 +322,15 @@ const DetailsView = {
                     <div class="flex items-center justify-between mb-1">
                       <span class="font-bold text-xs uppercase tracking-wider ${isSelected ? 'text-white' : 'text-on-surface'}">${s.short}</span>
                       ${s.status === 'available' ? `
-                        <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white' : 'bg-status-available'}"></span>
-                      ` : (s.status === 'pending' ? `
-                        <span class="w-2 h-2 rounded-full bg-status-pending"></span>
+                        <div class="flex items-center gap-1">
+                          ${s.pendingRequestsCount > 0 ? `<span class="text-[9px] font-bold ${isSelected ? 'text-white/90 bg-white/20' : 'text-amber-800 bg-amber-100'} px-1.5 py-0.2 rounded-full">${s.pendingRequestsCount} Req</span>` : ''}
+                          <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white' : 'bg-status-available'}"></span>
+                        </div>
                       ` : (s.status === 'blocked' ? `
                         <span class="w-2 h-2 rounded-full bg-slate-400"></span>
                       ` : `
                         <span class="w-2 h-2 rounded-full bg-status-error"></span>
-                      `))}
+                      `)}
                     </div>
                     <p class="text-[11px] ${isSelected ? 'text-white/80' : 'text-on-surface-variant'}">${s.hours}</p>
                   </div>
@@ -349,10 +353,6 @@ const DetailsView = {
                         <span class="px-2 py-0.5 rounded-full bg-status-available-bg text-status-available text-[10px] font-bold border border-status-available-border">
                           Select
                         </span>
-                      ` : (s.status === 'pending' ? `
-                        <span class="px-2 py-0.5 rounded-full bg-status-pending-bg text-status-pending text-[10px] font-bold border border-status-pending-border">
-                          Pending
-                        </span>
                       ` : (s.status === 'blocked' ? `
                         <span class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-bold border border-slate-300" title="${s.reason || 'Blocked by venue'}">
                           Blocked
@@ -361,7 +361,7 @@ const DetailsView = {
                         <span class="px-2 py-0.5 rounded-full bg-status-error-bg text-status-error text-[10px] font-bold border border-status-error-border">
                           Booked
                         </span>
-                      `)))}
+                      `))}
                     </div>
                   </div>
 

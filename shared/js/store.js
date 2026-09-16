@@ -1419,10 +1419,9 @@ class Store {
       });
     }
 
-    // Update slot matrix to pending for this specific hall
-    if (bookingData.date && bookingData.slot) {
-      this.updateSlotStatus(bookingData.date, bookingData.slot, 'pending', bookingData.hall_id);
-    }
+    // Note: Pending requests do NOT block the slot from other customers.
+    // Multiple requests can arrive so the owner can choose which one to accept.
+    // The slot is only locked when the owner clicks Approve.
 
     // Notify owner
     this.addNotification(
@@ -1442,7 +1441,7 @@ class Store {
   }
 
   /**
-   * Owner approves a booking: locks the slot in the calendar and syncs to Firestore.
+   * Owner approves a booking: locks the slot in the calendar strictly for this hall and syncs to Firestore.
    */
   approveBooking(id) {
     const bookings = this.getBookings();
@@ -1477,6 +1476,47 @@ class Store {
   }
 
   /**
+   * Owner or customer cancels an approved/confirmed booking: frees the slot in the calendar for this hall.
+   */
+  cancelBooking(id, reason = 'Cancelled by venue host.') {
+    const bookings = this.getBookings();
+    const index = bookings.findIndex(b => b.id === id);
+    if (index === -1) return null;
+    const b = bookings[index];
+    b.status = 'CANCELLED';
+    b.cancellation_reason = reason;
+    b.cancelled_at = new Date().toISOString();
+    this.saveBookings(bookings);
+
+    // Sync cancellation to Cloud Firestore
+    if (window.fbDb) {
+      window.fbDb.collection('bookings').doc(id).update({
+        status: 'CANCELLED',
+        cancellation_reason: reason,
+        cancelled_at: b.cancelled_at
+      }).catch(err => console.warn('[Firestore] Notice updating cancellation:', err.message));
+    }
+
+    // Free slot if no other approved booking holds it for this hall
+    if (b.date && b.slot) {
+      const stillBooked = bookings.some(
+        x => x.id !== id && (x.status === 'APPROVED' || x.status === 'CONFIRMED') && x.hall_id === b.hall_id && x.date === b.date && x.slot === b.slot
+      );
+      if (!stillBooked) {
+        this.updateSlotStatus(b.date, b.slot, 'available', b.hall_id);
+      }
+    }
+
+    this.addNotification(
+      'Booking Cancelled',
+      `Reservation ${b.id} for "${b.hall_name}" on ${b.date} (${b.slot}) has been cancelled. Slot is now released.`,
+      '/owner/'
+    );
+    this.addAuditLog('Booking Cancelled', `${b.id} — ${b.hall_name}`, `Reason: ${reason}`);
+    return b;
+  }
+
+  /**
    * Owner rejects a booking: frees the slot in the calendar and syncs to Firestore.
    */
   rejectBooking(id, reason = 'Owner unavailable for the requested date/shift.') {
@@ -1499,7 +1539,7 @@ class Store {
     // Free slot if no other approved booking holds it for this hall
     if (b.date && b.slot) {
       const stillBooked = bookings.some(
-        x => x.id !== id && x.status === 'APPROVED' && x.hall_id === b.hall_id && x.date === b.date && x.slot === b.slot
+        x => x.id !== id && (x.status === 'APPROVED' || x.status === 'CONFIRMED') && x.hall_id === b.hall_id && x.date === b.date && x.slot === b.slot
       );
       if (!stillBooked) {
         this.updateSlotStatus(b.date, b.slot, 'available', b.hall_id);

@@ -516,12 +516,20 @@ const OwnerDashboardView = {
               <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
                 ${shiftDefs.map(s => {
                   const dayBookings = allBookings.filter(b => b.hall_id === currentHall.id && b.date === this.selectedDate && b.status !== 'CANCELLED' && b.status !== 'REJECTED');
-                  const bookingMatch = dayBookings.find(b => b.slot && (b.slot === s.name || b.slot.toLowerCase().startsWith(s.key.toLowerCase())));
+                  const matchingBookings = dayBookings.filter(b => b.slot && (b.slot === s.name || b.slot.toLowerCase().startsWith(s.key.toLowerCase())));
+                  const approvedBooking = matchingBookings.find(b => b.status === 'APPROVED' || b.status === 'CONFIRMED');
+                  const pendingBookings = matchingBookings.filter(b => b.status === 'PENDING');
                   
                   const slotConfig = dateMatrix[s.key] || { status: 'available', price: 75000 };
                   let effectiveStatus = slotConfig.status;
-                  if (bookingMatch) {
-                    effectiveStatus = (bookingMatch.status === 'APPROVED' || bookingMatch.status === 'CONFIRMED') ? 'booked' : 'pending';
+                  if (approvedBooking) {
+                    effectiveStatus = 'booked';
+                  } else if (slotConfig.status === 'blocked') {
+                    effectiveStatus = 'blocked';
+                  } else if (pendingBookings.length > 0) {
+                    effectiveStatus = 'pending';
+                  } else {
+                    effectiveStatus = 'available';
                   }
 
                   const isBlocked = (effectiveStatus === 'blocked');
@@ -537,7 +545,7 @@ const OwnerDashboardView = {
                           ${isAvail ? `
                             <span class="px-2 py-0.5 rounded-full bg-status-available-bg text-status-available text-[10px] font-bold">Open</span>
                           ` : (isPending ? `
-                            <span class="px-2 py-0.5 rounded-full bg-status-pending-bg text-status-pending text-[10px] font-bold animate-pulse">Pending</span>
+                            <span class="px-2 py-0.5 rounded-full bg-status-pending-bg text-status-pending text-[10px] font-bold animate-pulse">${pendingBookings.length} Request${pendingBookings.length > 1 ? 's' : ''}</span>
                           ` : (isBooked ? `
                             <span class="px-2 py-0.5 rounded-full bg-status-error-bg text-status-error text-[10px] font-bold">Approved</span>
                           ` : `
@@ -546,26 +554,44 @@ const OwnerDashboardView = {
                         </div>
                         <p class="text-[11px] text-on-surface-variant">${s.hours}</p>
 
-                        <!-- Pending / Approved Booking Info Box -->
-                        ${bookingMatch ? `
-                          <div class="mt-2 p-2 bg-secondary-fixed/30 rounded-lg border border-secondary/20 text-[11px] space-y-1">
-                            <div class="font-bold text-on-surface flex items-center justify-between">
-                              <span>${bookingMatch.customer_name}</span>
-                              <a href="https://wa.me/${bookingMatch.customer_phone ? bookingMatch.customer_phone.replace(/[^0-9]/g, '') : ''}" target="_blank" class="text-secondary hover:underline flex items-center gap-0.5">
+                        <!-- Approved Booking Details -->
+                        ${approvedBooking ? `
+                          <div class="mt-2 p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/30 text-[11px] space-y-1">
+                            <div class="font-bold text-emerald-900 dark:text-emerald-300 flex items-center justify-between">
+                              <span>${approvedBooking.customer_name}</span>
+                              <a href="https://wa.me/${approvedBooking.customer_phone ? approvedBooking.customer_phone.replace(/[^0-9]/g, '') : ''}" target="_blank" class="text-emerald-700 hover:underline flex items-center gap-0.5" title="WhatsApp Customer">
                                 <span class="material-symbols-outlined text-[13px]">chat</span>
                               </a>
                             </div>
-                            <div class="text-on-surface-variant">${bookingMatch.guests} guests • ${bookingMatch.event_type}</div>
-                            ${isPending ? `
-                              <div class="pt-1 flex items-center gap-1.5">
-                                <button onclick="OwnerDashboardView.approveBooking('${bookingMatch.id}')" class="w-full py-1 bg-tertiary text-white font-bold text-[10px] rounded hover:bg-tertiary/90">
-                                  Approve
-                                </button>
-                                <button onclick="OwnerDashboardView.rejectBooking('${bookingMatch.id}')" class="w-full py-1 bg-surface-container text-error font-bold text-[10px] rounded hover:bg-error-container">
-                                  Reject
-                                </button>
+                            <div class="text-on-surface-variant">${approvedBooking.guests} guests • ${approvedBooking.event_type}</div>
+                            <button onclick="OwnerDashboardView.cancelApprovedBooking('${approvedBooking.id}')" class="w-full mt-1 py-1 bg-surface-container hover:bg-error-container text-error font-bold text-[10px] rounded transition-colors flex items-center justify-center gap-1">
+                              <span class="material-symbols-outlined text-[12px]">cancel</span> Cancel Approval
+                            </button>
+                          </div>
+                        ` : ''}
+
+                        <!-- Multiple Pending Requests (Owner chooses which one to accept) -->
+                        ${pendingBookings.length > 0 ? `
+                          <div class="mt-2 space-y-2">
+                            ${pendingBookings.map((pb, pIdx) => `
+                              <div class="p-2 bg-secondary-fixed/30 rounded-lg border border-secondary/20 text-[11px] space-y-1">
+                                <div class="font-bold text-on-surface flex items-center justify-between">
+                                  <span>${pIdx + 1}. ${pb.customer_name}</span>
+                                  <a href="https://wa.me/${pb.customer_phone ? pb.customer_phone.replace(/[^0-9]/g, '') : ''}" target="_blank" class="text-secondary hover:underline flex items-center gap-0.5">
+                                    <span class="material-symbols-outlined text-[13px]">chat</span>
+                                  </a>
+                                </div>
+                                <div class="text-on-surface-variant">${pb.guests} guests • ${pb.event_type}</div>
+                                <div class="pt-1 flex items-center gap-1.5">
+                                  <button onclick="OwnerDashboardView.approveBooking('${pb.id}')" class="w-full py-1 bg-tertiary text-white font-bold text-[10px] rounded hover:bg-tertiary/90 shadow-sm" title="Accept this request">
+                                    Approve
+                                  </button>
+                                  <button onclick="OwnerDashboardView.rejectBooking('${pb.id}')" class="w-full py-1 bg-surface-container text-error font-bold text-[10px] rounded hover:bg-error-container" title="Reject request">
+                                    Reject
+                                  </button>
+                                </div>
                               </div>
-                            ` : ''}
+                            `).join('')}
                           </div>
                         ` : ''}
                       </div>
@@ -693,9 +719,14 @@ const OwnerDashboardView = {
                               <button class="px-2.5 py-1.5 bg-surface-container text-error hover:bg-error-container rounded-lg text-xs font-bold transition-colors" onclick="OwnerDashboardView.rejectBooking('${b.id}')">
                                 Reject
                               </button>
+                            ` : (b.status === 'APPROVED' || b.status === 'CONFIRMED' ? `
+                              <span class="text-xs text-emerald-700 dark:text-emerald-300 font-bold">✅ Slot Locked</span>
+                              <button class="px-2 py-1 bg-surface-container hover:bg-error-container text-error rounded-md text-[11px] font-bold transition-colors" onclick="OwnerDashboardView.cancelApprovedBooking('${b.id}')" title="Cancel approved booking and free slot">
+                                Cancel Approval
+                              </button>
                             ` : `
-                              <span class="text-xs text-on-surface-variant font-medium">${b.status === 'APPROVED' || b.status === 'CONFIRMED' ? '✅ Slot Locked' : 'Done'}</span>
-                            `}
+                              <span class="text-xs text-on-surface-variant font-medium">${b.status}</span>
+                            `)}
                           </div>
                         </td>
                       </tr>
@@ -749,9 +780,13 @@ const OwnerDashboardView = {
                           <button class="px-2.5 py-1.5 bg-surface-container text-error rounded-lg text-xs font-bold" onclick="OwnerDashboardView.rejectBooking('${b.id}')">
                             Reject
                           </button>
+                        ` : (b.status === 'APPROVED' || b.status === 'CONFIRMED' ? `
+                          <button class="px-2.5 py-1.5 bg-surface-container hover:bg-error-container text-error rounded-lg text-xs font-bold" onclick="OwnerDashboardView.cancelApprovedBooking('${b.id}')">
+                            Cancel Approval
+                          </button>
                         ` : `
-                          <span class="text-xs text-on-surface-variant font-medium">${b.status === 'APPROVED' || b.status === 'CONFIRMED' ? '✅ Slot Locked' : 'Done'}</span>
-                        `}
+                          <span class="text-xs text-on-surface-variant font-medium">${b.status}</span>
+                        `)}
                       </div>
                     </div>
                   </div>
@@ -840,6 +875,15 @@ const OwnerDashboardView = {
     const reason = prompt('Optional: Enter a reason for rejection (or press OK to use default):', '');
     window.appStore.rejectBooking(id, reason && reason.trim() ? reason.trim() : 'Owner unavailable for the requested date/shift.');
     Toast.info('Booking Rejected', `Booking ${id} has been rejected.`);
+    const container = document.getElementById('app-content');
+    if (container) container.innerHTML = this.render();
+  },
+
+  cancelApprovedBooking(id) {
+    const reason = prompt('Please enter a cancellation reason for the customer (or press OK):', 'Owner schedule conflict / Private event');
+    if (reason === null) return;
+    window.appStore.cancelBooking(id, reason.trim() || 'Cancelled by venue host');
+    Toast.warning('Booking Cancelled', `Booking ${id} was cancelled and the slot has been released.`);
     const container = document.getElementById('app-content');
     if (container) container.innerHTML = this.render();
   },
