@@ -29,53 +29,55 @@ const Modals = {
     this.init();
     const container = document.getElementById('modal-container');
     container.innerHTML = `
-      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
-        <div class="bg-surface-container-lowest max-w-xl w-full rounded-2xl shadow-2xl p-6 md:p-8 modal-content border border-surface-container">
-          <div class="flex items-center justify-between pb-4 border-b border-surface-container">
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm modal-backdrop overflow-y-auto" onclick="if(event.target === this) Modals.close()">
+        <div class="bg-surface-container-lowest max-w-xl w-full rounded-2xl shadow-2xl p-5 sm:p-8 modal-content border border-surface-container max-h-[92dvh] flex flex-col my-auto overflow-hidden">
+          <div class="flex items-center justify-between pb-4 border-b border-surface-container shrink-0">
             <div>
               <span class="font-label-sm text-xs font-bold text-secondary uppercase tracking-widest">Platform Access</span>
-              <h2 class="font-headline-sm text-2xl font-semibold text-on-surface mt-1">Select Your Experience</h2>
+              <h2 class="font-headline-sm text-xl sm:text-2xl font-semibold text-on-surface mt-1">Select Your Experience</h2>
             </div>
-            <button onclick="Modals.close()" class="p-1 rounded-full text-on-surface-variant hover:bg-surface-container">
+            <button onclick="Modals.close()" class="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container">
               <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
           </div>
           
-          <p class="font-body-md text-sm text-on-surface-variant my-4">
-            VenueLuxe supports tailored workflows for both prospective event hosts, venue owners, and platform administrators.
-          </p>
+          <div class="modal-scroll-body overflow-y-auto flex-1 overscroll-contain pr-0.5">
+            <p class="font-body-md text-xs sm:text-sm text-on-surface-variant my-4">
+              VenueLuxe supports tailored workflows for both prospective event hosts, venue owners, and platform administrators.
+            </p>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
-            <!-- Option 1: Customer -->
-            <div class="border-2 border-surface-container hover:border-primary p-5 rounded-xl cursor-pointer transition-all hover:shadow-md bg-surface-container-low/40 group flex flex-col justify-between" onclick="Modals.switchPortal('customer'); Modals.close();">
-              <div>
-                <div class="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform">
-                  <span class="material-symbols-outlined text-[26px]">festival</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-4 sm:my-6">
+              <!-- Option 1: Customer -->
+              <div class="border-2 border-surface-container hover:border-primary p-4 sm:p-5 rounded-xl cursor-pointer transition-all hover:shadow-md bg-surface-container-low/40 group flex flex-col justify-between" onclick="Modals.switchPortal('customer'); Modals.close();">
+                <div>
+                  <div class="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform">
+                    <span class="material-symbols-outlined text-[26px]">festival</span>
+                  </div>
+                  <h3 class="font-title-md text-base font-bold text-on-surface">I'm Looking for a Hall</h3>
+                  <p class="font-body-sm text-xs text-on-surface-variant mt-1.5 leading-relaxed">
+                    Discover wedding halls, banquet spaces, and convention centers with verified pricing, real-time availability, and instant holds.
+                  </p>
                 </div>
-                <h3 class="font-title-md text-base font-bold text-on-surface">I'm Looking for a Hall</h3>
-                <p class="font-body-sm text-xs text-on-surface-variant mt-1.5 leading-relaxed">
-                  Discover wedding halls, banquet spaces, and convention centers with verified pricing, real-time availability, and instant holds.
-                </p>
+                <span class="inline-flex items-center gap-1 font-label-sm text-xs font-bold text-secondary mt-4 group-hover:underline">
+                  Continue as Customer <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                </span>
               </div>
-              <span class="inline-flex items-center gap-1 font-label-sm text-xs font-bold text-secondary mt-4 group-hover:underline">
-                Continue as Customer <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
-              </span>
-            </div>
 
-            <!-- Option 2: Hall Owner -->
-            <div class="border-2 border-surface-container hover:border-secondary p-5 rounded-xl cursor-pointer transition-all hover:shadow-md bg-surface-container-low/40 group flex flex-col justify-between" onclick="Modals.switchPortal('owner'); Modals.close();">
-              <div>
-                <div class="w-12 h-12 rounded-xl bg-secondary text-on-secondary flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform">
-                  <span class="material-symbols-outlined text-[26px]">domain</span>
+              <!-- Option 2: Hall Owner -->
+              <div class="border-2 border-surface-container hover:border-secondary p-4 sm:p-5 rounded-xl cursor-pointer transition-all hover:shadow-md bg-surface-container-low/40 group flex flex-col justify-between" onclick="Modals.switchPortal('owner'); Modals.close();">
+                <div>
+                  <div class="w-12 h-12 rounded-xl bg-secondary text-on-secondary flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform">
+                    <span class="material-symbols-outlined text-[26px]">domain</span>
+                  </div>
+                  <h3 class="font-title-md text-base font-bold text-on-surface">I'm a Hall Owner</h3>
+                  <p class="font-body-sm text-xs text-on-surface-variant mt-1.5 leading-relaxed">
+                    List your banquet hall, manage morning/evening shift allotments, review direct booking requests, and audit revenue.
+                  </p>
                 </div>
-                <h3 class="font-title-md text-base font-bold text-on-surface">I'm a Hall Owner</h3>
-                <p class="font-body-sm text-xs text-on-surface-variant mt-1.5 leading-relaxed">
-                  List your banquet hall, manage morning/evening shift allotments, review direct booking requests, and audit revenue.
-                </p>
+                <span class="inline-flex items-center gap-1 font-label-sm text-xs font-bold text-secondary mt-4 group-hover:underline">
+                  Enter Owner Workspace <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                </span>
               </div>
-              <span class="inline-flex items-center gap-1 font-label-sm text-xs font-bold text-secondary mt-4 group-hover:underline">
-                Enter Owner Workspace <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
-              </span>
             </div>
           </div>
 
@@ -1121,12 +1123,12 @@ const Modals = {
     const isSignup = defaultTab === 'signup';
     
     container.innerHTML = `
-      <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
-        <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden">
+      <div class="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm modal-backdrop overflow-y-auto" onclick="if(event.target === this) Modals.close()">
+        <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden max-h-[92dvh] my-auto flex flex-col">
           
           <!-- Context Banner if Booking -->
           ${contextInfo ? `
-            <div class="bg-surface-container-low border-b border-surface-container px-6 py-2.5 flex items-center gap-2">
+            <div class="bg-surface-container-low border-b border-surface-container px-5 sm:px-6 py-2.5 flex items-center gap-2 shrink-0">
               <span class="material-symbols-outlined text-secondary text-[18px]">lock</span>
               <p class="text-xs font-semibold text-on-surface">
                 ${contextInfo.subtitle || 'Sign in or create an account to proceed with your booking'}
@@ -1135,11 +1137,11 @@ const Modals = {
           ` : ''}
 
           <!-- Header -->
-          <div class="p-6 pb-0">
-            <div class="flex items-center justify-between mb-4">
+          <div class="p-5 sm:p-6 pb-0 shrink-0">
+            <div class="flex items-center justify-between mb-3 sm:mb-4">
               <div>
                 <span class="font-label-sm text-xs font-bold text-secondary uppercase tracking-widest">VenueLuxe Account</span>
-                <h2 class="font-headline-sm text-2xl font-bold text-on-surface mt-0.5" id="auth-modal-title">${isSignup ? 'Create Account' : 'Welcome Back'}</h2>
+                <h2 class="font-headline-sm text-xl sm:text-2xl font-bold text-on-surface mt-0.5" id="auth-modal-title">${isSignup ? 'Create Account' : 'Welcome Back'}</h2>
               </div>
               <button onclick="Modals.close()" class="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">
                 <span class="material-symbols-outlined text-[20px]">close</span>
@@ -1147,14 +1149,15 @@ const Modals = {
             </div>
 
             <!-- Tabs -->
-            <div class="flex gap-1 p-1 bg-surface-container rounded-xl mb-5">
+            <div class="flex gap-1 p-1 bg-surface-container rounded-xl mb-4 sm:mb-5">
               <button id="tab-login" onclick="Modals._switchAuthTab('login')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all ${!isSignup ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'text-on-surface-variant'}">Sign In</button>
               <button id="tab-signup" onclick="Modals._switchAuthTab('signup')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all ${isSignup ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'text-on-surface-variant'}">Sign Up</button>
             </div>
           </div>
 
-          <!-- Login Form -->
-          <div id="auth-form-login" class="${isSignup ? 'hidden' : ''} px-6 pb-6 space-y-3.5">
+          <div class="modal-scroll-body overflow-y-auto flex-1 overscroll-contain">
+            <!-- Login Form -->
+            <div id="auth-form-login" class="${isSignup ? 'hidden' : ''} px-5 sm:px-6 pb-6 space-y-3.5">
             <!-- 1-Click Google Sign-In -->
             <button type="button" id="btn-google-login" onclick="Modals._submitGoogleLogin()" class="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 active:scale-[0.99]">
               <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
@@ -1237,6 +1240,8 @@ const Modals = {
             <p class="text-center text-xs text-on-surface-variant">
               Already have an account? <button onclick="Modals._switchAuthTab('login')" class="text-secondary font-bold hover:underline">Sign In</button>
             </p>
+          </div>
+
           </div>
 
         </div>
@@ -1391,15 +1396,15 @@ const Modals = {
 
     const container = document.getElementById('modal-container');
     container.innerHTML = `
-      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
-        <div class="bg-surface-container-lowest max-w-lg w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden">
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm modal-backdrop overflow-y-auto" onclick="if(event.target === this) Modals.close()">
+        <div class="bg-surface-container-lowest max-w-lg w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden max-h-[92dvh] flex flex-col my-auto">
           
           <!-- Modal Header -->
-          <div class="p-6 pb-4 border-b border-surface-container bg-surface-container-low">
+          <div class="p-5 sm:p-6 pb-4 border-b border-surface-container bg-surface-container-low shrink-0">
             <div class="flex items-center justify-between">
               <div>
                 <span class="font-label-sm text-xs font-bold text-secondary uppercase tracking-widest">Booking Request</span>
-                <h2 class="font-headline-sm text-xl font-bold text-on-surface mt-0.5">${hall.name}</h2>
+                <h2 class="font-headline-sm text-lg sm:text-xl font-bold text-on-surface mt-0.5">${hall.name}</h2>
                 <p class="text-xs text-on-surface-variant mt-0.5">${hall.city}, ${hall.state}</p>
               </div>
               <button onclick="Modals.close()" class="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">
@@ -1409,7 +1414,7 @@ const Modals = {
           </div>
 
           <!-- Form Body -->
-          <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+          <div class="p-5 sm:p-6 modal-scroll-body overflow-y-auto flex-1 overscroll-contain">
             <form id="direct-booking-form" class="space-y-4" onsubmit="event.preventDefault(); Modals.submitBooking('${hall.id}')">
               
               <!-- Customer Info (pre-filled, read-only) -->
@@ -1581,113 +1586,120 @@ const Modals = {
 
     const container = document.getElementById('modal-container');
     container.innerHTML = `
-      <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md modal-backdrop">
-        <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden">
+      <div class="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md modal-backdrop overflow-y-auto" onclick="if(event.target === this) Modals.close()">
+        <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden my-auto flex flex-col max-h-[92dvh] relative">
           
-          <!-- Success Header -->
-          <div class="p-8 pb-6 text-center bg-gradient-to-b from-emerald-500/10 to-surface-container-lowest">
-            <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center justify-center mx-auto mb-4 shadow-md">
-              <span class="material-symbols-outlined text-[36px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-            </div>
-            <h2 class="font-headline-sm text-2xl font-bold text-on-surface">Request Submitted!</h2>
-            <div class="mt-3 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200">
-              <p class="text-xs font-bold flex items-center justify-center gap-1.5">
-                <span class="material-symbols-outlined text-[18px] text-emerald-600">phone_callback</span>
-                <span>The hall owners will contact you personally!</span>
-              </p>
-              <p class="text-[11px] text-emerald-800 dark:text-emerald-300 mt-1 leading-snug">
-                Your reservation request has been received by the venue host. They will call or message you personally to coordinate offline advances, contracts, and arrangements.
-              </p>
-            </div>
-          </div>
+          <!-- Top Right Close Button -->
+          <button onclick="Modals.close()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/5 hover:bg-black/15 text-on-surface flex items-center justify-center transition-colors z-20" aria-label="Close modal">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
 
-          <div class="px-6 pb-6 space-y-4">
-            <!-- Booking Summary -->
-            <div class="p-4 bg-surface-container rounded-xl border border-surface-container space-y-2 text-xs">
-              <div class="flex justify-between font-semibold text-on-surface">
-                <span class="text-on-surface-variant">Reference No.</span>
-                <span class="font-mono font-bold text-secondary">${booking.id}</span>
+          <div class="modal-scroll-body overflow-y-auto flex-1 overscroll-contain">
+            <!-- Success Header -->
+            <div class="p-6 sm:p-8 pb-4 sm:pb-6 text-center bg-gradient-to-b from-emerald-500/10 to-surface-container-lowest">
+              <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-md">
+                <span class="material-symbols-outlined text-[32px] sm:text-[36px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
               </div>
-              <div class="flex justify-between text-on-surface-variant">
-                <span>Hall</span>
-                <span class="text-on-surface font-semibold text-right max-w-[200px] truncate">${hall.name}</span>
+              <h2 class="font-headline-sm text-xl sm:text-2xl font-bold text-on-surface">Request Submitted!</h2>
+              <div class="mt-2.5 sm:mt-3 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200">
+                <p class="text-xs font-bold flex items-center justify-center gap-1.5">
+                  <span class="material-symbols-outlined text-[18px] text-emerald-600">phone_callback</span>
+                  <span>The hall owners will contact you personally!</span>
+                </p>
+                <p class="text-[11px] text-emerald-800 dark:text-emerald-300 mt-1 leading-snug">
+                  Your reservation request has been received by the venue host. They will call or message you personally to coordinate offline advances, contracts, and arrangements.
+                </p>
               </div>
-              <div class="flex justify-between text-on-surface-variant">
-                <span>Date & Shift</span>
-                <span class="text-on-surface font-semibold">${booking.date} • ${booking.slot}</span>
-              </div>
-              <div class="flex justify-between text-on-surface-variant">
-                <span>Guests</span>
-                <span class="text-on-surface font-semibold">${booking.guests} guests</span>
-              </div>
-              <div class="flex justify-between text-on-surface-variant">
-                <span>Event</span>
-                <span class="text-on-surface font-semibold">${booking.event_type}</span>
-              </div>
-              <div class="pt-1 border-t border-surface-container">
+            </div>
+
+            <div class="px-4 sm:px-6 pb-6 space-y-3.5 sm:space-y-4">
+              <!-- Booking Summary -->
+              <div class="p-3.5 sm:p-4 bg-surface-container rounded-xl border border-surface-container space-y-2 text-xs">
+                <div class="flex justify-between font-semibold text-on-surface">
+                  <span class="text-on-surface-variant">Reference No.</span>
+                  <span class="font-mono font-bold text-secondary">${booking.id}</span>
+                </div>
                 <div class="flex justify-between text-on-surface-variant">
-                  <span>Status</span>
-                  <span class="px-2 py-0.5 rounded-full bg-status-pending-bg text-status-pending font-bold text-[10px] uppercase tracking-wider">Pending Owner Approval</span>
+                  <span>Hall</span>
+                  <span class="text-on-surface font-semibold text-right max-w-[200px] truncate">${hall.name}</span>
+                </div>
+                <div class="flex justify-between text-on-surface-variant">
+                  <span>Date & Shift</span>
+                  <span class="text-on-surface font-semibold">${booking.date} • ${booking.slot}</span>
+                </div>
+                <div class="flex justify-between text-on-surface-variant">
+                  <span>Guests</span>
+                  <span class="text-on-surface font-semibold">${booking.guests} guests</span>
+                </div>
+                <div class="flex justify-between text-on-surface-variant">
+                  <span>Event</span>
+                  <span class="text-on-surface font-semibold">${booking.event_type}</span>
+                </div>
+                <div class="pt-1 border-t border-surface-container">
+                  <div class="flex justify-between text-on-surface-variant">
+                    <span>Status</span>
+                    <span class="px-2 py-0.5 rounded-full bg-status-pending-bg text-status-pending font-bold text-[10px] uppercase tracking-wider">Pending Owner Approval</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Owner Contact -->
-            <div class="p-4 bg-surface-container-low rounded-xl border border-outline">
-              <div class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-3">Owner Contact Details</div>
-              <div class="space-y-2">
-                <div class="text-sm font-bold text-on-surface">${contact.owner_name || hall.name}</div>
-                ${showPhone && contact.phone ? `
-                  <a href="tel:${contact.phone}" class="flex items-center gap-2 text-xs text-secondary hover:underline">
-                    <span class="material-symbols-outlined text-[16px]">call</span>
-                    ${contact.phone}
-                  </a>
-                ` : ''}
-                ${showWhatsapp && contact.whatsapp ? `
-                  <a href="https://wa.me/${contact.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="flex items-center gap-2 text-xs text-emerald-700 hover:underline">
-                    <span class="material-symbols-outlined text-[16px]">chat</span>
-                    WhatsApp: ${contact.whatsapp}
-                  </a>
-                ` : ''}
-                ${showEmail && contact.email ? `
-                  <a href="mailto:${contact.email}" class="flex items-center gap-2 text-xs text-on-surface-variant hover:text-on-surface">
-                    <span class="material-symbols-outlined text-[16px]">mail</span>
-                    ${contact.email}
-                  </a>
-                ` : ''}
+              <!-- Owner Contact -->
+              <div class="p-3.5 sm:p-4 bg-surface-container-low rounded-xl border border-outline">
+                <div class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2.5">Owner Contact Details</div>
+                <div class="space-y-2">
+                  <div class="text-sm font-bold text-on-surface">${contact.owner_name || hall.name}</div>
+                  ${showPhone && contact.phone ? `
+                    <a href="tel:${contact.phone}" class="flex items-center gap-2 text-xs text-secondary hover:underline py-0.5">
+                      <span class="material-symbols-outlined text-[16px]">call</span>
+                      ${contact.phone}
+                    </a>
+                  ` : ''}
+                  ${showWhatsapp && contact.whatsapp ? `
+                    <a href="https://wa.me/${contact.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="flex items-center gap-2 text-xs text-emerald-700 hover:underline py-0.5">
+                      <span class="material-symbols-outlined text-[16px]">chat</span>
+                      WhatsApp: ${contact.whatsapp}
+                    </a>
+                  ` : ''}
+                  ${showEmail && contact.email ? `
+                    <a href="mailto:${contact.email}" class="flex items-center gap-2 text-xs text-on-surface-variant hover:text-on-surface py-0.5">
+                      <span class="material-symbols-outlined text-[16px]">mail</span>
+                      ${contact.email}
+                    </a>
+                  ` : ''}
+                </div>
+                <p class="text-[11px] text-on-surface-variant mt-2.5 leading-relaxed">
+                  The owner will call you at <strong>${booking.customer_phone}</strong> or email <strong>${booking.customer_email}</strong> to coordinate offline advance payment and finalize scheduling.
+                </p>
               </div>
-              <p class="text-[11px] text-on-surface-variant mt-3 leading-relaxed">
-                The owner will call you at <strong>${booking.customer_phone}</strong> or email <strong>${booking.customer_email}</strong> to coordinate offline advance payment and finalize scheduling.
-              </p>
-            </div>
 
-            <!-- Direct Offline Settlement Policy Card -->
-            <div class="p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl text-left space-y-1">
-              <div class="flex items-center gap-1.5 font-bold text-xs text-secondary">
-                <span class="material-symbols-outlined text-[15px]">payments</span>
-                <span>Direct Offline Settlement</span>
+              <!-- Direct Offline Settlement Policy Card -->
+              <div class="p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl text-left space-y-1">
+                <div class="flex items-center gap-1.5 font-bold text-xs text-secondary">
+                  <span class="material-symbols-outlined text-[15px]">payments</span>
+                  <span>Direct Offline Settlement</span>
+                </div>
+                <p class="text-[11px] text-on-surface-variant leading-tight">
+                  No money is collected on this platform. Advance tokens, contracts, and catering packages are settled directly between you and the hall proprietor offline.
+                </p>
               </div>
-              <p class="text-[11px] text-on-surface-variant leading-tight">
-                No money is collected on this platform. Advance tokens, contracts, and catering packages are settled directly between you and the hall proprietor offline.
-              </p>
-            </div>
 
-            <!-- Direct WhatsApp Coordinate Action -->
-            ${contact.whatsapp ? `
-              <a href="https://wa.me/${contact.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello, I submitted a hold for ${hall.name} on ${booking.date} (${booking.slot}) on VenueLuxe (Ref: ${booking.id}). I'd like to discuss advance payment and event arrangements.`)}" target="_blank" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all">
-                <span class="material-symbols-outlined text-[18px]">chat</span>
-                <span>Chat with Owner on WhatsApp</span>
-              </a>
-            ` : ''}
+              <!-- Direct WhatsApp Coordinate Action -->
+              ${contact.whatsapp ? `
+                <a href="https://wa.me/${contact.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello, I submitted a hold for ${hall.name} on ${booking.date} (${booking.slot}) on VenueLuxe (Ref: ${booking.id}). I'd like to discuss advance payment and event arrangements.`)}" target="_blank" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98]">
+                  <span class="material-symbols-outlined text-[18px]">chat</span>
+                  <span>Chat with Owner on WhatsApp</span>
+                </a>
+              ` : ''}
 
-            <!-- CTAs -->
-            <div class="flex gap-2.5">
-              <button onclick="Modals.close(); window.location.hash='#/customer';" class="flex-1 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-inverse-surface transition-all">
-                View My Bookings
-              </button>
-              <button onclick="Modals.close()" class="flex-1 py-2.5 bg-surface-container text-on-surface font-bold text-xs rounded-xl hover:bg-surface-container-high transition-all border border-surface-container">
-                Done
-              </button>
+              <!-- CTAs -->
+              <div class="flex flex-col sm:flex-row gap-2.5 pt-1">
+                <button onclick="Modals.close(); window.location.hash='#/customer';" class="flex-1 py-3 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-inverse-surface transition-all text-center">
+                  View My Bookings
+                </button>
+                <button onclick="Modals.close()" class="flex-1 py-3 bg-surface-container text-on-surface font-bold text-xs rounded-xl hover:bg-surface-container-high transition-all border border-surface-container text-center">
+                  Done
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1703,53 +1715,60 @@ const Modals = {
     const contact = hall.contact || {};
     const container = document.getElementById('modal-container');
     container.innerHTML = `
-      <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md modal-backdrop">
-        <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden">
+      <div class="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md modal-backdrop overflow-y-auto" onclick="if(event.target === this) Modals.close()">
+        <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden my-auto flex flex-col max-h-[92dvh] relative">
           
-          <div class="p-8 pb-6 text-center bg-gradient-to-b from-emerald-500/10 to-surface-container-lowest">
-            <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center justify-center mx-auto mb-4 shadow-md">
-              <span class="material-symbols-outlined text-[36px]" style="font-variation-settings: 'FILL' 1;">mark_email_read</span>
-            </div>
-            <h2 class="font-headline-sm text-2xl font-bold text-on-surface">Enquiry Submitted!</h2>
-            <div class="mt-3 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200">
-              <p class="text-xs font-bold flex items-center justify-center gap-1.5">
-                <span class="material-symbols-outlined text-[18px] text-emerald-600">phone_callback</span>
-                <span>The hall owners will contact you personally!</span>
-              </p>
-              <p class="text-[11px] text-emerald-800 dark:text-emerald-300 mt-1 leading-snug">
-                Your enquiry for "${hall.name}" was delivered. The venue host will reach out to you directly at <strong>${enquiry.customer_phone}</strong> to discuss dates and arrangements.
-              </p>
-            </div>
-          </div>
+          <!-- Top Right Close Button -->
+          <button onclick="Modals.close()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/5 hover:bg-black/15 text-on-surface flex items-center justify-center transition-colors z-20" aria-label="Close modal">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
 
-          <div class="px-6 pb-6 space-y-4">
-            <div class="p-4 bg-surface-container rounded-xl border border-surface-container space-y-2 text-xs">
-              <div class="flex justify-between font-semibold text-on-surface">
-                <span class="text-on-surface-variant">Enquiry ID</span>
-                <span class="font-mono font-bold text-secondary">${enquiry.id}</span>
+          <div class="modal-scroll-body overflow-y-auto flex-1 overscroll-contain">
+            <div class="p-6 sm:p-8 pb-4 sm:pb-6 text-center bg-gradient-to-b from-emerald-500/10 to-surface-container-lowest">
+              <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-md">
+                <span class="material-symbols-outlined text-[32px] sm:text-[36px]" style="font-variation-settings: 'FILL' 1;">mark_email_read</span>
               </div>
-              <div class="flex justify-between text-on-surface-variant">
-                <span>Hall</span>
-                <span class="text-on-surface font-semibold text-right max-w-[200px] truncate">${hall.name}</span>
-              </div>
-              <div class="flex justify-between text-on-surface-variant">
-                <span>Target Dates</span>
-                <span class="text-on-surface font-semibold">${enquiry.dates || 'Flexible'}</span>
+              <h2 class="font-headline-sm text-xl sm:text-2xl font-bold text-on-surface">Enquiry Submitted!</h2>
+              <div class="mt-2.5 sm:mt-3 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200">
+                <p class="text-xs font-bold flex items-center justify-center gap-1.5">
+                  <span class="material-symbols-outlined text-[18px] text-emerald-600">phone_callback</span>
+                  <span>The hall owners will contact you personally!</span>
+                </p>
+                <p class="text-[11px] text-emerald-800 dark:text-emerald-300 mt-1 leading-snug">
+                  Your enquiry for "${hall.name}" was delivered. The venue host will reach out to you directly at <strong>${enquiry.customer_phone}</strong> to discuss dates and arrangements.
+                </p>
               </div>
             </div>
 
-            <!-- Direct WhatsApp Coordinate Action -->
-            ${contact.whatsapp ? `
-              <a href="https://wa.me/${contact.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello, I sent an enquiry for ${hall.name} on VenueLuxe (Ref: ${enquiry.id}). I'd like to coordinate event dates and offline details.`)}" target="_blank" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all">
-                <span class="material-symbols-outlined text-[18px]">chat</span>
-                <span>Chat with Owner on WhatsApp</span>
-              </a>
-            ` : ''}
+            <div class="px-4 sm:px-6 pb-6 space-y-3.5 sm:space-y-4">
+              <div class="p-3.5 sm:p-4 bg-surface-container rounded-xl border border-surface-container space-y-2 text-xs">
+                <div class="flex justify-between font-semibold text-on-surface">
+                  <span class="text-on-surface-variant">Enquiry ID</span>
+                  <span class="font-mono font-bold text-secondary">${enquiry.id}</span>
+                </div>
+                <div class="flex justify-between text-on-surface-variant">
+                  <span>Hall</span>
+                  <span class="text-on-surface font-semibold text-right max-w-[200px] truncate">${hall.name}</span>
+                </div>
+                <div class="flex justify-between text-on-surface-variant">
+                  <span>Target Dates</span>
+                  <span class="text-on-surface font-semibold">${enquiry.dates || 'Flexible'}</span>
+                </div>
+              </div>
 
-            <div class="flex gap-2.5">
-              <button onclick="Modals.close()" class="w-full py-2.5 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-inverse-surface transition-all">
-                Close
-              </button>
+              <!-- Direct WhatsApp Coordinate Action -->
+              ${contact.whatsapp ? `
+                <a href="https://wa.me/${contact.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello, I sent an enquiry for ${hall.name} on VenueLuxe (Ref: ${enquiry.id}). I'd like to coordinate event dates and offline details.`)}" target="_blank" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98]">
+                  <span class="material-symbols-outlined text-[18px]">chat</span>
+                  <span>Chat with Owner on WhatsApp</span>
+                </a>
+              ` : ''}
+
+              <div class="flex gap-2.5 pt-1">
+                <button onclick="Modals.close()" class="w-full py-3 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-inverse-surface transition-all text-center">
+                  Close
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1767,43 +1786,45 @@ const Modals = {
 
     const container = document.getElementById('modal-container');
     container.innerHTML = `
-      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
-        <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl p-6 modal-content border border-surface-container">
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm modal-backdrop overflow-y-auto" onclick="if(event.target === this) Modals.close()">
+        <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl p-5 sm:p-6 modal-content border border-surface-container max-h-[92dvh] flex flex-col my-auto overflow-hidden">
           
-          <div class="flex items-center justify-between pb-3 border-b border-surface-container">
+          <div class="flex items-center justify-between pb-3 border-b border-surface-container shrink-0">
             <h3 class="font-headline-sm text-lg font-bold text-on-surface">Write a Review</h3>
-            <button onclick="Modals.close()" class="p-1 rounded-full text-on-surface-variant hover:bg-surface-container">
+            <button onclick="Modals.close()" class="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container">
               <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
           </div>
 
-          <form onsubmit="event.preventDefault(); Modals.submitReview('${hall.id}')" class="space-y-4 my-4">
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Rating</label>
-              <div class="flex items-center gap-2 text-secondary text-2xl" id="star-rating-selector">
-                <span class="cursor-pointer" onclick="Modals.setRating(1)">★</span>
-                <span class="cursor-pointer" onclick="Modals.setRating(2)">★</span>
-                <span class="cursor-pointer" onclick="Modals.setRating(3)">★</span>
-                <span class="cursor-pointer" onclick="Modals.setRating(4)">★</span>
-                <span class="cursor-pointer" onclick="Modals.setRating(5)">★</span>
-                <input type="hidden" id="rev-rating-val" value="5">
+          <div class="modal-scroll-body overflow-y-auto flex-1 overscroll-contain pr-0.5">
+            <form onsubmit="event.preventDefault(); Modals.submitReview('${hall.id}')" class="space-y-4 my-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Rating</label>
+                <div class="flex items-center gap-2 text-secondary text-2xl" id="star-rating-selector">
+                  <span class="cursor-pointer" onclick="Modals.setRating(1)">★</span>
+                  <span class="cursor-pointer" onclick="Modals.setRating(2)">★</span>
+                  <span class="cursor-pointer" onclick="Modals.setRating(3)">★</span>
+                  <span class="cursor-pointer" onclick="Modals.setRating(4)">★</span>
+                  <span class="cursor-pointer" onclick="Modals.setRating(5)">★</span>
+                  <input type="hidden" id="rev-rating-val" value="5">
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Your Name</label>
-              <input type="text" id="rev-name" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-semibold" value="Ayush Poojary" required>
-            </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Your Name</label>
+                <input type="text" id="rev-name" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface font-semibold" value="Ayush Poojary" required>
+              </div>
 
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Your Review Feedback</label>
-              <textarea id="rev-text" rows="3" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface" placeholder="Share details about acoustics, air conditioning, parking, staff hospitality..." required></textarea>
-            </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">Your Review Feedback</label>
+                <textarea id="rev-text" rows="3" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface" placeholder="Share details about acoustics, air conditioning, parking, staff hospitality..." required></textarea>
+              </div>
 
-            <button type="submit" class="w-full py-2.5 bg-primary text-on-primary font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm hover:bg-inverse-surface transition-all">
-              Publish Verified Review
-            </button>
-          </form>
+              <button type="submit" class="w-full py-3 bg-primary text-on-primary font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm hover:bg-inverse-surface transition-all active:scale-[0.98]">
+                Publish Verified Review
+              </button>
+            </form>
+          </div>
 
         </div>
       </div>
@@ -1847,53 +1868,54 @@ const Modals = {
 
     const container = document.getElementById('modal-container');
     container.innerHTML = `
-      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
-        <div class="bg-surface-container-lowest max-w-sm w-full rounded-2xl shadow-2xl p-6 modal-content border border-surface-container space-y-4">
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
+        <div class="bg-surface-container-lowest max-w-sm w-full rounded-2xl shadow-2xl p-5 sm:p-6 modal-content border border-surface-container flex flex-col max-h-[92dvh] my-auto">
           
-          <div class="flex items-center justify-between pb-2 border-b border-surface-container">
-            <h3 class="font-headline-sm text-lg font-bold text-on-surface">Share Venue</h3>
-            <button onclick="Modals.close()" class="p-1 rounded-full text-on-surface-variant hover:bg-surface-container">
+          <div class="flex items-center justify-between pb-3 border-b border-surface-container shrink-0">
+            <h3 class="font-headline-sm text-base sm:text-lg font-bold text-on-surface">Share Venue</h3>
+            <button onclick="Modals.close()" class="p-1 rounded-full text-on-surface-variant hover:bg-surface-container" aria-label="Close">
               <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
           </div>
 
-          <!-- Preview Card -->
-          <div class="p-3 bg-surface-container-low rounded-xl flex items-center gap-3 border border-surface-container">
-            <img src="${hall.cover_image}" class="w-12 h-12 rounded-lg object-cover shrink-0">
-            <div class="truncate">
-              <div class="font-bold text-xs text-on-surface truncate">${hall.name}</div>
-              <div class="text-[11px] text-on-surface-variant">${hall.city} • Seats ${hall.seating_capacity}</div>
+          <div class="modal-scroll-body overflow-y-auto flex-1 overscroll-contain py-2 space-y-4">
+            <!-- Preview Card -->
+            <div class="p-3 bg-surface-container-low rounded-xl flex items-center gap-3 border border-surface-container">
+              <img src="${hall.cover_image}" class="w-12 h-12 rounded-lg object-cover shrink-0">
+              <div class="truncate">
+                <div class="font-bold text-xs text-on-surface truncate">${hall.name}</div>
+                <div class="text-[11px] text-on-surface-variant">${hall.city} • Seats ${hall.seating_capacity}</div>
+              </div>
+            </div>
+
+            <!-- Sharing Buttons -->
+            <div class="grid grid-cols-4 gap-2 text-center text-xs">
+              <a href="https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}" target="_blank" class="p-3 bg-emerald-50 text-emerald-800 rounded-xl hover:bg-emerald-100 flex flex-col items-center gap-1 transition-colors">
+                <span class="material-symbols-outlined text-[22px]">chat</span>
+                <span class="text-[10px] font-semibold">WhatsApp</span>
+              </a>
+              <a href="https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}" target="_blank" class="p-3 bg-sky-50 text-sky-800 rounded-xl hover:bg-sky-100 flex flex-col items-center gap-1 transition-colors">
+                <span class="material-symbols-outlined text-[22px]">send</span>
+                <span class="text-[10px] font-semibold">Telegram</span>
+              </a>
+              <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}" target="_blank" class="p-3 bg-blue-50 text-blue-800 rounded-xl hover:bg-blue-100 flex flex-col items-center gap-1 transition-colors">
+                <span class="material-symbols-outlined text-[22px]">share</span>
+                <span class="text-[10px] font-semibold">Facebook</span>
+              </a>
+              <a href="mailto:?subject=${encodeURIComponent(hall.name)}&body=${encodeURIComponent(shareText + '\n\n' + shareUrl)}" class="p-3 bg-slate-100 text-slate-800 rounded-xl hover:bg-slate-200 flex flex-col items-center gap-1 transition-colors">
+                <span class="material-symbols-outlined text-[22px]">mail</span>
+                <span class="text-[10px] font-semibold">Email</span>
+              </a>
+            </div>
+
+            <!-- Copy Link -->
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-surface-container border border-surface-container">
+              <input type="text" readonly value="${shareUrl}" class="bg-transparent text-xs w-full text-on-surface truncate focus:outline-none">
+              <button class="px-3 py-1 bg-primary text-on-primary text-xs rounded font-bold shrink-0 hover:bg-inverse-surface cursor-pointer" onclick="navigator.clipboard.writeText('${shareUrl}'); Toast.success('Copied', 'Link copied to clipboard!');">
+                Copy
+              </button>
             </div>
           </div>
-
-          <!-- Sharing Buttons -->
-          <div class="grid grid-cols-4 gap-2 text-center text-xs">
-            <a href="https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}" target="_blank" class="p-3 bg-emerald-50 text-emerald-800 rounded-xl hover:bg-emerald-100 flex flex-col items-center gap-1 transition-colors">
-              <span class="material-symbols-outlined text-[22px]">chat</span>
-              <span class="text-[10px] font-semibold">WhatsApp</span>
-            </a>
-            <a href="https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}" target="_blank" class="p-3 bg-sky-50 text-sky-800 rounded-xl hover:bg-sky-100 flex flex-col items-center gap-1 transition-colors">
-              <span class="material-symbols-outlined text-[22px]">send</span>
-              <span class="text-[10px] font-semibold">Telegram</span>
-            </a>
-            <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}" target="_blank" class="p-3 bg-blue-50 text-blue-800 rounded-xl hover:bg-blue-100 flex flex-col items-center gap-1 transition-colors">
-              <span class="material-symbols-outlined text-[22px]">share</span>
-              <span class="text-[10px] font-semibold">Facebook</span>
-            </a>
-            <a href="mailto:?subject=${encodeURIComponent(hall.name)}&body=${encodeURIComponent(shareText + '\n\n' + shareUrl)}" class="p-3 bg-slate-100 text-slate-800 rounded-xl hover:bg-slate-200 flex flex-col items-center gap-1 transition-colors">
-              <span class="material-symbols-outlined text-[22px]">mail</span>
-              <span class="text-[10px] font-semibold">Email</span>
-            </a>
-          </div>
-
-          <!-- Copy Link -->
-          <div class="flex items-center gap-2 p-2 rounded-lg bg-surface-container border border-surface-container">
-            <input type="text" readonly value="${shareUrl}" class="bg-transparent text-xs w-full text-on-surface truncate focus:outline-none">
-            <button class="px-3 py-1 bg-primary text-on-primary text-xs rounded font-bold shrink-0 hover:bg-inverse-surface" onclick="navigator.clipboard.writeText('${shareUrl}'); Toast.success('Copied', 'Link copied to clipboard!');">
-              Copy
-            </button>
-          </div>
-
         </div>
       </div>
     `;
@@ -2123,16 +2145,16 @@ const Modals = {
 
     const container = document.getElementById('modal-container');
     container.innerHTML = `
-      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
-        <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl p-6 modal-content border border-surface-container space-y-4">
-          <div class="flex items-center justify-between pb-2 border-b border-surface-container">
-            <h3 class="font-headline-sm text-lg font-bold text-on-surface">Report Listing</h3>
-            <button onclick="Modals.close()" class="p-1 rounded-full text-on-surface-variant hover:bg-surface-container">
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
+        <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl p-5 sm:p-6 modal-content border border-surface-container flex flex-col max-h-[92dvh] my-auto">
+          <div class="flex items-center justify-between pb-3 border-b border-surface-container shrink-0">
+            <h3 class="font-headline-sm text-base sm:text-lg font-bold text-on-surface">Report Listing</h3>
+            <button onclick="Modals.close()" class="p-1 rounded-full text-on-surface-variant hover:bg-surface-container" aria-label="Close">
               <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
           </div>
 
-          <form onsubmit="event.preventDefault(); Modals.submitReport('${hall.id}')" class="space-y-3">
+          <form onsubmit="event.preventDefault(); Modals.submitReport('${hall.id}')" class="modal-scroll-body overflow-y-auto flex-1 overscroll-contain py-2 space-y-3">
             <div>
               <label class="block text-xs font-bold uppercase text-on-surface mb-1">Reason</label>
               <select id="rep-reason" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface">
@@ -2147,7 +2169,7 @@ const Modals = {
               <label class="block text-xs font-bold uppercase text-on-surface mb-1">Explanation</label>
               <textarea id="rep-details" rows="3" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-surface-container text-xs text-on-surface" placeholder="Provide context for admin compliance review..." required></textarea>
             </div>
-            <button type="submit" class="w-full py-2.5 bg-error text-on-error font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm">
+            <button type="submit" class="w-full py-2.5 bg-error text-on-error font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm cursor-pointer">
               Submit Report to Super Admin
             </button>
           </form>
@@ -2458,20 +2480,20 @@ const Modals = {
     const container = document.getElementById('modal-container');
 
     container.innerHTML = `
-      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
-        <div class="bg-surface-container-lowest max-w-lg w-full rounded-2xl shadow-2xl modal-content border border-outline overflow-hidden">
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
+        <div class="bg-surface-container-lowest max-w-lg w-full rounded-2xl shadow-2xl modal-content border border-outline overflow-hidden max-h-[92dvh] flex flex-col my-auto">
           
-          <div class="flex items-center justify-between p-5 border-b border-outline bg-surface-container-low shrink-0">
+          <div class="flex items-center justify-between p-4 sm:p-5 border-b border-outline bg-surface-container-low shrink-0">
             <div>
               <span class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-widest">Offline Reservation</span>
-              <h3 class="font-headline-sm text-lg font-bold text-on-surface mt-0.5">Record Walk-in / Phone Booking</h3>
+              <h3 class="font-headline-sm text-base sm:text-lg font-bold text-on-surface mt-0.5">Record Walk-in / Phone Booking</h3>
             </div>
-            <button onclick="Modals.close()" class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container">
+            <button onclick="Modals.close()" class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container" aria-label="Close">
               <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
           </div>
 
-          <form onsubmit="event.preventDefault(); Modals.submitWalkinBooking()" class="p-5 space-y-3.5 text-xs">
+          <form onsubmit="event.preventDefault(); Modals.submitWalkinBooking()" class="p-4 sm:p-5 space-y-3.5 text-xs modal-scroll-body overflow-y-auto flex-1 overscroll-contain">
             <div>
               <label class="block font-bold text-on-surface mb-1">Select Venue *</label>
               <select id="wb-hall" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-outline text-on-surface font-semibold focus:border-secondary outline-none" required>
@@ -2535,11 +2557,11 @@ const Modals = {
               <input type="text" id="wb-notes" placeholder="Direct phone booking. 50% advance received offline." class="w-full p-2.5 rounded-lg bg-surface-container-low border border-outline text-on-surface font-medium focus:border-secondary outline-none">
             </div>
 
-            <div class="pt-3 border-t border-outline flex items-center justify-end gap-2.5">
-              <button type="button" onclick="Modals.close()" class="px-4 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-bold uppercase tracking-wider text-xs">
+            <div class="pt-3 border-t border-outline flex items-center justify-end gap-2.5 shrink-0">
+              <button type="button" onclick="Modals.close()" class="px-4 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-bold uppercase tracking-wider text-xs cursor-pointer">
                 Cancel
               </button>
-              <button type="submit" class="px-5 py-2 rounded-lg bg-primary hover:bg-inverse-surface text-white font-bold uppercase tracking-wider text-xs shadow-sm flex items-center gap-1.5">
+              <button type="submit" class="px-5 py-2 rounded-lg bg-primary hover:bg-inverse-surface text-white font-bold uppercase tracking-wider text-xs shadow-sm flex items-center gap-1.5 cursor-pointer">
                 <span class="material-symbols-outlined text-[16px]">lock</span>
                 Confirm & Lock Slot
               </button>
@@ -2605,12 +2627,12 @@ const Modals = {
 
     const container = document.getElementById('modal-container');
     container.innerHTML = `
-      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
-        <div class="bg-surface-container-lowest max-w-lg w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden">
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
+        <div class="bg-surface-container-lowest max-w-lg w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden max-h-[92dvh] flex flex-col my-auto">
           
-          <div class="p-6 pb-4 border-b border-surface-container bg-surface-container-low flex items-center justify-between">
+          <div class="p-4 sm:p-6 pb-4 border-b border-surface-container bg-surface-container-low flex items-center justify-between shrink-0">
             <div class="flex items-center gap-2.5">
-              <span class="w-9 h-9 rounded-xl bg-error/10 text-error flex items-center justify-center">
+              <span class="w-9 h-9 rounded-xl bg-error/10 text-error flex items-center justify-center shrink-0">
                 <span class="material-symbols-outlined text-[20px]">block</span>
               </span>
               <div>
@@ -2618,12 +2640,12 @@ const Modals = {
                 <h3 class="font-headline-sm text-base font-bold text-on-surface">${hall.name}</h3>
               </div>
             </div>
-            <button onclick="Modals.close()" class="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">
+            <button onclick="Modals.close()" class="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors" aria-label="Close">
               <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
           </div>
 
-          <form class="p-6 space-y-4" onsubmit="event.preventDefault(); Modals.submitBlockRange('${hall.id}')">
+          <form class="p-4 sm:p-6 space-y-4 modal-scroll-body overflow-y-auto flex-1 overscroll-contain" onsubmit="event.preventDefault(); Modals.submitBlockRange('${hall.id}')">
             <p class="text-xs text-on-surface-variant leading-relaxed">
               Block availability for maintenance, family functions, or offline reservations. Blocked slots will appear unavailable to prospective guests on the customer site.
             </p>
@@ -2656,18 +2678,18 @@ const Modals = {
               <div class="flex items-center gap-1.5 flex-wrap mt-2">
                 <span class="text-[10px] text-on-surface-variant font-medium">Suggestions:</span>
                 ${['Annual Maintenance', 'Private Family Event', 'VIP Booking Hold', 'Deep Cleaning & Audio Overhaul'].map(s => `
-                  <button type="button" onclick="document.getElementById('blk-reason').value = '${s}'" class="text-[10px] px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant transition-colors border border-outline">
+                  <button type="button" onclick="document.getElementById('blk-reason').value = '${s}'" class="text-[10px] px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant transition-colors border border-outline cursor-pointer">
                     ${s}
                   </button>
                 `).join('')}
               </div>
             </div>
 
-            <div class="pt-2 flex items-center justify-end gap-2 border-t border-surface-container">
-              <button type="button" onclick="Modals.close()" class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:bg-surface-container rounded-lg">
+            <div class="pt-2 flex items-center justify-end gap-2 border-t border-surface-container shrink-0">
+              <button type="button" onclick="Modals.close()" class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:bg-surface-container rounded-lg cursor-pointer">
                 Cancel
               </button>
-              <button type="submit" class="px-5 py-2.5 bg-error text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md hover:bg-error/90 flex items-center gap-1.5">
+              <button type="submit" class="px-5 py-2.5 bg-error text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md hover:bg-error/90 flex items-center gap-1.5 cursor-pointer">
                 <span class="material-symbols-outlined text-[16px]">lock</span>
                 <span>Confirm Blockout</span>
               </button>
@@ -2715,12 +2737,12 @@ const Modals = {
 
     const container = document.getElementById('modal-container');
     container.innerHTML = `
-      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
-        <div class="bg-surface-container-lowest max-w-lg w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden">
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
+        <div class="bg-surface-container-lowest max-w-lg w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden max-h-[92dvh] flex flex-col my-auto">
           
-          <div class="p-6 pb-4 border-b border-surface-container bg-surface-container-low flex items-center justify-between">
+          <div class="p-4 sm:p-6 pb-4 border-b border-surface-container bg-surface-container-low flex items-center justify-between shrink-0">
             <div class="flex items-center gap-2.5">
-              <span class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <span class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                 <span class="material-symbols-outlined text-[20px]">trending_up</span>
               </span>
               <div>
@@ -2728,12 +2750,12 @@ const Modals = {
                 <h3 class="font-headline-sm text-base font-bold text-on-surface">${hall.name}</h3>
               </div>
             </div>
-            <button onclick="Modals.close()" class="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">
+            <button onclick="Modals.close()" class="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors" aria-label="Close">
               <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
           </div>
 
-          <form class="p-6 space-y-4" onsubmit="event.preventDefault(); Modals.submitPeakPricing('${hall.id}')">
+          <form class="p-4 sm:p-6 space-y-4 modal-scroll-body overflow-y-auto flex-1 overscroll-contain" onsubmit="event.preventDefault(); Modals.submitPeakPricing('${hall.id}')">
             <p class="text-xs text-on-surface-variant leading-relaxed">
               Configure premium festival rates, auspicious wedding muhurat surge, or seasonal holiday tariffs across specific date windows.
             </p>
@@ -2774,11 +2796,11 @@ const Modals = {
               💡 The updated tariff will be displayed directly on the customer storefront calendar and applied to all incoming hold deposits.
             </div>
 
-            <div class="pt-2 flex items-center justify-end gap-2 border-t border-surface-container">
-              <button type="button" onclick="Modals.close()" class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:bg-surface-container rounded-lg">
+            <div class="pt-2 flex items-center justify-end gap-2 border-t border-surface-container shrink-0">
+              <button type="button" onclick="Modals.close()" class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:bg-surface-container rounded-lg cursor-pointer">
                 Cancel
               </button>
-              <button type="submit" class="px-5 py-2.5 bg-secondary text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md hover:bg-secondary/90 flex items-center gap-1.5">
+              <button type="submit" class="px-5 py-2.5 bg-secondary text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md hover:bg-secondary/90 flex items-center gap-1.5 cursor-pointer">
                 <span class="material-symbols-outlined text-[16px]">price_check</span>
                 <span>Apply Peak Tariff</span>
               </button>
@@ -2826,12 +2848,12 @@ const Modals = {
 
     const container = document.getElementById('modal-container');
     container.innerHTML = `
-      <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
-        <div class="bg-surface-container-lowest max-w-lg w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden">
+      <div class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm modal-backdrop" onclick="if(event.target === this) Modals.close()">
+        <div class="bg-surface-container-lowest max-w-lg w-full rounded-2xl shadow-2xl modal-content border border-surface-container overflow-hidden max-h-[92dvh] flex flex-col my-auto">
           
-          <div class="p-6 pb-4 border-b border-surface-container bg-surface-container-low flex items-center justify-between">
+          <div class="p-4 sm:p-6 pb-4 border-b border-surface-container bg-surface-container-low flex items-center justify-between shrink-0">
             <div class="flex items-center gap-2.5">
-              <span class="w-9 h-9 rounded-xl bg-status-available-bg text-status-available flex items-center justify-center">
+              <span class="w-9 h-9 rounded-xl bg-status-available-bg text-status-available flex items-center justify-center shrink-0">
                 <span class="material-symbols-outlined text-[20px]">lock_open</span>
               </span>
               <div>
@@ -2839,12 +2861,12 @@ const Modals = {
                 <h3 class="font-headline-sm text-base font-bold text-on-surface">${hall.name}</h3>
               </div>
             </div>
-            <button onclick="Modals.close()" class="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">
+            <button onclick="Modals.close()" class="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors" aria-label="Close">
               <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
           </div>
 
-          <form class="p-6 space-y-4" onsubmit="event.preventDefault(); Modals.submitUnblockRange('${hall.id}')">
+          <form class="p-4 sm:p-6 space-y-4 modal-scroll-body overflow-y-auto flex-1 overscroll-contain" onsubmit="event.preventDefault(); Modals.submitUnblockRange('${hall.id}')">
             <p class="text-xs text-on-surface-variant leading-relaxed">
               Remove blockouts and restore standard open availability on the customer website for this date window.
             </p>
@@ -2860,11 +2882,11 @@ const Modals = {
               </div>
             </div>
 
-            <div class="pt-2 flex items-center justify-end gap-2 border-t border-surface-container">
-              <button type="button" onclick="Modals.close()" class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:bg-surface-container rounded-lg">
+            <div class="pt-2 flex items-center justify-end gap-2 border-t border-surface-container shrink-0">
+              <button type="button" onclick="Modals.close()" class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:bg-surface-container rounded-lg cursor-pointer">
                 Cancel
               </button>
-              <button type="submit" class="px-5 py-2.5 bg-status-available text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md hover:bg-status-available/90 flex items-center gap-1.5">
+              <button type="submit" class="px-5 py-2.5 bg-status-available text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md hover:bg-status-available/90 flex items-center gap-1.5 cursor-pointer">
                 <span class="material-symbols-outlined text-[16px]">check_circle</span>
                 <span>Restore Availability</span>
               </button>

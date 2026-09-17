@@ -489,11 +489,12 @@ const DetailsView = {
           </section>
 
           <!-- Main Directory Details Grid -->
+          <!-- Main Directory Details Grid -->
           <section class="max-w-[1360px] mx-auto w-full px-gutter-mobile md:px-gutter-desktop mt-8">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
 
-              <!-- Left Column: Venue Overview & Location -->
-              <div class="lg:col-span-7 space-y-6">
+              <!-- Left Column Top: Venue Overview & Contact Desk (order-1 on mobile) -->
+              <div class="lg:col-span-7 lg:col-start-1 lg:row-start-1 space-y-6 order-1">
 
                 <!-- About / Overview Card -->
                 <div class="bg-surface-container-lowest rounded-2xl border border-outline p-6 shadow-sm space-y-4">
@@ -504,26 +505,6 @@ const DetailsView = {
                   <p class="font-body-md text-sm text-on-surface-variant leading-relaxed">
                     ${hall.overview || `${hall.name} is a verified event venue situated in ${hall.city}. For shift reservations, catering arrangements, and rental contracts, please coordinate directly with the venue host offline.`}
                   </p>
-                </div>
-
-                <!-- Verified Location & Map Card -->
-                <div class="bg-surface-container-lowest rounded-2xl border border-outline p-6 shadow-sm space-y-4">
-                  <div class="flex items-center justify-between pb-3 border-b border-outline">
-                    <div class="flex items-center gap-2">
-                      <span class="material-symbols-outlined text-primary text-[22px]">map</span>
-                      <h2 class="font-title-lg text-lg font-bold text-on-surface">Physical Location</h2>
-                    </div>
-                    <a href="https://maps.google.com/?q=${encodeURIComponent(hall.name + ' ' + (hall.address || hall.city))}" target="_blank" class="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline">
-                      <span>Open in Google Maps</span>
-                      <span class="material-symbols-outlined text-[14px]">open_in_new</span>
-                    </a>
-                  </div>
-
-                  <p class="text-xs font-medium text-on-surface-variant">
-                    ${hall.address || `${hall.area || ''}, ${hall.city}, Karnataka, India`}
-                  </p>
-
-                  <div id="hall-leaflet-map" class="w-full h-56 rounded-xl border border-outline overflow-hidden z-0"></div>
                 </div>
 
                 <!-- Verified Desk / Contact Info Card -->
@@ -562,8 +543,8 @@ const DetailsView = {
 
               </div>
 
-              <!-- Right Column: Direct Enquiry Form -->
-              <div class="lg:col-span-5 space-y-6">
+              <!-- Right Column: Direct Enquiry Form (order-2 on mobile, sticky on desktop) -->
+              <div class="lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:row-span-2 space-y-6 order-2" id="basic-enquiry-panel">
                 <div class="bg-surface-container-lowest rounded-2xl border border-outline p-6 shadow-sm sticky top-24 space-y-5">
                   <div>
                     <h3 class="font-title-lg text-base font-bold text-on-surface flex items-center gap-2">
@@ -596,7 +577,7 @@ const DetailsView = {
                       <textarea id="enq-notes" rows="3" placeholder="Tell us about the occasion, seating requirements, catering preferences..." class="w-full px-3 py-2 text-xs rounded-lg border border-outline bg-surface-container focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary"></textarea>
                     </div>
 
-                    <button type="submit" class="w-full py-3 bg-primary text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm hover:bg-inverse-surface transition-all flex items-center justify-center gap-2">
+                    <button type="submit" class="w-full py-3 bg-primary text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm hover:bg-inverse-surface transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
                       <span class="material-symbols-outlined text-[16px]">send</span>
                       <span>Send Direct Enquiry</span>
                     </button>
@@ -610,8 +591,46 @@ const DetailsView = {
                 </div>
               </div>
 
+              <!-- Left Column Bottom: Physical Location & Map (order-3 on mobile) -->
+              <div class="lg:col-span-7 lg:col-start-1 lg:row-start-2 space-y-6 order-3">
+                <div class="bg-surface-container-lowest rounded-2xl border border-outline p-6 shadow-sm space-y-4">
+                  <div class="flex items-center justify-between pb-3 border-b border-outline">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-primary text-[22px]">map</span>
+                      <h2 class="font-title-lg text-lg font-bold text-on-surface">Physical Location</h2>
+                    </div>
+                    <a href="https://maps.google.com/?q=${encodeURIComponent(hall.name + ' ' + (hall.address || hall.city))}" target="_blank" class="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline">
+                      <span>Open in Google Maps</span>
+                      <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+                    </a>
+                  </div>
+
+                  <p class="text-xs font-medium text-on-surface-variant">
+                    ${hall.address || `${hall.area || ''}, ${hall.city}, Karnataka, India`}
+                  </p>
+
+                  <div id="hall-leaflet-map" class="w-full h-56 rounded-xl border border-outline overflow-hidden z-0"></div>
+                </div>
+              </div>
+
             </div>
           </section>
+
+          <!-- Sticky Bottom Action Bar for Mobile (Basic Tier) -->
+          <div class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline px-4 py-2.5 flex items-center justify-between shadow-lg">
+            <div>
+              <div class="text-[10px] text-on-surface-variant font-medium">Direct Venue Desk</div>
+              <div class="font-bold text-xs text-on-surface">${hall.contact?.phone || '+91 82582 29988'}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="https://wa.me/${(hall.contact?.whatsapp || '918258229988').replace(/[^0-9]/g, '')}" target="_blank" class="w-10 h-10 flex items-center justify-center rounded-lg bg-surface-container border border-outline text-on-surface" title="WhatsApp">
+                <span class="material-symbols-outlined text-[18px]">chat</span>
+              </a>
+              <button type="button" class="px-4 py-2.5 bg-primary text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm active:scale-[0.98] transition-all cursor-pointer" onclick="DetailsView.scrollToBooking()">
+                Send Enquiry
+              </button>
+            </div>
+          </div>
 
         </div>
       `;
@@ -886,12 +905,12 @@ const DetailsView = {
           </div>
         </section>
 
-        <!-- Main Content (Left: Details, Calendar, Amenities, Reviews; Right: Sticky Booking Card) -->
+        <!-- Main Content (Desktop: 2 Columns; Mobile: Calendar & Booking first, Map & Reviews below) -->
         <div class="max-w-[1360px] mx-auto px-gutter-mobile md:px-gutter-desktop py-8 md:py-12 w-full">
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
             
-            <!-- Left 7 Columns -->
-            <div class="lg:col-span-7 space-y-6 md:space-y-8">
+            <!-- Section 1 (Desktop: Cols 1-7, Row 1; Mobile: 1st) -->
+            <div class="lg:col-span-7 lg:col-start-1 lg:row-start-1 space-y-6 md:space-y-8 order-1">
               
               ${hall.description && hall.description.trim() ? `
               <!-- Venue Description -->
@@ -951,7 +970,7 @@ const DetailsView = {
                     <p class="text-xs text-on-surface-variant max-w-md mx-auto leading-relaxed">
                       The proprietor of ${hall.name} keeps exact slot dates private. Please submit an inquiry or call the venue directly to confirm shift availability.
                     </p>
-                    <button class="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-inverse-surface transition-all" onclick="DetailsView.focusEnquiry()">
+                    <button class="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-inverse-surface transition-all cursor-pointer" onclick="DetailsView.focusEnquiry()">
                       Contact Hall Owner for Availability
                     </button>
                   </div>
@@ -975,67 +994,18 @@ const DetailsView = {
                   </div>
                 `}
               </div>
-
-              <!-- 4. Location Map -->
-              <div class="bg-surface-container-lowest p-5 md:p-6 rounded-xl border border-outline shadow-sm space-y-3" id="venue-map">
-                <div class="flex items-center justify-between pb-2 border-b border-outline">
-                  <div>
-                    <h3 class="font-headline-sm text-lg md:text-xl font-bold text-on-surface font-serif">Location & Access</h3>
-                    <p class="text-xs text-on-surface-variant">${hall.address || hall.area + ', ' + hall.city}</p>
-                  </div>
-                  <a class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg text-xs font-bold flex items-center gap-1" href="https://maps.google.com/?q=${hall.latitude},${hall.longitude}" target="_blank">
-                    <span class="material-symbols-outlined text-[15px]">navigation</span>
-                    <span>Get Directions</span>
-                  </a>
-                </div>
-                <div id="hall-leaflet-map" class="w-full h-64 rounded-xl border border-outline overflow-hidden"></div>
-              </div>
-
-              <!-- 5. Reviews -->
-              <div class="bg-surface-container-lowest p-5 md:p-6 rounded-xl border border-outline shadow-sm space-y-4">
-                <div class="flex items-center justify-between pb-2 border-b border-outline">
-                  <div>
-                    <h3 class="font-headline-sm text-lg md:text-xl font-bold text-on-surface font-serif">Guest Reviews & Ratings</h3>
-                    <p class="text-xs text-on-surface-variant">Feedback from verified celebration hosts</p>
-                  </div>
-                  <button class="px-3.5 py-1.5 bg-primary text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-inverse-surface" onclick="Modals.openReviewModal('${hall.id}')">
-                    Write Review
-                  </button>
-                </div>
-
-                <div class="space-y-3">
-                  ${reviews.length ? reviews.map(r => `
-                    <div class="p-3.5 bg-surface-container-low rounded-lg border border-outline space-y-1.5">
-                      <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                          <span class="font-bold text-xs text-on-surface">${r.customer_name}</span>
-                          <span class="text-[10px] px-1.5 py-0.5 rounded bg-status-available-bg text-status-available font-bold flex items-center gap-0.5">
-                            <span class="material-symbols-outlined text-[12px]">verified</span> Verified Event
-                          </span>
-                        </div>
-                        <div class="text-secondary text-xs">★★★★★</div>
-                      </div>
-                      <p class="text-xs text-on-surface-variant leading-relaxed">${r.text}</p>
-                      <div class="text-[10px] text-on-surface-variant/70">${r.date}</div>
-                    </div>
-                  `).join('') : `
-                    <p class="text-xs text-on-surface-variant text-center py-4">No reviews yet. Be the first to write a review!</p>
-                  `}
-                </div>
-              </div>
-
             </div>
 
-            <!-- Right 5 Columns: Desktop Sticky Booking & Enquiry Card -->
-            <div class="lg:col-span-5" id="booking-panel">
+            <!-- Section 2: Booking Panel (Desktop: Cols 8-12, Row 1-2 sticky; Mobile: 2nd right after shifts!) -->
+            <div class="lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:row-span-2 order-2" id="booking-panel">
               <div class="sticky top-28 bg-surface-container-lowest rounded-xl border border-outline shadow-md overflow-hidden p-5 md:p-6 space-y-4">
                 
                 <!-- Segmented Tabs: Direct Slot Hold vs Custom Enquiry -->
                 <div class="flex items-center p-1 bg-surface-container rounded-lg border border-outline">
-                  <button class="flex-1 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${this.activeBookingTab === 'direct' ? 'bg-white text-on-surface shadow-sm font-bold' : 'text-on-surface-variant hover:text-on-surface'}" onclick="DetailsView.setBookingTab('direct')">
+                  <button class="flex-1 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${this.activeBookingTab === 'direct' ? 'bg-white text-on-surface shadow-sm font-bold' : 'text-on-surface-variant hover:text-on-surface'}" onclick="DetailsView.setBookingTab('direct')">
                     Direct Slot Hold
                   </button>
-                  <button class="flex-1 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${this.activeBookingTab === 'enquiry' ? 'bg-white text-on-surface shadow-sm font-bold' : 'text-on-surface-variant hover:text-on-surface'}" onclick="DetailsView.setBookingTab('enquiry')">
+                  <button class="flex-1 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${this.activeBookingTab === 'enquiry' ? 'bg-white text-on-surface shadow-sm font-bold' : 'text-on-surface-variant hover:text-on-surface'}" onclick="DetailsView.setBookingTab('enquiry')">
                     Custom Enquiry
                   </button>
                 </div>
@@ -1128,7 +1098,7 @@ const DetailsView = {
                       </p>
                     </div>
 
-                    <button type="submit" id="btn-submit-hold" class="w-full py-3 bg-primary text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm hover:bg-inverse-surface transition-all flex items-center justify-center gap-2">
+                    <button type="submit" id="btn-submit-hold" class="w-full py-3 bg-primary text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm hover:bg-inverse-surface transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
                       <span class="material-symbols-outlined text-[17px]">send</span>
                       <span>Transmit Free Hold Request (Pay Owner Directly)</span>
                     </button>
@@ -1165,7 +1135,7 @@ const DetailsView = {
                       <textarea id="enq-notes" rows="3" class="w-full p-2.5 rounded-lg bg-surface-container-low border border-outline text-xs text-on-surface focus:outline-none focus:border-secondary" placeholder="e.g. Would like to schedule an in-person walkthrough this Sunday at 11 AM..." required></textarea>
                     </div>
 
-                    <button type="submit" class="w-full py-3 bg-secondary text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm hover:bg-secondary-container transition-all flex items-center justify-center gap-2">
+                    <button type="submit" class="w-full py-3 bg-secondary text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm hover:bg-secondary-container transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
                       <span class="material-symbols-outlined text-[17px]">send</span>
                       <span>Send Custom Enquiry</span>
                     </button>
@@ -1191,15 +1161,68 @@ const DetailsView = {
               </div>
             </div>
 
+            <!-- Section 3: Location Map & Reviews (Desktop: Cols 1-7, Row 2; Mobile: 3rd below Booking Panel) -->
+            <div class="lg:col-span-7 lg:col-start-1 lg:row-start-2 space-y-6 md:space-y-8 order-3">
+              
+              <!-- 4. Location Map -->
+              <div class="bg-surface-container-lowest p-5 md:p-6 rounded-xl border border-outline shadow-sm space-y-3" id="venue-map">
+                <div class="flex items-center justify-between pb-2 border-b border-outline">
+                  <div>
+                    <h3 class="font-headline-sm text-lg md:text-xl font-bold text-on-surface font-serif">Location & Access</h3>
+                    <p class="text-xs text-on-surface-variant">${hall.address || hall.area + ', ' + hall.city}</p>
+                  </div>
+                  <a class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg text-xs font-bold flex items-center gap-1" href="https://maps.google.com/?q=${hall.latitude},${hall.longitude}" target="_blank">
+                    <span class="material-symbols-outlined text-[15px]">navigation</span>
+                    <span>Get Directions</span>
+                  </a>
+                </div>
+                <div id="hall-leaflet-map" class="w-full h-64 rounded-xl border border-outline overflow-hidden"></div>
+              </div>
+
+              <!-- 5. Reviews -->
+              <div class="bg-surface-container-lowest p-5 md:p-6 rounded-xl border border-outline shadow-sm space-y-4">
+                <div class="flex items-center justify-between pb-2 border-b border-outline">
+                  <div>
+                    <h3 class="font-headline-sm text-lg md:text-xl font-bold text-on-surface font-serif">Guest Reviews & Ratings</h3>
+                    <p class="text-xs text-on-surface-variant">Feedback from verified celebration hosts</p>
+                  </div>
+                  <button class="px-3.5 py-1.5 bg-primary text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-inverse-surface cursor-pointer" onclick="Modals.openReviewModal('${hall.id}')">
+                    Write Review
+                  </button>
+                </div>
+
+                <div class="space-y-3">
+                  ${reviews.length ? reviews.map(r => `
+                    <div class="p-3.5 bg-surface-container-low rounded-lg border border-outline space-y-1.5">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <span class="font-bold text-xs text-on-surface">${r.customer_name}</span>
+                          <span class="text-[10px] px-1.5 py-0.5 rounded bg-status-available-bg text-status-available font-bold flex items-center gap-0.5">
+                            <span class="material-symbols-outlined text-[12px]">verified</span> Verified Event
+                          </span>
+                        </div>
+                        <div class="text-secondary text-xs">★★★★★</div>
+                      </div>
+                      <p class="text-xs text-on-surface-variant leading-relaxed">${r.text}</p>
+                      <div class="text-[10px] text-on-surface-variant/70">${r.date}</div>
+                    </div>
+                  `).join('') : `
+                    <p class="text-xs text-on-surface-variant text-center py-4">No reviews yet. Be the first to write a review!</p>
+                  `}
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
 
         <!-- Sticky Bottom Action Bar for Mobile (Requirement: Accessible Booking on Mobile) -->
         <div class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline px-4 py-2.5 flex items-center justify-between shadow-lg">
           <div>
-            <div class="text-[10px] text-on-surface-variant font-medium">Starting shift price</div>
-            <div class="font-bold text-sm text-on-surface">
-              ₹${(this.selectedPrice || 75000).toLocaleString()}
+            <div class="text-[10px] text-on-surface-variant font-medium">Shift tariff / slot</div>
+            <div class="font-bold text-sm text-on-surface" id="mobile-bottom-price-display">
+              ₹${(this.selectedPrice || minPrice || 75000).toLocaleString('en-IN')}
               <span class="text-[10px] font-normal text-on-surface-variant">/shift</span>
             </div>
           </div>
@@ -1207,9 +1230,9 @@ const DetailsView = {
             <a href="https://wa.me/${hall.contact?.whatsapp?.replace(/[^0-9]/g, '') || '918258229988'}" target="_blank" class="w-10 h-10 flex items-center justify-center rounded-lg bg-surface-container border border-outline text-on-surface" title="WhatsApp">
               <span class="material-symbols-outlined text-[18px]">chat</span>
             </a>
-            <a href="#booking-panel" class="px-4 py-2.5 bg-primary text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm" onclick="document.getElementById('booking-panel').scrollIntoView({behavior: 'smooth'})">
+            <button type="button" class="px-4 py-2.5 bg-primary text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm active:scale-[0.98] transition-all cursor-pointer" onclick="DetailsView.scrollToBooking()">
               Request Hold
-            </a>
+            </button>
           </div>
         </div>
 
@@ -1258,6 +1281,21 @@ const DetailsView = {
       .openPopup();
   },
 
+  scrollToBooking() {
+    const bp = document.getElementById('booking-panel') || document.getElementById('basic-enquiry-panel');
+    if (bp) {
+      const headerOffset = 70;
+      const elementPosition = bp.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+      bp.classList.add('ring-4', 'ring-secondary/50', 'transition-all');
+      setTimeout(() => bp.classList.remove('ring-4', 'ring-secondary/50'), 2500);
+    }
+  },
+
   selectSlot(date, slot, price) {
     this.selectedDate = date;
     this.selectedSlot = slot;
@@ -1275,7 +1313,17 @@ const DetailsView = {
     if (slotDisp) slotDisp.innerHTML = `<span class="text-secondary font-bold">${date}</span> • <span class="font-bold text-on-surface">${slot}</span>`;
     if (priceDisp) priceDisp.innerText = `₹${price.toLocaleString('en-IN')} Shift Tariff`;
 
+    const mobPriceDisp = document.getElementById('mobile-bottom-price-display');
+    if (mobPriceDisp) {
+      mobPriceDisp.innerHTML = `₹${price.toLocaleString('en-IN')} <span class="text-[10px] font-normal text-on-surface-variant">/shift</span>`;
+    }
+
     Toast.info('Slot Selected', `Configured reservation for ${date} (${slot}).`);
+
+    // On mobile devices, smoothly guide user to the booking form right below the shift schedule
+    if (window.innerWidth < 1024) {
+      setTimeout(() => this.scrollToBooking(), 250);
+    }
   },
 
   setBookingTab(tab) {
@@ -1289,8 +1337,7 @@ const DetailsView = {
 
   focusEnquiry() {
     this.setBookingTab('enquiry');
-    const bp = document.getElementById('booking-panel');
-    if (bp) bp.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => this.scrollToBooking(), 150);
   },
 
   submitDirectBooking() {

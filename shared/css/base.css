@@ -109,17 +109,41 @@ html, body {
   to { transform: translateY(0); }
 }
 
-/* Modal animation */
+/* Modal animation & Mobile Responsiveness */
 .modal-backdrop {
   animation: fadeIn 0.18s ease-out forwards;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
+
 .modal-content {
   animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  max-height: calc(100dvh - 2rem);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Modal internal scroll container for long dialogs on mobile */
+.modal-scroll-body {
+  overflow-y: auto;
+  flex: 1 1 auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 @keyframes scaleUp {
   from { opacity: 0; transform: translateY(8px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Global mobile responsiveness utilities */
+@media (max-width: 640px) {
+  .modal-content {
+    max-height: calc(100dvh - 1rem);
+    margin: auto 0.25rem;
+    width: calc(100% - 0.5rem);
+  }
 }
 
 /* Accessibility: Respect prefers-reduced-motion */
@@ -131,3 +155,4 @@ html, body {
     scroll-behavior: auto !important;
   }
 }
+
