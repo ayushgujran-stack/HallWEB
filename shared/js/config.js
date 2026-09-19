@@ -4,7 +4,7 @@
 (function() {
   window.VENUELUXE_CONFIG = {
     // Application Settings
-    APP_NAME: 'VenueLuxe',
+    APP_NAME: 'Halls Now',
     PRIMARY_REGION: 'Karnataka, India',
     DEFAULT_CITIES: ['Karkala', 'Mangalore', 'Udupi', 'Manipal', 'Bangalore'],
 
@@ -85,4 +85,5 @@
       return null;
     }
   };
+  window.HALLSNOW_CONFIG = window.VENUELUXE_CONFIG;
 })();

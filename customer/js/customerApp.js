@@ -1,4 +1,4 @@
-// Customer Portal Bootstrap — VenueLuxe
+// Customer Portal Bootstrap — Halls Now
 
 function bootCustomerApp() {
   if (window.__appBooted) return;
@@ -42,7 +42,7 @@ function bootCustomerApp() {
       }
     });
 
-    console.log('VenueLuxe Customer Portal initialized.');
+    console.log('Halls Now Customer Portal initialized.');
   } catch (err) {
     console.error('Error bootstrapping Customer Portal:', err);
   }

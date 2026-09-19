@@ -1,4 +1,4 @@
-// VenueLuxe Auth System
+// Halls Now Auth System
 // Hybrid Firebase Authentication & Offline LocalStorage Fallback
 // Supports intelligent role recognition & redirection (Owner -> /owner/, Admin -> /admin/, Customer -> /customer/)
 
@@ -28,7 +28,7 @@ const DEFAULT_ACCOUNTS = [
   {
     id: 'admin-1',
     name: 'Dr. K. R. Shenoy',
-    email: 'admin@venueluxe.com',
+    email: 'admin@hallsnow.com',
     phone: '+91 94481 00001',
     password: 'admin123',
     role: 'admin'
@@ -80,7 +80,7 @@ const Auth = {
   isAdminUser(user) {
     if (!user) return false;
     if (user.role === 'admin') return true;
-    if (user.id === 'admin-1' || user.email === 'admin@venueluxe.com') return true;
+    if (user.id === 'admin-1' || user.email === 'admin@venueluxe.com' || user.email === 'admin@hallsnow.com') return true;
     return false;
   },
 
@@ -261,11 +261,11 @@ const Auth = {
     const trimmedEmail = email.trim().toLowerCase();
 
     // Fast-path instant admin authentication (Zero network delay, completely deterministic)
-    if (trimmedEmail === 'admin@venueluxe.com' && password === 'admin123') {
+    if ((trimmedEmail === 'admin@hallsnow.com' || trimmedEmail === 'admin@venueluxe.com') && password === 'admin123') {
       const adminAcc = {
         id: 'admin-1',
         name: 'Dr. K. R. Shenoy',
-        email: 'admin@venueluxe.com',
+        email: 'admin@hallsnow.com',
         phone: '+91 94481 00001',
         role: 'admin'
       };

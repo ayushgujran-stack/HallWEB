@@ -484,7 +484,7 @@ const DetailsView = {
           <!-- Company Brand Visual Banner for Non-paying Directory Hall -->
           <section class="max-w-[1360px] mx-auto w-full px-gutter-mobile md:px-gutter-desktop mt-6">
             <div class="w-full h-48 md:h-64 rounded-2xl overflow-hidden shadow-sm border border-outline bg-primary relative flex items-center justify-center">
-              <img src="${window.appStore.getCompanyLogoPlaceholder(hall.name)}" alt="VenueLuxe Certified Directory - ${hall.name}" class="w-full h-full object-cover">
+              <img src="${window.appStore.getCompanyLogoPlaceholder(hall.name)}" alt="Halls Now Certified Directory - ${hall.name}" class="w-full h-full object-cover">
             </div>
           </section>
 

@@ -6,7 +6,7 @@
     "providers": {
       "emailPassword": true,
       "googleSignIn": {
-        "oAuthBrandDisplayName": "VenueLuxe"
+        "oAuthBrandDisplayName": "Halls Now"
       }
     }
   },

@@ -1,4 +1,4 @@
-// Admin Panel Bootstrap — VenueLuxe
+// Admin Panel Bootstrap — Halls Now
 // Enforces strict portal segregation: Hall owners and customers cannot access admin portal.
 
 window.quickLoginAsAdmin = async function() {
@@ -10,7 +10,7 @@ window.quickLoginAsAdmin = async function() {
 
   try {
     if (window.Auth) {
-      const res = await window.Auth.login({ email: 'admin@venueluxe.com', password: 'admin123' });
+      const res = await window.Auth.login({ email: 'admin@hallsnow.com', password: 'admin123' });
       if (res.success) {
         if (typeof Toast !== 'undefined') Toast.success('Access Granted', 'Signed in as Super Admin (Dr. Shenoy).');
         window.__appBooted = false;
@@ -22,7 +22,7 @@ window.quickLoginAsAdmin = async function() {
     const adminAcc = {
       id: 'admin-1',
       name: 'Dr. K. R. Shenoy',
-      email: 'admin@venueluxe.com',
+      email: 'admin@hallsnow.com',
       phone: '+91 94481 00001',
       role: 'admin'
     };
@@ -66,11 +66,11 @@ window.loginAdminUser = async function() {
     }
 
     // Direct fallback check
-    if (email.toLowerCase() === 'admin@venueluxe.com' && password === 'admin123') {
+    if ((email.toLowerCase() === 'admin@hallsnow.com' || email.toLowerCase() === 'admin@venueluxe.com') && password === 'admin123') {
       const adminAcc = {
         id: 'admin-1',
         name: 'Dr. K. R. Shenoy',
-        email: 'admin@venueluxe.com',
+        email: 'admin@hallsnow.com',
         phone: '+91 94481 00001',
         role: 'admin'
       };
@@ -91,7 +91,7 @@ window.loginAdminUser = async function() {
       errEl.textContent = 'Invalid administrator credentials. Only authorized platform administrators may access this portal.';
       errEl.classList.remove('hidden');
     } else if (typeof Toast !== 'undefined') {
-      Toast.error('Unauthorized', 'Invalid administrator credentials. Please use admin@venueluxe.com / admin123.');
+      Toast.error('Unauthorized', 'Invalid administrator credentials. Please use admin@hallsnow.com / admin123.');
     } else {
       alert('Unauthorized: Invalid administrator credentials.');
     }
@@ -160,7 +160,7 @@ function bootAdminApp() {
               <form onsubmit="event.preventDefault(); window.loginAdminUser();" class="space-y-3.5">
                 <div>
                   <label class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">Admin Email</label>
-                  <input type="email" id="admin-gate-email" value="admin@venueluxe.com" required class="w-full px-3.5 py-2.5 text-xs rounded-lg border border-outline bg-surface-container focus:bg-white focus:ring-1 focus:ring-primary outline-none font-semibold text-on-surface">
+                  <input type="email" id="admin-gate-email" value="admin@hallsnow.com" required class="w-full px-3.5 py-2.5 text-xs rounded-lg border border-outline bg-surface-container focus:bg-white focus:ring-1 focus:ring-primary outline-none font-semibold text-on-surface">
                 </div>
                 <div>
                   <label class="block text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">Admin Password</label>
@@ -175,7 +175,7 @@ function bootAdminApp() {
 
               <div class="pt-3 border-t border-outline flex items-center justify-between text-xs">
                 <a href="/customer/" class="text-on-surface-variant hover:text-primary font-medium">← Customer Marketplace</a>
-                <span class="text-[11px] text-on-surface-variant/70 font-mono">admin@venueluxe.com</span>
+                <span class="text-[11px] text-on-surface-variant/70 font-mono">admin@hallsnow.com</span>
               </div>
             </div>
           </div>

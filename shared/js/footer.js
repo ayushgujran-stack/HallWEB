@@ -1,4 +1,4 @@
-// Footer Component matching VenueLuxe luxury design
+// Footer Component matching Halls Now luxury design
 
 const FooterComponent = {
   getLogoSvg(size = 30) {
@@ -7,13 +7,16 @@ const FooterComponent = {
       return comp.getLogoSvg(size);
     }
     return `
-      <svg width="${size}" height="${size}" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
-        <rect width="40" height="40" rx="10" fill="#111827"/>
-        <path d="M20 7C14.4772 7 10 11.4772 10 17V33H30V17C30 11.4772 25.5228 7 20 7Z" stroke="#A65B2B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M20 13C16.6863 13 14 15.6863 14 19V33H26V19C26 15.6863 23.3137 13 20 13Z" fill="#A65B2B" fill-opacity="0.15" stroke="#A65B2B" stroke-width="1.5"/>
-        <circle cx="20" cy="18" r="2.5" fill="#FAF8F5"/>
-        <line x1="20" y1="23" x2="20" y2="33" stroke="#A65B2B" stroke-width="1.5"/>
-      </svg>
+      <div class="relative shrink-0 rounded-xl overflow-hidden shadow-sm" style="width: ${size}px; height: ${size}px; background: #080B11;">
+        <img src="../shared/assets/halls-now-logo.png" alt="Halls Now" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <svg style="display:none;" width="${size}" height="${size}" viewBox="0 0 54 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="54" height="54" rx="10" fill="#080B11"/>
+          <path d="M12 44V24C12 15.7157 18.7157 9 27 9C35.2843 9 42 15.7157 42 24V44" stroke="#E5C378" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M17 44V25C17 19.4772 21.4772 15 27 15C32.5228 15 37 19.4772 37 25V44" stroke="#E5C378" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M22 44V26C22 23.2386 24.2386 21 27 21C29.7614 21 32 23.2386 32 26V44" stroke="#E5C378" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M30 24C30 25.5 31.5 27 33 27C31.5 27 30 28.5 30 30C30 28.5 28.5 27 27 27C28.5 27 30 25.5 30 24Z" fill="#E5C378"/>
+        </svg>
+      </div>
     `;
   },
 
@@ -28,7 +31,7 @@ const FooterComponent = {
               <div class="flex items-center gap-2.5">
                 ${this.getLogoSvg(30)}
                 <span class="font-headline-sm text-xl text-on-surface tracking-tight font-serif">
-                  Venue<span class="text-secondary font-bold">Luxe</span>
+                  Halls <span class="text-secondary font-bold">Now</span>
                 </span>
               </div>
               <p class="font-body-md text-xs md:text-sm text-on-surface-variant max-w-sm leading-relaxed">
@@ -80,7 +83,7 @@ const FooterComponent = {
 
           <div class="mt-space-2xl pt-space-md flex flex-col sm:flex-row items-center justify-between gap-space-md border-t border-outline text-xs text-on-surface-variant">
             <p>
-              © 2025 VenueLuxe Marketplace. Premier Event & Wedding Venues. All rights reserved.
+              © 2025 Halls Now. Premier Event & Wedding Venues. All rights reserved.
             </p>
             <div class="flex items-center gap-space-md">
               <a class="hover:text-on-surface transition-colors" href="#how-it-works">Privacy Policy</a>

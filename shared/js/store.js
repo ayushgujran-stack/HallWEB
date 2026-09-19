@@ -41,7 +41,7 @@ const INITIAL_USERS = [
   {
     id: 'admin-1',
     name: 'Super Admin Authority',
-    email: 'admin@venueluxe.com',
+    email: 'admin@hallsnow.com',
     phone: '+91 80000 00001',
     role: 'admin',
     profile_image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80',

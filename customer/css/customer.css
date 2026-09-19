@@ -78,3 +78,40 @@
   70% { transform: scale(1); box-shadow: 0 0 0 12px rgba(155, 69, 0, 0); }
   100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(155, 69, 0, 0); }
 }
+
+/* Styled Scrollbar for Persistent Sticky Filter Sidebar */
+.styled-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.styled-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.styled-scrollbar::-webkit-scrollbar-thumb {
+  background: #d9d4cc;
+  border-radius: 9999px;
+}
+.styled-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #A65B2B;
+}
+
+/* Fix for position: sticky by preventing html/body overflow containment interception */
+html, body {
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+  height: auto !important;
+  min-height: 100vh !important;
+}
+
+#app-content {
+  overflow: visible !important;
+}
+
+/* Dedicated persistent sticky filter sidebar */
+.sticky-filter-sidebar {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 96px !important;
+  z-index: 25 !important;
+  align-self: flex-start !important;
+}
+

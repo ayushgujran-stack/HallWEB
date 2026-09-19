@@ -10,7 +10,7 @@ function syncEnvFile() {
   const envPath = path.resolve(__dirname, '.env');
   const targetPath = path.resolve(__dirname, 'shared/js/env.js');
   const envVars = {
-    VITE_APP_TITLE: "VenueLuxe"
+    VITE_APP_TITLE: "Halls Now"
   };
 
   if (fs.existsSync(envPath)) {

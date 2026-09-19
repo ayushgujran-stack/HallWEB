@@ -1,4 +1,4 @@
 // Auto-generated from .env
 window.__ENV = {
-  "VITE_APP_TITLE": "VenueLuxe"
+  "VITE_APP_TITLE": "Halls Now"
 };

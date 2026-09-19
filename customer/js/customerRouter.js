@@ -17,7 +17,7 @@ const CustomerRouter = {
     let hash = window.location.hash || '#/';
     if (!hash.startsWith('#/')) hash = '#/';
 
-    const path = hash.slice(1); // remove '#'
+    const path = hash.slice(1).split('?')[0]; // remove '#' and query parameters
     const container = document.getElementById('app-content');
     if (!container) return;
 

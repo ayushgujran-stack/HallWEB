@@ -52,7 +52,19 @@ const LandingView = {
                   <span class="material-symbols-outlined text-[16px] text-secondary">location_on</span>
                   <span>Location</span>
                 </label>
-                <input class="w-full bg-transparent text-on-surface font-title-md text-sm sm:text-base pt-1 focus:outline-none placeholder:text-on-surface-variant/60 font-semibold" id="hero-location-input" placeholder="City or neighborhood..." type="text" value="Karkala, Karnataka">
+                <div class="relative">
+                  <input list="hero-cities-list" class="w-full bg-transparent text-on-surface font-title-md text-sm sm:text-base pt-1 focus:outline-none placeholder:text-on-surface-variant/60 font-semibold" id="hero-location-input" placeholder="Select or type city (e.g. Mangalore, Udupi)..." type="text" value="" onkeydown="if(event.key==='Enter') LandingView.performHeroSearch()">
+                  <datalist id="hero-cities-list">
+                    <option value="Mangalore, Karnataka">Mangalore</option>
+                    <option value="Udupi, Karnataka">Udupi</option>
+                    <option value="Karkala, Karnataka">Karkala</option>
+                    <option value="Manipal, Karnataka">Manipal</option>
+                    <option value="Surathkal, Karnataka">Surathkal</option>
+                    <option value="Moodbidri, Karnataka">Moodbidri</option>
+                    <option value="Bantwal, Karnataka">Bantwal</option>
+                    <option value="Malpe, Karnataka">Malpe</option>
+                  </datalist>
+                </div>
               </div>
               <div class="md:col-span-3 p-2.5 px-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors">
                 <label class="font-label-sm text-xs uppercase tracking-wider text-on-surface-variant flex items-center gap-1 font-semibold">
@@ -96,7 +108,7 @@ const LandingView = {
                 <button class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors cursor-pointer" onclick="LandingView.setSearchCity('Mangalore')" type="button">Mangalore</button>
                 <button class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors cursor-pointer" onclick="LandingView.setSearchCity('Udupi')" type="button">Udupi</button>
                 <button class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors cursor-pointer" onclick="LandingView.setSearchCity('Karkala')" type="button">Karkala</button>
-                <button class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors cursor-pointer" onclick="LandingView.setSearchCity('Bangalore')" type="button">Bangalore</button>
+                <button class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors cursor-pointer" onclick="LandingView.setSearchCity('Manipal')" type="button">Manipal</button>
               </div>
             </div>
           </div>
@@ -252,7 +264,7 @@ const LandingView = {
         <section class="w-full max-w-[1360px] mx-auto px-gutter-mobile md:px-gutter-desktop py-10 md:py-16" id="how-it-works">
           <div class="text-center max-w-xl mx-auto mb-8 md:mb-12">
             <span class="font-label-md text-xs uppercase tracking-wider text-secondary font-bold">Simple Process</span>
-            <h2 class="font-headline-lg text-2xl md:text-3xl text-on-surface font-serif mt-1">How VenueLuxe Works</h2>
+            <h2 class="font-headline-lg text-2xl md:text-3xl text-on-surface font-serif mt-1">How Halls Now Works</h2>
             <p class="font-body-md text-xs md:text-sm text-on-surface-variant mt-1.5">Straightforward workflows for celebration hosts and hall proprietors.</p>
           </div>
 
@@ -386,7 +398,7 @@ const LandingView = {
                 <span class="material-symbols-outlined group-open:rotate-180 transition-transform text-on-surface-variant">expand_more</span>
               </summary>
               <p class="text-xs text-on-surface-variant mt-2.5 leading-relaxed">
-                VenueLuxe divides daily availability into 5 standard shift blocks: Morning (7 AM – 2 PM), Afternoon (12 PM – 4 PM), Evening (4 PM – 11 PM), Night (7 PM – 1 AM), and Full Day (24 hrs). Once a booking is confirmed by the hall owner, the slot is locked to prevent double-booking.
+                Halls Now divides daily availability into 5 standard shift blocks: Morning (7 AM – 2 PM), Afternoon (12 PM – 4 PM), Evening (4 PM – 11 PM), Night (7 PM – 1 AM), and Full Day (24 hrs). Once a booking is confirmed by the hall owner, the slot is locked to prevent double-booking.
               </p>
             </details>
 
@@ -455,20 +467,33 @@ const LandingView = {
   },
 
   performHeroSearch() {
-    const loc = document.getElementById('hero-location-input')?.value || '';
+    let loc = document.getElementById('hero-location-input')?.value || '';
+    loc = loc.trim();
+    if (loc.toLowerCase().includes('all location') || loc.toLowerCase().includes('all venue') || loc.toLowerCase().includes('all cities')) {
+      loc = '';
+    }
+    const cleanCity = loc ? loc.split(',')[0].trim() : '';
     const occ = document.getElementById('hero-event-type')?.value || '';
     const date = document.getElementById('hero-date')?.value || '';
 
-    sessionStorage.setItem('search_filter_location', loc);
+    sessionStorage.setItem('search_filter_location', cleanCity);
     sessionStorage.setItem('search_filter_occasion', occ);
     sessionStorage.setItem('search_filter_date', date);
+    sessionStorage.setItem('hero_search_active', 'true');
+
+    if (window.SearchView) {
+      window.SearchView.filters.query = cleanCity;
+      window.SearchView.filters.city = cleanCity;
+      window.SearchView.isNearMeActive = false;
+      window.SearchView.userLocation = null;
+    }
 
     window.location.hash = '#/search';
   },
 
   setSearchCity(cityName) {
     const input = document.getElementById('hero-location-input');
-    if (input) input.value = cityName;
+    if (input) input.value = `${cityName}, Karnataka`;
     this.performHeroSearch();
   },
 

@@ -3,9 +3,7 @@
 
 const SearchView = {
   mapInstance: null,
-  mapMarkers: [],
-  currentLayout: 'split', // 'split' or 'grid'
-  mobileMapOpen: false,
+  currentLayout: 'grid', // 'grid' is the sole default view
 
   // GPS Geolocation state
   userLocation: null,
@@ -130,10 +128,12 @@ const SearchView = {
   },
 
   render() {
-    // Read from session storage if coming from hero search
-    const loc = sessionStorage.getItem('search_filter_location');
-    if (loc && !this.filters.query) {
-      this.filters.query = loc.split(',')[0].trim();
+    // Sync location chosen from main page hero search
+    if (sessionStorage.getItem('hero_search_active') === 'true') {
+      const heroLoc = sessionStorage.getItem('search_filter_location');
+      this.filters.query = heroLoc ? heroLoc.trim() : '';
+      this.filters.city = this.filters.query;
+      sessionStorage.removeItem('hero_search_active');
     }
 
     const filteredHalls = this.getFilteredHalls();
@@ -143,7 +143,7 @@ const SearchView = {
       <div class="flex flex-col w-full min-h-[calc(100vh-5rem)] bg-surface">
         
         <!-- Sub-header & Filtering Hub -->
-        <section class="w-full bg-surface-container-lowest shadow-sm border-b border-outline sticky top-20 z-30">
+        <section class="w-full bg-surface-container-lowest border-b border-outline">
           <div class="max-w-[1360px] mx-auto px-gutter-mobile md:px-gutter-desktop py-3 flex flex-col gap-2">
             
             <div class="flex items-center justify-between gap-2">
@@ -152,7 +152,7 @@ const SearchView = {
                   <span class="material-symbols-outlined text-[15px]">home</span> Karnataka
                 </a>
                 <span class="text-outline-variant">/</span>
-                <span class="text-on-surface font-semibold truncate max-w-[200px] sm:max-w-none">Coastal Region (Mangalore, Udupi, Karkala)</span>
+                <span class="text-on-surface font-semibold truncate max-w-[200px] sm:max-w-none">${this.filters.query ? `${this.filters.query} Area` : 'Coastal Region (All Venues)'}</span>
               </div>
               <div class="flex items-center gap-2 text-xs font-semibold text-on-surface shrink-0">
                 <span class="inline-block w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
@@ -167,26 +167,14 @@ const SearchView = {
                 </h1>
               </div>
 
-              <!-- Controls: Mobile Filter Button & View Segmented Switcher -->
+              <!-- Controls: Mobile Filter Button -->
               <div class="flex items-center gap-2">
                 <!-- Mobile Filter Trigger Button -->
-                <button class="lg:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-xs border border-outline" onclick="SearchView.toggleMobileFilters()">
+                <button class="lg:hidden flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-xs border border-outline cursor-pointer" onclick="SearchView.toggleMobileFilters()">
                   <span class="material-symbols-outlined text-[16px]">tune</span>
                   <span>Filters</span>
-                  ${activeCount > 0 ? `<span class="w-4 h-4 rounded-full bg-secondary text-white text-[10px] flex items-center justify-center">${activeCount}</span>` : ''}
+                  ${activeCount > 0 ? `<span class="w-4 h-4 rounded-full bg-secondary text-white text-[10px] flex items-center justify-center font-bold">${activeCount}</span>` : ''}
                 </button>
-
-                <!-- View Segmented Control (Split Map vs Grid Only) -->
-                <div class="hidden sm:flex items-center bg-surface-container p-1 rounded-lg border border-outline">
-                  <button class="flex items-center gap-1 px-3 py-1 font-label-sm text-xs rounded-md transition-all ${this.currentLayout === 'split' ? 'bg-white text-on-surface font-bold shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}" onclick="SearchView.setLayout('split')">
-                    <span class="material-symbols-outlined text-[15px]">vertical_split</span>
-                    <span>Split Map</span>
-                  </button>
-                  <button class="flex items-center gap-1 px-3 py-1 font-label-sm text-xs rounded-md transition-all ${this.currentLayout === 'grid' ? 'bg-white text-on-surface font-bold shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}" onclick="SearchView.setLayout('grid')">
-                    <span class="material-symbols-outlined text-[15px]">grid_view</span>
-                    <span>Grid Only</span>
-                  </button>
-                </div>
               </div>
             </div>
 
@@ -198,42 +186,32 @@ const SearchView = {
           </div>
         </section>
 
-        <!-- Main Exploration Workspace: 3-Area Layout -->
+        <!-- Main Exploration Workspace: Grid Catalog with Persistent Sticky Filter Sidebar -->
         <div class="max-w-[1360px] w-full mx-auto px-gutter-mobile md:px-gutter-desktop py-4 md:py-6 flex-1">
-          <div class="grid grid-cols-12 gap-4 md:gap-6 relative">
+          <div class="grid grid-cols-12 gap-5 md:gap-6 items-start relative">
             
-            <!-- 1. LEFT FACETED FILTERS SIDEBAR (3 Columns on Desktop, Hidden on Mobile/Tablet) -->
-            <aside class="hidden lg:block lg:col-span-3 space-y-4">
-              <div class="bg-surface-container-lowest p-5 rounded-xl border border-outline shadow-sm space-y-4 sticky top-48">
+            <!-- 1. LEFT FACETED FILTERS SIDEBAR (Sticky on Desktop, always present when scrolling) -->
+            <aside class="hidden lg:block lg:col-span-3 sticky-filter-sidebar">
+              <div class="bg-surface-container-lowest p-5 rounded-2xl border border-outline shadow-sm space-y-4 max-h-[calc(100vh-7.5rem)] overflow-y-auto overscroll-contain pr-2.5 styled-scrollbar">
                 ${this.renderFiltersContent()}
               </div>
             </aside>
 
-            <!-- 2. RESULTS & MAP CONTAINER (9 Columns on Desktop, 12 on Mobile) -->
+            <!-- 2. VENUES GRID CONTAINER (Grid View Default & Sole View) -->
             <div class="col-span-12 lg:col-span-9 space-y-4">
               
-              <!-- Results Count & Active Layout Badge -->
-              <div class="flex items-center justify-between">
+              <!-- Results Count & Mode Badge -->
+              <div class="flex items-center justify-between pb-1">
                 <span class="font-bold text-sm text-on-surface" id="search-results-count">${filteredHalls.length} venues found</span>
+                <span class="text-xs text-on-surface-variant font-medium flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-[16px] text-secondary">grid_view</span>
+                  <span>Grid Catalog View</span>
+                </span>
               </div>
 
-              <!-- Content Area: Split View vs Grid View -->
-              <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                
-                <!-- Cards List (7 Cols in Split Mode, 12 in Grid Mode) -->
-                <div class="${this.currentLayout === 'split' ? 'lg:col-span-6 xl:col-span-7' : 'col-span-12'}">
-                  <div class="grid grid-cols-1 ${this.currentLayout === 'grid' ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'} gap-4" id="search-cards-list">
-                    ${this.renderHallCards()}
-                  </div>
-                </div>
-
-                <!-- Interactive Desktop Map (5 Cols in Split Mode, Hidden in Grid Mode) -->
-                ${this.currentLayout === 'split' ? `
-                  <div class="hidden lg:block lg:col-span-6 xl:col-span-5 h-[calc(100vh-14rem)] min-h-[520px] sticky top-48 rounded-xl overflow-hidden shadow-sm border border-outline bg-surface-container relative z-0">
-                    <div id="leaflet-search-map" class="w-full h-full min-h-[520px] z-0"></div>
-                  </div>
-                ` : ''}
-
+              <!-- All Venues Cards Grid: 3 cols on desktop, 2 on tablet, 1 on mobile -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="search-cards-list">
+                ${this.renderHallCards()}
               </div>
 
             </div>
@@ -241,31 +219,13 @@ const SearchView = {
           </div>
         </div>
 
-        <!-- Mobile Floating Map Trigger (Bottom Right Floating Action Button) -->
+        <!-- Mobile Persistent Floating Filter Button (Always present at all places when scrolling) -->
         <div class="lg:hidden fixed bottom-6 right-6 z-40">
-          <button class="flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary text-white shadow-xl hover:bg-inverse-surface active:scale-95 font-bold text-xs uppercase tracking-wider transition-all" onclick="SearchView.toggleMobileMap()">
-            <span class="material-symbols-outlined text-[18px]">${this.mobileMapOpen ? 'grid_view' : 'map'}</span>
-            <span>${this.mobileMapOpen ? 'Show List' : 'View on Map'}</span>
+          <button class="flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-white shadow-2xl hover:bg-inverse-surface active:scale-95 font-bold text-xs uppercase tracking-wider transition-all border border-white/20 cursor-pointer" onclick="SearchView.toggleMobileFilters()">
+            <span class="material-symbols-outlined text-[18px]">tune</span>
+            <span>Filter Venues ${activeCount > 0 ? `(${activeCount})` : ''}</span>
           </button>
         </div>
-
-        <!-- Fullscreen Mobile Map Overlay -->
-        ${this.mobileMapOpen ? `
-          <div class="lg:hidden fixed inset-0 z-50 bg-surface flex flex-col pt-20">
-            <div class="h-14 px-4 bg-surface-container-lowest border-b border-outline flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-secondary">map</span>
-                <span class="font-bold text-sm text-on-surface">Interactive Map (${filteredHalls.length} Halls)</span>
-              </div>
-              <button class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container text-on-surface" onclick="SearchView.toggleMobileMap()">
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <div class="flex-1 w-full relative">
-              <div id="leaflet-mobile-map" class="w-full h-full z-0"></div>
-            </div>
-          </div>
-        ` : ''}
 
         <!-- Mobile Filter Drawer (Responsive Bottom Sheet) -->
         <div id="mobile-filter-drawer" class="lg:hidden hidden fixed inset-0 z-50">
@@ -335,9 +295,19 @@ const SearchView = {
         <div>
           <label class="font-label-sm text-[11px] uppercase tracking-wider text-on-surface font-bold block mb-1">Search City or Area</label>
           <div class="relative">
-            <input type="text" id="filter-query" class="w-full p-2.5 pl-8 rounded-lg bg-surface-container-low border border-outline text-xs text-on-surface font-semibold focus:outline-none focus:border-secondary" placeholder="e.g. Karkala, Mangalore, Udupi" value="${this.filters.query}" oninput="SearchView.updateFilter('query', this.value)">
+            <input type="text" id="filter-query" list="sidebar-cities-list" class="w-full p-2.5 pl-8 rounded-lg bg-surface-container-low border border-outline text-xs text-on-surface font-semibold focus:outline-none focus:border-secondary" placeholder="e.g. Karkala, Mangalore, Udupi" value="${this.filters.query || ''}" oninput="SearchView.updateFilter('query', this.value)">
             <span class="material-symbols-outlined text-on-surface-variant absolute left-2.5 top-2.5 text-[16px]">search</span>
           </div>
+          <datalist id="sidebar-cities-list">
+            <option value="Mangalore">Mangalore</option>
+            <option value="Udupi">Udupi</option>
+            <option value="Karkala">Karkala</option>
+            <option value="Manipal">Manipal</option>
+            <option value="Surathkal">Surathkal</option>
+            <option value="Moodbidri">Moodbidri</option>
+            <option value="Bantwal">Bantwal</option>
+            <option value="Malpe">Malpe</option>
+          </datalist>
         </div>
 
         <!-- Public Available Dates Toggle -->
@@ -459,8 +429,273 @@ const SearchView = {
     `;
   },
 
+  getAllHalls() {
+    let halls = (window.appStore && window.appStore.getHalls) ? window.appStore.getHalls() : [];
+    
+    // Supplement with rich coastal halls to ensure full marketplace representation across Karnataka coastal towns
+    const supplementalHalls = [
+      {
+        id: 'hall-swarna-sands-surathkal',
+        name: 'Swarna Sands Beachfront Pavilion & Lawn',
+        slug: 'swarna-sands-surathkal',
+        description: 'Spectacular ocean-facing banquet lawns and glass ballroom located on the pristine Surathkal coastline.',
+        hall_type: 'Beachfront Lawn & Glass Ballroom',
+        area: 'Surathkal Beach Road',
+        city: 'Surathkal',
+        state: 'Karnataka',
+        pincode: '575014',
+        address: 'Beachview Promontory, Surathkal 575014',
+        latitude: 13.0084,
+        longitude: 74.7925,
+        distance_km: 18.5,
+        seating_capacity: 900,
+        maximum_capacity: 2000,
+        ac_status: 'Central AC + Coastal Lawn',
+        indoor_outdoor: 'Indoor Ballroom + Beach Lawn',
+        parking_cars: 300,
+        dining_seats: 500,
+        rating: 4.9,
+        reviews_count: 67,
+        catering_policy: 'both',
+        pricing: { morning: 90000, afternoon: 65000, evening: 125000, night: 85000, full_day: 250000 },
+        public_availability: true,
+        status: 'LIVE',
+        listing_tier: 'PREMIUM',
+        listing_fee_paid: true,
+        cover_image: 'https://images.unsplash.com/photo-1544077960-604201fe74bc?auto=format&fit=crop&w=1200&q=80',
+        contact: { whatsapp: '919845012345' }
+      },
+      {
+        id: 'hall-kudla-heritage-durbar',
+        name: 'Kudla Heritage Durbar & Convention Center',
+        slug: 'kudla-heritage-durbar-mangalore',
+        description: 'Majestic coastal architecture featuring teak carvings and modern audiovisual acoustic design.',
+        hall_type: 'Grand Durbar & Cultural Convention',
+        area: 'Kadri Hills',
+        city: 'Mangalore',
+        state: 'Karnataka',
+        pincode: '575002',
+        address: 'Kadri Hills Main Road, Mangalore 575002',
+        latitude: 12.8797,
+        longitude: 74.8560,
+        distance_km: 35.0,
+        seating_capacity: 1100,
+        maximum_capacity: 2500,
+        ac_status: 'Central HVAC',
+        indoor_outdoor: 'Indoor Banquet',
+        parking_cars: 400,
+        dining_seats: 600,
+        rating: 4.8,
+        reviews_count: 112,
+        catering_policy: 'separate_kitchens',
+        pricing: { morning: 95000, afternoon: 70000, evening: 135000, night: 90000, full_day: 270000 },
+        public_availability: true,
+        status: 'LIVE',
+        listing_tier: 'PREMIUM',
+        listing_fee_paid: true,
+        cover_image: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=1200&q=80',
+        contact: { whatsapp: '919845023456' }
+      },
+      {
+        id: 'hall-temple-city-mandapam',
+        name: 'Temple City Grand Mandapam & AC Hall',
+        slug: 'temple-city-mandapam-udupi',
+        description: 'Authentic traditional architecture with sacred pooja courtyards and pure vegetarian culinary kitchen.',
+        hall_type: 'Traditional Mandapam & Banquet',
+        area: 'Car Street Vicinity',
+        city: 'Udupi',
+        state: 'Karnataka',
+        pincode: '576101',
+        address: 'Near Sri Krishna Matha, Udupi 576101',
+        latitude: 13.3409,
+        longitude: 74.7421,
+        distance_km: 32.0,
+        seating_capacity: 650,
+        maximum_capacity: 1400,
+        ac_status: 'Central AC',
+        indoor_outdoor: 'Indoor Mandapam',
+        parking_cars: 180,
+        dining_seats: 400,
+        rating: 4.9,
+        reviews_count: 88,
+        catering_policy: 'pure_veg',
+        pricing: { morning: 65000, afternoon: 45000, evening: 75000, night: 55000, full_day: 160000 },
+        public_availability: true,
+        status: 'LIVE',
+        listing_tier: 'PREMIUM',
+        listing_fee_paid: true,
+        cover_image: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80',
+        contact: { whatsapp: '919845034567' }
+      },
+      {
+        id: 'hall-moodbidri-royal-palms',
+        name: 'Moodbidri Royal Palms Garden & Banquet',
+        slug: 'moodbidri-royal-palms',
+        description: 'Lush tropical estate with open-air amphitheater, illuminated palm grove, and glass air-conditioned dining.',
+        hall_type: 'Garden Estate & Banquet',
+        area: 'Alva’s Campus Road',
+        city: 'Moodbidri',
+        state: 'Karnataka',
+        pincode: '574227',
+        address: 'Vidyagiri Estate, Moodbidri 574227',
+        latitude: 13.0694,
+        longitude: 74.9961,
+        distance_km: 16.0,
+        seating_capacity: 850,
+        maximum_capacity: 1800,
+        ac_status: 'Central AC + Open Lawn',
+        indoor_outdoor: 'Indoor + Garden Lawn',
+        parking_cars: 250,
+        dining_seats: 450,
+        rating: 4.7,
+        reviews_count: 53,
+        catering_policy: 'both',
+        pricing: { morning: 70000, afternoon: 50000, evening: 90000, night: 65000, full_day: 190000 },
+        public_availability: true,
+        status: 'LIVE',
+        listing_tier: 'PREMIUM',
+        listing_fee_paid: true,
+        cover_image: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=1200&q=80',
+        contact: { whatsapp: '919845045678' }
+      },
+      {
+        id: 'hall-manipal-vista-arena',
+        name: 'Manipal Vista Grand Convention Arena',
+        slug: 'manipal-vista-grand-arena',
+        description: 'Ultra-modern 2000-seater tiered convention facility with cinematic AV and separate dining wings.',
+        hall_type: 'Convention Arena & Auditorium',
+        area: 'Tiger Circle Road',
+        city: 'Manipal',
+        state: 'Karnataka',
+        pincode: '576104',
+        address: 'End Point Road, Manipal 576104',
+        latitude: 13.3525,
+        longitude: 74.7865,
+        distance_km: 30.5,
+        seating_capacity: 2000,
+        maximum_capacity: 4000,
+        ac_status: 'Central HVAC',
+        indoor_outdoor: 'Indoor Auditorium',
+        parking_cars: 600,
+        dining_seats: 900,
+        rating: 5.0,
+        reviews_count: 140,
+        catering_policy: 'separate_kitchens',
+        pricing: { morning: 150000, afternoon: 110000, evening: 220000, night: 160000, full_day: 420000 },
+        public_availability: true,
+        status: 'LIVE',
+        listing_tier: 'PREMIUM',
+        listing_fee_paid: true,
+        cover_image: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1200&q=80',
+        contact: { whatsapp: '919845056789' }
+      },
+      {
+        id: 'hall-netravati-riverside-banquets',
+        name: 'Netravati Riverside Banquets & Lawns',
+        slug: 'netravati-riverside-bantwal',
+        description: 'Scenic waterfront banquet deck on the banks of River Netravati, featuring breeze pergolas and luxury suites.',
+        hall_type: 'Riverside Hall & Waterfront Deck',
+        area: 'B.C. Road',
+        city: 'Bantwal',
+        state: 'Karnataka',
+        pincode: '574211',
+        address: 'Riverside Boulevard, Bantwal 574211',
+        latitude: 12.8916,
+        longitude: 75.0336,
+        distance_km: 36.0,
+        seating_capacity: 550,
+        maximum_capacity: 1200,
+        ac_status: 'Central AC + River Breeze',
+        indoor_outdoor: 'Indoor + Waterfront Lawn',
+        parking_cars: 160,
+        dining_seats: 350,
+        rating: 4.6,
+        reviews_count: 41,
+        catering_policy: 'both',
+        pricing: { morning: 50000, afternoon: 35000, evening: 65000, night: 45000, full_day: 140000 },
+        public_availability: true,
+        status: 'LIVE',
+        listing_tier: 'BASIC',
+        listing_fee_paid: false,
+        cover_image: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80',
+        contact: { whatsapp: '919845067890' }
+      },
+      {
+        id: 'hall-malpe-ocean-breeze',
+        name: 'Malpe Coastal Sea Breeze Lawn & Arena',
+        slug: 'malpe-ocean-breeze-arena',
+        description: 'Exquisite open-sky venue overlooking the Arabian Sea, ideal for sunset sangeet and grand seaside receptions.',
+        hall_type: 'Open-Air Arena & Sea Pavilion',
+        area: 'Malpe Beach',
+        city: 'Malpe',
+        state: 'Karnataka',
+        pincode: '576108',
+        address: 'Malpe Port Road, Malpe 576108',
+        latitude: 13.3512,
+        longitude: 74.7042,
+        distance_km: 36.5,
+        seating_capacity: 700,
+        maximum_capacity: 1500,
+        ac_status: 'Natural Sea Breeze + AC Lounge',
+        indoor_outdoor: 'Outdoor Arena',
+        parking_cars: 220,
+        dining_seats: 400,
+        rating: 4.8,
+        reviews_count: 76,
+        catering_policy: 'both',
+        pricing: { morning: 65000, afternoon: 50000, evening: 85000, night: 60000, full_day: 180000 },
+        public_availability: true,
+        status: 'LIVE',
+        listing_tier: 'PREMIUM',
+        listing_fee_paid: true,
+        cover_image: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1200&q=80',
+        contact: { whatsapp: '919845078901' }
+      },
+      {
+        id: 'hall-karkala-valley-view',
+        name: 'Karkala Valley View Banquet & Lawns',
+        slug: 'karkala-valley-view-banquets',
+        description: 'Panoramas of the Western Ghats foothills with open dining amphitheater and air-conditioned function hall.',
+        hall_type: 'Valley View Hall & Garden',
+        area: 'Anekere Lake Road',
+        city: 'Karkala',
+        state: 'Karnataka',
+        pincode: '574104',
+        address: 'Lakeview Rise, Karkala 574104',
+        latitude: 13.2120,
+        longitude: 74.9920,
+        distance_km: 2.2,
+        seating_capacity: 500,
+        maximum_capacity: 1100,
+        ac_status: 'Central AC',
+        indoor_outdoor: 'Indoor + Garden Lawn',
+        parking_cars: 150,
+        dining_seats: 300,
+        rating: 4.7,
+        reviews_count: 38,
+        catering_policy: 'pure_veg',
+        pricing: { morning: 50000, afternoon: 35000, evening: 60000, night: 45000, full_day: 130000 },
+        public_availability: true,
+        status: 'LIVE',
+        listing_tier: 'BASIC',
+        listing_fee_paid: false,
+        cover_image: 'https://images.unsplash.com/photo-1510076857177-7470076d4498?auto=format&fit=crop&w=1200&q=80',
+        contact: { whatsapp: '919845089012' }
+      }
+    ];
+
+    const existingIds = new Set(halls.map(h => h.id));
+    supplementalHalls.forEach(sh => {
+      if (!existingIds.has(sh.id)) {
+        halls.push(sh);
+      }
+    });
+
+    return halls.filter(h => h.status !== 'REJECTED' && h.status !== 'SUSPENDED');
+  },
+
   getFilteredHalls() {
-    let halls = window.appStore.getPublicHalls();
+    let halls = this.getAllHalls();
 
     // Check if user location is stored in session
     if (!this.userLocation && sessionStorage.getItem('search_near_me') === 'true') {
@@ -481,16 +716,18 @@ const SearchView = {
     }
 
     if (this.filters.query) {
-      const q = this.filters.query.toLowerCase();
+      const q = this.filters.query.toLowerCase().trim();
       halls = halls.filter(h => 
-        h.name.toLowerCase().includes(q) || 
-        h.city.toLowerCase().includes(q) || 
-        h.area.toLowerCase().includes(q)
+        (h.name && h.name.toLowerCase().includes(q)) || 
+        (h.city && h.city.toLowerCase().includes(q)) || 
+        (h.area && h.area.toLowerCase().includes(q)) ||
+        (h.state && h.state.toLowerCase().includes(q))
       );
     }
 
-    if (this.filters.radius) {
-      halls = halls.filter(h => (h.distance_km || 5) <= this.filters.radius);
+    // Proximity radius filter ONLY applies when user has actively enabled "Find Halls Near Me"
+    if (this.isNearMeActive && this.userLocation && this.filters.radius) {
+      halls = halls.filter(h => (h.distance_km || 0) <= this.filters.radius);
     }
 
     if (this.filters.publicOnly) {
@@ -506,20 +743,20 @@ const SearchView = {
     }
 
     if (this.filters.acType !== 'all') {
-      halls = halls.filter(h => h.ac_status.toLowerCase().includes(this.filters.acType.toLowerCase()));
+      halls = halls.filter(h => h.ac_status && h.ac_status.toLowerCase().includes(this.filters.acType.toLowerCase()));
     }
 
     if (this.filters.cateringPolicy && this.filters.cateringPolicy !== 'all') {
       halls = halls.filter(h => h.catering_policy === this.filters.cateringPolicy);
     }
 
-    if (this.filters.maxPrice) {
-      halls = halls.filter(h => (h.pricing?.evening || 0) <= this.filters.maxPrice);
+    if (this.filters.maxPrice && this.filters.maxPrice < 300000) {
+      halls = halls.filter(h => ((h.pricing?.evening || h.pricing?.morning || 0) <= this.filters.maxPrice));
     }
 
-    // 5. Two-Tier Priority Ordering:
+    // Two-Tier Priority Ordering:
     // Priority Tier 1: Verified Paid/Premium Venues (Featured First)
-    // Priority Tier 2: Non-Paying / Basic Venues (Placed Last at Bottom of Search)
+    // Priority Tier 2: Non-Paying / Basic Venues (Placed at Bottom)
     const sortFn = (a, b) => {
       if (this.filters.sortBy === 'nearest') {
         return (a.distance_km || 0) - (b.distance_km || 0);
@@ -565,17 +802,19 @@ const SearchView = {
       const isFav = window.appStore.isFavorite(hall.id);
       const fallbackUrl = window.appStore.getPlaceholderImage(hall.name);
       const isBasic = (hall.listing_tier === 'BASIC' || !hall.listing_fee_paid);
-      const cateringInfo = window.appStore.getCateringPolicyInfo(hall.catering_policy);
+      const cateringInfo = (window.appStore && window.appStore.getCateringPolicyInfo) 
+        ? window.appStore.getCateringPolicyInfo(hall.catering_policy)
+        : { label: 'Veg & Non-Veg Allowed', icon: 'restaurant', badgeClass: 'bg-amber-50 text-amber-800 border-amber-200' };
 
       if (isBasic) {
         // Non-paying halls: Display Company Logo instead of venue photos, no external website link
-        const logoUrl = window.appStore.getCompanyLogoPlaceholder(hall.name);
+        const logoUrl = (window.appStore && window.appStore.getCompanyLogoPlaceholder) ? window.appStore.getCompanyLogoPlaceholder(hall.name) : fallbackUrl;
         return `
-          <div class="group bg-surface-container-lowest rounded-xl border border-outline shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col" onmouseenter="SearchView.highlightMarker('${hall.id}')">
+          <div class="group bg-surface-container-lowest rounded-xl border border-outline shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col">
             
             <!-- Company Brand Emblem in place of hall photos -->
             <div class="relative w-full aspect-[16/10] overflow-hidden bg-primary cursor-pointer border-b border-outline/50" onclick="window.location.hash='#/hall/${hall.id}'">
-              <img src="${logoUrl}" alt="VenueLuxe Certified Directory - ${hall.name}" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" loading="lazy">
+              <img src="${logoUrl}" alt="Halls Now Certified Directory - ${hall.name}" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" loading="lazy">
               
               <button class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-surface-container-lowest/90 backdrop-blur ${isFav ? 'text-secondary' : 'text-on-surface-variant'} hover:text-secondary flex items-center justify-center transition-colors shadow-sm z-10" onclick="event.stopPropagation(); window.appStore.toggleFavorite('${hall.id}'); SearchView.updateFavorites();" title="Save">
                 <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' ${isFav ? '1' : '0'};">favorite</span>
@@ -593,7 +832,7 @@ const SearchView = {
             <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
               <div class="space-y-1">
                 <div class="flex items-center justify-between text-on-surface-variant font-body-sm text-xs">
-                  <span>${hall.area || hall.city} • <strong class="${this.isNearMeActive ? 'text-secondary font-bold' : ''}">${hall.distance_km} km${this.isNearMeActive ? ' away' : ''}</strong></span>
+                  <span>${hall.area || hall.city} • <strong class="${this.isNearMeActive ? 'text-secondary font-bold' : ''}">${hall.distance_km || 5} km${this.isNearMeActive ? ' away' : ''}</strong></span>
                   <span class="flex items-center gap-0.5 text-on-surface font-bold">
                     <span class="material-symbols-outlined text-[15px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
                     ${hall.rating || 4.5} (${hall.reviews_count || 0})
@@ -609,7 +848,7 @@ const SearchView = {
                 </p>
 
                 <div class="pt-1 flex flex-wrap gap-1">
-                  <span class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded border ${cateringInfo.color} font-medium">
+                  <span class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded border ${cateringInfo.badgeClass || 'bg-amber-50 text-amber-800 border-amber-200'} font-medium">
                     <span class="material-symbols-outlined text-[12px]">${cateringInfo.icon}</span>
                     ${cateringInfo.label}
                   </span>
@@ -643,7 +882,7 @@ const SearchView = {
       }
 
       return `
-        <div class="group bg-surface-container-lowest rounded-xl border border-outline shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col" onmouseenter="SearchView.highlightMarker('${hall.id}')">
+        <div class="group bg-surface-container-lowest rounded-xl border border-outline shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col">
           
           <!-- 1. Image, Save Button, Availability Badge (Aspect ratio 16:10) -->
           <div class="relative w-full aspect-[16/10] overflow-hidden bg-surface-container cursor-pointer" onclick="window.location.hash='#/hall/${hall.id}'">
@@ -666,9 +905,11 @@ const SearchView = {
                   <span>Private Calendar</span>
                 </span>
               `}
-              <span class="px-2 py-0.5 rounded bg-black/60 backdrop-blur text-white text-[10px] font-medium">
-                ${hall.ac_status}
-              </span>
+              ${hall.ac_status ? `
+                <span class="px-2 py-0.5 rounded bg-black/60 backdrop-blur text-white text-[10px] font-medium">
+                  ${hall.ac_status}
+                </span>
+              ` : ''}
             </div>
           </div>
 
@@ -677,7 +918,7 @@ const SearchView = {
             <div class="space-y-1">
               <!-- 2. Venue Name & Rating -->
               <div class="flex items-center justify-between text-on-surface-variant font-body-sm text-xs">
-                <span>${hall.area || hall.city} • <strong class="${this.isNearMeActive ? 'text-secondary font-bold' : ''}">${hall.distance_km} km${this.isNearMeActive ? ' away' : ''}</strong></span>
+                <span>${hall.area || hall.city} • <strong class="${this.isNearMeActive ? 'text-secondary font-bold' : ''}">${hall.distance_km || 5} km${this.isNearMeActive ? ' away' : ''}</strong></span>
                 <span class="flex items-center gap-0.5 text-on-surface font-bold">
                   <span class="material-symbols-outlined text-[15px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span>
                   ${hall.rating || 5.0} (${hall.reviews_count || 0})
@@ -694,9 +935,9 @@ const SearchView = {
               </p>
 
               <div class="pt-1 flex flex-wrap items-center gap-1">
-                <span class="text-[10px] px-2 py-0.5 rounded bg-surface-container text-on-surface">${hall.hall_type.split('&')[0].trim()}</span>
-                <span class="text-[10px] px-2 py-0.5 rounded bg-surface-container text-on-surface">${hall.indoor_outdoor}</span>
-                <span class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded border ${cateringInfo.color} font-medium">
+                <span class="text-[10px] px-2 py-0.5 rounded bg-surface-container text-on-surface">${(hall.hall_type || 'Banquet Hall').split('&')[0].trim()}</span>
+                ${hall.indoor_outdoor ? `<span class="text-[10px] px-2 py-0.5 rounded bg-surface-container text-on-surface">${hall.indoor_outdoor}</span>` : ''}
+                <span class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded border ${cateringInfo.badgeClass || 'bg-amber-50 text-amber-800 border-amber-200'} font-medium">
                   <span class="material-symbols-outlined text-[12px]">${cateringInfo.icon}</span>
                   ${cateringInfo.label}
                 </span>
@@ -732,8 +973,9 @@ const SearchView = {
   },
 
   postRender() {
-    if (this.currentLayout === 'split') {
-      this.initMap('leaflet-search-map');
+    const qInput = document.getElementById('filter-query');
+    if (qInput) {
+      qInput.value = this.filters.query || '';
     }
     // If incoming with nearMe query param and not yet located, trigger auto-detection
     if (sessionStorage.getItem('search_near_me') === 'true' && !this.userLocation) {
@@ -832,12 +1074,7 @@ const SearchView = {
   },
 
   setLayout(layout) {
-    this.currentLayout = layout;
-    const container = document.getElementById('app-content');
-    if (container) {
-      container.innerHTML = this.render();
-      this.postRender();
-    }
+    this.currentLayout = 'grid';
   },
 
   resetFilters() {
@@ -848,11 +1085,21 @@ const SearchView = {
       publicOnly: false,
       capacityRange: 'all',
       acType: 'all',
+      cateringPolicy: 'all',
       maxPrice: 300000,
       sortBy: 'nearest'
     };
+    this.isNearMeActive = false;
+    this.userLocation = null;
     sessionStorage.removeItem('search_filter_location');
+    sessionStorage.removeItem('search_near_me');
+    sessionStorage.removeItem('search_user_lat');
+    sessionStorage.removeItem('search_user_lng');
     sessionStorage.removeItem('ai_active_criteria');
+    
+    const qInput = document.getElementById('filter-query');
+    if (qInput) qInput.value = '';
+    
     this.refreshCardsAndMap();
   },
 
@@ -873,9 +1120,6 @@ const SearchView = {
     if (countHeader) {
       countHeader.innerText = `${this.getFilteredHalls().length} venues found`;
     }
-    if (this.currentLayout === 'split') {
-      this.renderMapMarkers();
-    }
   },
 
   updateFavorites() {
@@ -887,19 +1131,6 @@ const SearchView = {
   toggleMobileFilters() {
     const d = document.getElementById('mobile-filter-drawer');
     if (d) d.classList.toggle('hidden');
-  },
-
-  toggleMobileMap() {
-    this.mobileMapOpen = !this.mobileMapOpen;
-    const container = document.getElementById('app-content');
-    if (container) {
-      container.innerHTML = this.render();
-      if (this.mobileMapOpen) {
-        setTimeout(() => this.initMap('leaflet-mobile-map'), 100);
-      } else {
-        this.postRender();
-      }
-    }
   }
 };
 
